@@ -20,26 +20,28 @@ let incomingOffer = null;
 
 
 
-/* =========================
-   HELPERS
-========================= */
+// =========================
+// HELPERS
+// =========================
 
 
-function $(id) {
+function $(id){
     return document.getElementById(id);
 }
 
 
-function getUserId() {
+
+function getUserId(){
 
     return localStorage.getItem(
         "videoCallUserId"
     );
+
 }
 
 
 
-function avatar(name) {
+function avatar(name){
 
     const letter =
         String(name || "U")
@@ -54,13 +56,15 @@ function avatar(name) {
     width="100"
     height="100">
 
-    <rect width="100"
-    height="100"
-    rx="50"
+    <circle
+    cx="50"
+    cy="50"
+    r="50"
     fill="black"/>
 
-    <text x="50"
-    y="60"
+    <text
+    x="50"
+    y="62"
     text-anchor="middle"
     font-size="45"
     font-family="Arial"
@@ -75,10 +79,11 @@ function avatar(name) {
     `;
 
 
-    return (
-        "data:image/svg+xml;charset=UTF-8," +
-        encodeURIComponent(svg)
-    );
+    return
+
+    "data:image/svg+xml;charset=UTF-8,"
+    +
+    encodeURIComponent(svg);
 
 }
 
@@ -97,7 +102,7 @@ function escapeHtml(value){
 
 
 
-function toast(message){
+function toast(text){
 
     const box =
         $("toast");
@@ -107,7 +112,7 @@ function toast(message){
 
 
     box.textContent =
-        message;
+        text;
 
 
     box.classList.add(
@@ -127,28 +132,29 @@ function toast(message){
 
 
 
-
-
-/* =========================
- PAGE
-========================= */
+// =========================
+// PAGE
+// =========================
 
 
 function showLogin(){
 
     $("loginPage")
-    .classList
-    .remove("hidden");
+    ?.classList.remove(
+        "hidden"
+    );
 
 
     $("registerPage")
-    .classList
-    .add("hidden");
+    ?.classList.add(
+        "hidden"
+    );
 
 
     $("appPage")
-    .classList
-    .add("hidden");
+    ?.classList.add(
+        "hidden"
+    );
 
 }
 
@@ -157,18 +163,21 @@ function showLogin(){
 function showRegister(){
 
     $("loginPage")
-    .classList
-    .add("hidden");
+    ?.classList.add(
+        "hidden"
+    );
 
 
     $("registerPage")
-    .classList
-    .remove("hidden");
+    ?.classList.remove(
+        "hidden"
+    );
 
 
     $("appPage")
-    .classList
-    .add("hidden");
+    ?.classList.add(
+        "hidden"
+    );
 
 }
 
@@ -177,28 +186,30 @@ function showRegister(){
 function showApp(){
 
     $("loginPage")
-    .classList
-    .add("hidden");
+    ?.classList.add(
+        "hidden"
+    );
 
 
     $("registerPage")
-    .classList
-    .add("hidden");
+    ?.classList.add(
+        "hidden"
+    );
 
 
     $("appPage")
-    .classList
-    .remove("hidden");
+    ?.classList.remove(
+        "hidden"
+    );
 
 }
 
 
 
 
-
-/* =========================
- API
-========================= */
+// =========================
+// API
+// =========================
 
 
 async function api(
@@ -206,13 +217,12 @@ async function api(
     options={}
 ){
 
-    const response =
+    const res =
         await fetch(
             API_URL + path,
             {
 
                 ...options,
-
 
                 headers:{
 
@@ -233,7 +243,7 @@ async function api(
     try{
 
         data =
-        await response.json();
+        await res.json();
 
     }
     catch{
@@ -244,7 +254,7 @@ async function api(
 
 
 
-    if(!response.ok){
+    if(!res.ok){
 
         throw new Error(
             data.detail ||
@@ -260,11 +270,9 @@ async function api(
 
 
 
-
-
-/* =========================
- PROFILE
-========================= */
+// =========================
+// PROFILE
+// =========================
 
 
 function updateProfile(){
@@ -275,53 +283,48 @@ function updateProfile(){
 
     const name =
         currentUser.display_name ||
-        currentUser.user_id;
+        currentUser.user_id ||
+        "کاربر";
 
 
-    $("myName").textContent =
-        name;
+    $("myName")
+    &&
+    (
+        $("myName")
+        .textContent =
+        name
+    );
 
 
-    $("myId").textContent =
+    $("myId")
+    &&
+    (
+        $("myId")
+        .textContent =
         "شناسه: " +
-        currentUser.user_id;
+        currentUser.user_id
+    );
 
 
-    $("myAvatar").src =
+    if($("myAvatar")){
+
+        $("myAvatar")
+        .src =
         currentUser.avatar ||
         avatar(name);
+
+    }
 
 }
 
 
 
-
-
-/* =========================
- REGISTER
-========================= */
+// =========================
+// REGISTER
+// =========================
 
 
 async function register(){
-
-
-    const user_id =
-        $("registerUserId")
-        .value
-        .trim();
-
-
-    const phone =
-        $("registerPhone")
-        .value
-        .trim();
-
-
-    const display_name =
-        $("registerName")
-        .value
-        .trim();
-
 
 
     try{
@@ -334,13 +337,25 @@ async function register(){
 
                 method:"POST",
 
-                body:JSON.stringify({
+                body:
+                JSON.stringify({
 
-                    user_id,
+                    user_id:
+                    $("registerUserId")
+                    .value
+                    .trim(),
 
-                    phone,
 
-                    display_name
+                    phone:
+                    $("registerPhone")
+                    .value
+                    .trim(),
+
+
+                    display_name:
+                    $("registerName")
+                    .value
+                    .trim()
 
                 })
 
@@ -350,13 +365,17 @@ async function register(){
 
 
         currentUser =
-            data.user;
+        data.user ||
+        data;
 
 
 
         localStorage.setItem(
+
             "videoCallUserId",
+
             currentUser.user_id
+
         );
 
 
@@ -376,6 +395,7 @@ async function register(){
 
 
     }
+
     catch(e){
 
         $("registerMessage")
@@ -384,43 +404,34 @@ async function register(){
 
     }
 
+
 }
 
-
-
-
-
-
-/* =========================
- LOGIN
-========================= */
+// =========================
+// LOGIN
+// =========================
 
 
 async function login(){
 
+    try{
 
-    const identifier =
+        const id =
         $("loginIdentifier")
         .value
         .trim();
 
 
-
-    try{
-
-
         const data =
         await api(
             "/api/users/" +
-            encodeURIComponent(
-                identifier
-            )
+            encodeURIComponent(id)
         );
 
 
         currentUser =
-            data.user;
-
+        data.user ||
+        data;
 
 
         localStorage.setItem(
@@ -431,12 +442,9 @@ async function login(){
 
         showApp();
 
-
         updateProfile();
 
-
         connectWebSocket();
-
 
         loadUsers();
 
@@ -460,17 +468,16 @@ async function login(){
 
 
 
-
-/* =========================
- USERS
-========================= */
+// =========================
+// USERS
+// =========================
 
 
 async function loadUsers(){
 
 
     const box =
-        $("usersList");
+    $("usersList");
 
 
     if(!box)
@@ -488,11 +495,16 @@ async function loadUsers(){
 
 
 
+        const users =
+        data.users || [];
+
+
+
         box.innerHTML="";
 
 
 
-        data.users.forEach(user=>{
+        users.forEach(user=>{
 
 
             if(
@@ -503,39 +515,55 @@ async function loadUsers(){
 
 
 
-            const div =
+            const card =
             document.createElement(
                 "div"
             );
 
 
-            div.className =
+            card.className =
             "user-card";
 
 
 
-            div.innerHTML=`
+            card.innerHTML = `
 
             <img class="avatar"
-            src="${user.avatar || avatar(user.display_name)}">
+            src="${
+            user.avatar ||
+            avatar(
+                user.display_name
+            )
+            }">
 
 
-            <div>
+            <div class="user-info">
 
-            <b>${escapeHtml(user.display_name)}</b>
+            <b>
+            ${
+            escapeHtml(
+                user.display_name
+            )
+            }
+            </b>
 
             <p>
-            ${escapeHtml(user.user_id)}
+            ${
+            escapeHtml(
+                user.user_id
+            )
+            }
             </p>
 
             </div>
 
 
-            <button class="call-button">
+            <button class="audio">
             📞
             </button>
 
-            <button class="call-button">
+
+            <button class="video">
             🎥
             </button>
 
@@ -543,7 +571,9 @@ async function loadUsers(){
 
 
 
-            div.children[2].onclick =
+            card.querySelector(
+                ".audio"
+            ).onclick =
             ()=>startCall(
                 user.user_id,
                 "audio"
@@ -551,7 +581,9 @@ async function loadUsers(){
 
 
 
-            div.children[3].onclick =
+            card.querySelector(
+                ".video"
+            ).onclick =
             ()=>startCall(
                 user.user_id,
                 "video"
@@ -560,12 +592,10 @@ async function loadUsers(){
 
 
             box.appendChild(
-                div
+                card
             );
 
-
         });
-
 
 
     }
@@ -575,41 +605,40 @@ async function loadUsers(){
 
     }
 
-
 }
- 
-/* =========================
-   WEBSOCKET
-========================= */
+
+
+
+
+// =========================
+// WEBSOCKET
+// =========================
 
 
 function connectWebSocket(){
 
-    const userId =
-        getUserId();
+
+    const id =
+    getUserId();
 
 
-    if(!userId)
+    if(!id)
         return;
 
 
-    const url =
-        "wss://videocallapp-api.onrender.com/ws/" +
-        encodeURIComponent(
-            userId
-        );
-
 
     socket =
-        new WebSocket(url);
+    new WebSocket(
+
+        "wss://videocallapp-api.onrender.com/ws/"
+        +
+        encodeURIComponent(id)
+
+    );
 
 
 
     socket.onopen = ()=>{
-
-        console.log(
-            "WebSocket connected"
-        );
 
 
         if($("myStatus"))
@@ -617,22 +646,26 @@ function connectWebSocket(){
             .textContent =
             "🟢 آنلاین";
 
+
     };
 
 
 
+
     socket.onmessage =
-    async(event)=>{
+    async(e)=>{
+
 
         const data =
-            JSON.parse(
-                event.data
-            );
+        JSON.parse(
+            e.data
+        );
 
 
         await handleSignal(
             data
         );
+
 
     };
 
@@ -640,25 +673,26 @@ function connectWebSocket(){
 
     socket.onclose = ()=>{
 
+
         setTimeout(()=>{
 
-            if(
-                getUserId()
-            )
+            if(getUserId())
                 connectWebSocket();
 
 
         },3000);
 
+
     };
+
 
 }
 
 
 
 
-
 function sendSignal(data){
+
 
     if(
         !socket ||
@@ -670,7 +704,8 @@ function sendSignal(data){
             "اتصال تماس آماده نیست"
         );
 
-        return false;
+        return;
+
     }
 
 
@@ -678,18 +713,13 @@ function sendSignal(data){
         JSON.stringify(data)
     );
 
-
-    return true;
-
 }
 
 
 
-
-
-/* =========================
-   WEBRTC
-========================= */
+// =========================
+// WEBRTC
+// =========================
 
 
 function createPeerConnection(){
@@ -712,11 +742,11 @@ function createPeerConnection(){
 
 
     peerConnection.onicecandidate =
-    event=>{
+    e=>{
 
 
         if(
-            event.candidate &&
+            e.candidate &&
             currentCallUser
         ){
 
@@ -731,7 +761,7 @@ function createPeerConnection(){
 
 
                 candidate:
-                event.candidate
+                e.candidate
 
             });
 
@@ -743,26 +773,23 @@ function createPeerConnection(){
 
 
     peerConnection.ontrack =
-    event=>{
+    e=>{
 
 
-        if(!remoteStream){
+        if(!remoteStream)
 
             remoteStream =
             new MediaStream();
 
-        }
 
 
-        event.streams[0]
+        e.streams[0]
         .getTracks()
         .forEach(track=>{
-
 
             remoteStream.addTrack(
                 track
             );
-
 
         });
 
@@ -775,37 +802,37 @@ function createPeerConnection(){
 
     };
 
+
 }
 
 
 
 
-
-
-
-/* =========================
- START CALL
-========================= */
+// =========================
+// START CALL
+// =========================
 
 
 async function startCall(
-    userId,
+    id,
     type
 ){
 
 
     currentCallUser =
-        userId;
+    id;
 
 
     currentCallType =
-        type;
+    type;
 
 
 
     $("callPanel")
-    .classList
-    .remove("hidden");
+    ?.classList
+    .remove(
+        "hidden"
+    );
 
 
 
@@ -819,7 +846,7 @@ async function startCall(
             audio:true,
 
             video:
-            type === "video"
+            type==="video"
 
         });
 
@@ -837,11 +864,10 @@ async function startCall(
 
         localStream
         .getTracks()
-        .forEach(track=>{
+        .forEach(t=>{
 
-            peerConnection
-            .addTrack(
-                track,
+            peerConnection.addTrack(
+                t,
                 localStream
             );
 
@@ -867,14 +893,11 @@ async function startCall(
             type:
             "offer",
 
-
             target_user_id:
-            userId,
-
+            id,
 
             call_type:
             type,
-
 
             offer:
             offer
@@ -882,50 +905,29 @@ async function startCall(
         });
 
 
-
-        $("callStatus")
-        .textContent =
-        "در حال تماس...";
-
-
-
     }
     catch(e){
 
-        console.log(e);
-
-
         toast(
-            "دوربین یا میکروفون اجازه داده نشد"
+            "دسترسی دوربین یا میکروفون رد شد"
         );
 
-
-        cleanupCall();
-
     }
-
 
 }
 
 
 
 
-
-
-
-/* =========================
- HANDLE SIGNAL
-========================= */
+// =========================
+// SIGNAL
+// =========================
 
 
 async function handleSignal(data){
 
 
-
-    if(
-        data.type ===
-        "offer"
-    ){
+    if(data.type==="offer"){
 
 
         incomingOffer =
@@ -944,8 +946,10 @@ async function handleSignal(data){
 
 
         $("incomingCall")
-        .classList
-        .remove("hidden");
+        ?.classList
+        .remove(
+            "hidden"
+        );
 
 
         return;
@@ -955,11 +959,7 @@ async function handleSignal(data){
 
 
 
-
-    if(
-        data.type ===
-        "answer"
-    ){
+    if(data.type==="answer"){
 
 
         await peerConnection
@@ -979,17 +979,10 @@ async function handleSignal(data){
 
 
 
-
-    if(
-        data.type ===
-        "ice-candidate"
-    ){
+    if(data.type==="ice-candidate"){
 
 
-        if(
-            data.candidate &&
-            peerConnection
-        ){
+        if(peerConnection){
 
             await peerConnection
             .addIceCandidate(
@@ -1010,11 +1003,7 @@ async function handleSignal(data){
 
 
 
-
-    if(
-        data.type ===
-        "hangup"
-    ){
+    if(data.type==="hangup"){
 
         cleanupCall();
 
@@ -1028,24 +1017,19 @@ async function handleSignal(data){
 
 
 
-
-/* =========================
- ACCEPT CALL
-========================= */
+// =========================
+// ACCEPT
+// =========================
 
 
 async function acceptCall(){
 
 
     $("incomingCall")
-    .classList
-    .add("hidden");
-
-
-
-    $("callPanel")
-    .classList
-    .remove("hidden");
+    ?.classList
+    .add(
+        "hidden"
+    );
 
 
 
@@ -1056,7 +1040,7 @@ async function acceptCall(){
         audio:true,
 
         video:
-        currentCallType === "video"
+        currentCallType==="video"
 
     });
 
@@ -1074,15 +1058,12 @@ async function acceptCall(){
 
     localStream
     .getTracks()
-    .forEach(track=>{
+    .forEach(t=>{
 
-
-        peerConnection
-        .addTrack(
-            track,
+        peerConnection.addTrack(
+            t,
             localStream
         );
-
 
     });
 
@@ -1117,10 +1098,8 @@ async function acceptCall(){
         type:
         "answer",
 
-
         target_user_id:
         currentCallUser,
-
 
         answer:
         answer
@@ -1133,17 +1112,12 @@ async function acceptCall(){
 
 
 
-
-
-
 function rejectCall(){
-
 
     sendSignal({
 
         type:
-        "call-rejected",
-
+        "hangup",
 
         target_user_id:
         currentCallUser
@@ -1151,101 +1125,69 @@ function rejectCall(){
     });
 
 
-
     $("incomingCall")
-    .classList
-    .add("hidden");
+    ?.classList
+    .add(
+        "hidden"
+    );
 
 }
 
 
 
 
-
-
-
-/* =========================
- CONTROLS
-========================= */
+// =========================
+// CONTROLS
+// =========================
 
 
 function toggleMicrophone(){
 
-
-    if(!localStream)
-        return;
-
-
-
     localStream
-    .getAudioTracks()
-    .forEach(track=>{
+    ?.getAudioTracks()
+    .forEach(t=>{
 
-        track.enabled =
-        !track.enabled;
+        t.enabled =
+        !t.enabled;
 
     });
 
-
 }
-
-
 
 
 
 function toggleCamera(){
 
-
-    if(!localStream)
-        return;
-
-
-
     localStream
-    .getVideoTracks()
-    .forEach(track=>{
+    ?.getVideoTracks()
+    .forEach(t=>{
 
-        track.enabled =
-        !track.enabled;
+        t.enabled =
+        !t.enabled;
 
     });
 
-
 }
-
-
-
 
 
 
 function hangup(){
 
 
-    if(currentCallUser){
+    sendSignal({
 
+        type:
+        "hangup",
 
-        sendSignal({
+        target_user_id:
+        currentCallUser
 
-            type:
-            "hangup",
-
-
-            target_user_id:
-            currentCallUser
-
-        });
-
-
-    }
-
+    });
 
 
     cleanupCall();
 
-
 }
-
-
 
 
 
@@ -1253,47 +1195,47 @@ function hangup(){
 function cleanupCall(){
 
 
-    if(peerConnection){
+    peerConnection
+    ?.close();
 
-        peerConnection.close();
 
-        peerConnection =
-        null;
-
-    }
+    peerConnection =
+    null;
 
 
 
-    if(localStream){
-
-        localStream
-        .getTracks()
-        .forEach(
-            t=>t.stop()
-        );
+    localStream
+    ?.getTracks()
+    .forEach(t=>t.stop());
 
 
-        localStream =
-        null;
 
-    }
+    localStream =
+    null;
 
 
 
     $("localVideo")
-    .srcObject =
-    null;
+    &&
+    (
+        $("localVideo")
+        .srcObject=null
+    );
 
 
     $("remoteVideo")
-    .srcObject =
-    null;
-
+    &&
+    (
+        $("remoteVideo")
+        .srcObject=null
+    );
 
 
     $("callPanel")
-    .classList
-    .add("hidden");
+    ?.classList
+    .add(
+        "hidden"
+    );
 
 
 }
@@ -1301,93 +1243,89 @@ function cleanupCall(){
 
 
 
-
-
-
-/* =========================
- EVENTS
-========================= */
+// =========================
+// EVENTS
+// =========================
 
 
 function setupEvents(){
 
 
     $("loginButton")
-    .onclick =
-    login;
+    &&(
+    $("loginButton").onclick =
+    login
+    );
 
 
     $("registerButton")
-    .onclick =
-    register;
+    &&(
+    $("registerButton").onclick =
+    register
+    );
 
 
     $("showRegisterButton")
-    .onclick =
-    showRegister;
+    &&(
+    $("showRegisterButton").onclick =
+    showRegister
+    );
 
 
     $("showLoginButton")
-    .onclick =
-    showLogin;
+    &&(
+    $("showLoginButton").onclick =
+    showLogin
+    );
 
 
     $("refreshButton")
-    .onclick =
-    loadUsers;
+    &&(
+    $("refreshButton").onclick =
+    loadUsers
+    );
 
 
     $("acceptButton")
-    .onclick =
-    acceptCall;
+    &&(
+    $("acceptButton").onclick =
+    acceptCall
+    );
 
 
     $("rejectButton")
-    .onclick =
-    rejectCall;
+    &&(
+    $("rejectButton").onclick =
+    rejectCall
+    );
 
 
     $("hangupButton")
-    .onclick =
-    hangup;
-
-
-    $("closeCallButton")
-    .onclick =
-    hangup;
-
-
-    $("microphoneButton")
-    .onclick =
-    toggleMicrophone;
-
-
-    $("cameraButton")
-    .onclick =
-    toggleCamera;
+    &&(
+    $("hangupButton").onclick =
+    hangup
+    );
 
 
     $("logoutButton")
-    .onclick =
+    &&(
+    $("logoutButton").onclick =
     ()=>{
 
         localStorage.clear();
 
         location.reload();
 
-    };
-
+    }
+    );
 
 }
 
 
 
-
-
-
-/* =========================
- START
-========================= */
+// =========================
+// START
+// =========================
 
 
 function start(){
@@ -1396,12 +1334,9 @@ function start(){
     setupEvents();
 
 
-    const id =
-    getUserId();
-
-
-
-    if(id){
+    if(
+        getUserId()
+    ){
 
         showApp();
 
@@ -1410,13 +1345,11 @@ function start(){
         loadUsers();
 
     }
-
     else{
 
         showLogin();
 
     }
-
 
 }
 

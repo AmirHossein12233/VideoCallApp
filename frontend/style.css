@@ -1,26 +1,28 @@
-* {
-    box-sizing: border-box;
+*{
+    box-sizing:border-box;
 }
 
 
-body {
+body{
 
     margin:0;
+
+    padding:0;
 
     font-family:
     Tahoma,
     Arial,
     sans-serif;
 
-    background:#000;
+    background:#ffffff;
 
-    color:#fff;
+    color:#111;
 
 }
 
 
 
-.hidden {
+.hidden{
 
     display:none !important;
 
@@ -28,9 +30,15 @@ body {
 
 
 
-.page {
+.page{
 
     min-height:100vh;
+
+    display:flex;
+
+    justify-content:center;
+
+    align-items:center;
 
     padding:20px;
 
@@ -39,47 +47,29 @@ body {
 
 
 
-/* =================
+
+/* =====================
    CARD
-================= */
+===================== */
 
 
-.card,
-.box {
-
-    background:#111;
-
-    border:1px solid #333;
-
-    border-radius:20px;
-
-    padding:25px;
-
-    box-shadow:
-    0 10px 30px rgba(0,0,0,.5);
-
-}
-
-
-
-
-.auth-page {
-
-    display:flex;
-
-    justify-content:center;
-
-    align-items:center;
-
-}
-
-
-
-.auth-page .card {
+.card{
 
     width:100%;
 
     max-width:400px;
+
+    background:#fff;
+
+    border:1px solid #ddd;
+
+    border-radius:20px;
+
+    padding:30px;
+
+    box-shadow:
+    0 10px 30px
+    rgba(0,0,0,.08);
 
     text-align:center;
 
@@ -87,31 +77,27 @@ body {
 
 
 
-
-h1,
-h2 {
+.card h1{
 
     margin-top:0;
 
-}
-
-
-
-p {
-
-    color:#bbb;
+    color:#000;
 
 }
 
 
 
+.card p{
 
-/* =================
- INPUT
-================= */
+    color:#555;
+
+}
 
 
-input {
+
+
+
+input{
 
     width:100%;
 
@@ -121,23 +107,19 @@ input {
 
     border-radius:12px;
 
-    border:1px solid #444;
+    border:1px solid #ccc;
 
-    background:#000;
-
-    color:white;
-
-    font-size:16px;
-
-}
-
-
-
-input:focus {
+    font-size:15px;
 
     outline:none;
 
-    border-color:white;
+}
+
+
+
+input:focus{
+
+    border-color:#000;
 
 }
 
@@ -145,30 +127,17 @@ input:focus {
 
 
 
-/* =================
- BUTTON
-================= */
+button{
 
-
-button {
-
-    width:100%;
-
-    padding:13px;
-
-    margin:8px 0;
+    cursor:pointer;
 
     border:none;
 
     border-radius:12px;
 
-    background:white;
+    padding:12px 18px;
 
-    color:black;
-
-    font-size:16px;
-
-    cursor:pointer;
+    font-size:15px;
 
     transition:.2s;
 
@@ -176,7 +145,9 @@ button {
 
 
 
-button:hover {
+
+
+button:hover{
 
     opacity:.8;
 
@@ -184,35 +155,60 @@ button:hover {
 
 
 
-.link {
+#loginButton,
+#registerButton{
 
-    background:transparent;
+    width:100%;
 
-    color:white;
+    background:#000;
 
-    border:1px solid #444;
+    color:#fff;
 
-}
-
-
-
-.message {
-
-    color:#ff7777;
-
-    min-height:25px;
+    margin-top:10px;
 
 }
 
 
 
+.link{
 
-/* =================
- TOP
-================= */
+    background:none;
+
+    color:#000;
+
+    margin-top:15px;
+
+}
 
 
-.top {
+
+
+
+/* =====================
+ APP
+===================== */
+
+
+
+#appPage{
+
+    min-height:100vh;
+
+    background:#f5f5f5;
+
+}
+
+
+
+
+
+.topbar{
+
+    background:#000;
+
+    color:#fff;
+
+    padding:15px;
 
     display:flex;
 
@@ -220,15 +216,13 @@ button:hover {
 
     align-items:center;
 
-    gap:15px;
-
-    margin-bottom:20px;
-
 }
 
 
 
-.profile {
+
+
+.profile{
 
     display:flex;
 
@@ -240,15 +234,17 @@ button:hover {
 
 
 
-.profile img {
+.avatar{
 
-    width:60px;
+    width:55px;
 
-    height:60px;
+    height:55px;
 
     border-radius:50%;
 
-    border:2px solid white;
+    object-fit:cover;
+
+    background:#fff;
 
 }
 
@@ -256,48 +252,21 @@ button:hover {
 
 
 
-.profile span,
-.profile small {
-
-    display:block;
-
-    color:#aaa;
-
-}
-
-
-
-
-/* =================
- NAV
-================= */
-
-
-nav {
-
-    margin-bottom:20px;
-
-}
-
-
-
-
-/* =================
- ONLINE
-================= */
-
-
-.online {
+#logoutButton{
 
     background:#fff;
 
     color:#000;
 
-    padding:12px;
+}
 
-    border-radius:12px;
 
-    margin-bottom:20px;
+
+
+
+nav{
+
+    padding:15px;
 
     text-align:center;
 
@@ -305,25 +274,74 @@ nav {
 
 
 
+nav button{
 
-/* =================
- USERS
-================= */
+    background:#000;
 
-
-#usersList {
-
-    display:flex;
-
-    flex-direction:column;
-
-    gap:12px;
+    color:#fff;
 
 }
 
 
 
-.user-card {
+
+
+main{
+
+    max-width:900px;
+
+    margin:auto;
+
+    padding:15px;
+
+}
+
+
+
+
+
+#onlineBox{
+
+    background:#fff;
+
+    border-radius:15px;
+
+    padding:15px;
+
+    margin-bottom:15px;
+
+    border:1px solid #ddd;
+
+}
+
+
+
+
+
+.panel{
+
+    background:#fff;
+
+    border-radius:20px;
+
+    padding:20px;
+
+    margin-bottom:20px;
+
+    border:1px solid #ddd;
+
+}
+
+
+
+
+
+/* =====================
+ USERS
+===================== */
+
+
+.user-card{
 
     display:flex;
 
@@ -331,31 +349,31 @@ nav {
 
     gap:12px;
 
-    background:#000;
+    padding:12px;
 
-    border:1px solid #333;
-
-    padding:15px;
+    margin:10px 0;
 
     border-radius:15px;
+
+    background:#fafafa;
+
+    border:1px solid #ddd;
 
 }
 
 
 
-.user-card img {
+.user-card .avatar{
 
     width:50px;
 
     height:50px;
 
-    border-radius:50%;
-
 }
 
 
 
-.user-card div {
+.user-info{
 
     flex:1;
 
@@ -363,21 +381,11 @@ nav {
 
 
 
-.user-card p {
+.user-info p{
 
     margin:5px 0;
 
-    color:#aaa;
-
-}
-
-
-
-.user-card button {
-
-    width:auto;
-
-    padding:10px 14px;
+    color:#666;
 
 }
 
@@ -385,18 +393,35 @@ nav {
 
 
 
-/* =================
- VIDEOS
-================= */
+.audio,
+.video{
+
+    width:45px;
+
+    height:45px;
+
+    background:#000;
+
+    color:#fff;
+
+}
 
 
-.videos {
+
+
+
+/* =====================
+ CALL
+===================== */
+
+
+.videos{
 
     position:relative;
 
     width:100%;
 
-    height:400px;
+    height:450px;
 
     background:#000;
 
@@ -408,7 +433,7 @@ nav {
 
 
 
-#remoteVideo {
+#remoteVideo{
 
     width:100%;
 
@@ -420,7 +445,7 @@ nav {
 
 
 
-#localVideo {
+#localVideo{
 
     position:absolute;
 
@@ -428,41 +453,15 @@ nav {
 
     right:15px;
 
-    width:120px;
+    width:150px;
 
-    height:160px;
-
-    object-fit:cover;
-
-    border:2px solid white;
+    height:110px;
 
     border-radius:15px;
 
-}
+    border:3px solid #fff;
 
-
-
-
-
-
-/* =================
- CONTROLS
-================= */
-
-
-.controls {
-
-    display:flex;
-
-    gap:10px;
-
-}
-
-
-
-.controls button {
-
-    flex:1;
+    object-fit:cover;
 
 }
 
@@ -470,14 +469,29 @@ nav {
 
 
 
-/* پایان تماس */
+#microphoneButton,
+#cameraButton{
+
+    background:#000;
+
+    color:#fff;
+
+    margin:10px;
+
+}
 
 
-#hangupButton {
 
-    background:white;
+#hangupButton,
+#closeCallButton{
 
-    color:black;
+    background:#fff;
+
+    color:#000;
+
+    border:2px solid #000;
+
+    margin:10px;
 
 }
 
@@ -485,36 +499,39 @@ nav {
 
 
 
-/* =================
+/* =====================
  MODAL
-================= */
+===================== */
 
 
-.modal {
+.modal{
 
     position:fixed;
 
     inset:0;
 
-    background:rgba(0,0,0,.8);
+    background:
+    rgba(0,0,0,.6);
 
     display:flex;
 
-    justify-content:center;
-
     align-items:center;
 
-    padding:20px;
+    justify-content:center;
 
 }
 
 
 
-.modal .card {
+.modal-box{
 
-    max-width:350px;
+    background:#fff;
 
-    width:100%;
+    color:#000;
+
+    padding:30px;
+
+    border-radius:20px;
 
     text-align:center;
 
@@ -522,14 +539,44 @@ nav {
 
 
 
+.modal-box button{
+
+    margin:10px;
+
+}
 
 
-/* =================
+
+#acceptButton{
+
+    background:#000;
+
+    color:#fff;
+
+}
+
+
+
+#rejectButton{
+
+    background:#fff;
+
+    color:#000;
+
+    border:1px solid #000;
+
+}
+
+
+
+
+
+/* =====================
  TOAST
-================= */
+===================== */
 
 
-#toast {
+#toast{
 
     position:fixed;
 
@@ -537,91 +584,66 @@ nav {
 
     left:50%;
 
-    transform:translateX(-50%);
+    transform:
+    translateX(-50%);
 
-    background:white;
+    background:#000;
 
-    color:black;
+    color:#fff;
 
-    padding:12px 25px;
+    padding:12px 20px;
 
-    border-radius:20px;
+    border-radius:30px;
 
-    display:none;
+    opacity:0;
 
-    z-index:999;
+    pointer-events:none;
 
-}
-
-
-
-#toast.show {
-
-    display:block;
+    transition:.3s;
 
 }
 
 
 
+#toast.show{
+
+    opacity:1;
+
+}
 
 
-/* =================
+
+
+
+/* =====================
  MOBILE
-================= */
+===================== */
 
 
 @media(max-width:600px){
 
 
-.page {
+    .videos{
 
-    padding:10px;
+        height:300px;
 
-}
-
-
-
-.card,
-.box {
-
-    padding:15px;
-
-}
+    }
 
 
+    #localVideo{
 
-.videos {
+        width:100px;
 
-    height:300px;
+        height:80px;
 
-}
-
-
-
-#localVideo {
-
-    width:90px;
-
-    height:120px;
-
-}
+    }
 
 
+    .user-card{
 
-.top {
+        flex-wrap:wrap;
 
-    flex-direction:column;
-
-}
-
-
-
-.controls {
-
-    flex-direction:column;
-
-}
-
+    }
 
 
 }

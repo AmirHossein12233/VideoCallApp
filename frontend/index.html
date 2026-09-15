@@ -8,9 +8,12 @@
 <meta name="viewport"
 content="width=device-width, initial-scale=1.0">
 
-<title>VideoCallApp</title>
+<title>
+VideoCallApp
+</title>
 
-<link rel="stylesheet" href="style.css">
+<link rel="stylesheet"
+href="style.css">
 
 </head>
 
@@ -18,9 +21,12 @@ content="width=device-width, initial-scale=1.0">
 <body>
 
 
-<!-- LOGIN -->
+<!-- ======================
+ LOGIN
+====================== -->
 
-<section id="loginPage" class="page auth-page">
+<section id="loginPage"
+class="page">
 
 
 <div class="card">
@@ -30,6 +36,7 @@ content="width=device-width, initial-scale=1.0">
 VideoCallApp
 </h1>
 
+
 <p>
 تماس صوتی و تصویری آنلاین
 </p>
@@ -37,23 +44,27 @@ VideoCallApp
 
 <input
 id="loginIdentifier"
-placeholder="شناسه یا شماره موبایل"
->
+placeholder="شناسه کاربر">
 
 
-<button id="loginButton">
+<button
+id="loginButton">
+
 ورود
+
 </button>
 
 
-<div id="loginMessage"
-class="message"></div>
+<div id="loginMessage"></div>
 
 
 
-<button id="showRegisterButton"
+<button
+id="showRegisterButton"
 class="link">
+
 ساخت حساب جدید
+
 </button>
 
 
@@ -66,11 +77,13 @@ class="link">
 
 
 
-<!-- REGISTER -->
+<!-- ======================
+ REGISTER
+====================== -->
 
 
 <section id="registerPage"
-class="page auth-page hidden">
+class="page hidden">
 
 
 <div class="card">
@@ -84,36 +97,36 @@ class="page auth-page hidden">
 
 <input
 id="registerUserId"
-placeholder="شناسه"
->
-
+placeholder="شناسه">
 
 
 <input
 id="registerPhone"
-placeholder="شماره موبایل"
->
+placeholder="شماره موبایل">
 
 
 
 <input
 id="registerName"
-placeholder="نام نمایشی"
->
+placeholder="نام نمایشی">
 
 
 
-<button id="registerButton">
+<button
+id="registerButton">
+
 ثبت نام
+
 </button>
 
 
 
-<div id="registerMessage"
-class="message"></div>
+<div id="registerMessage"></div>
 
 
-<button id="showLoginButton"
+
+<button
+id="showLoginButton"
 class="link">
 
 بازگشت
@@ -132,21 +145,25 @@ class="link">
 
 
 
-<!-- APP -->
+<!-- ======================
+ APP
+====================== -->
 
 
 <section id="appPage"
-class="page hidden">
+class="hidden">
 
 
 
-<header class="top">
+<header class="topbar">
 
 
 <div class="profile">
 
 
-<img id="myAvatar">
+<img
+id="myAvatar"
+class="avatar">
 
 
 <div>
@@ -156,16 +173,17 @@ class="page hidden">
 </b>
 
 
-<span id="myId">
+<p id="myId">
 شناسه:
+</p>
+
+
+
+<span id="myStatus">
+آفلاین
 </span>
 
 
-<small id="myStatus">
-آفلاین
-</small>
-
-
 </div>
 
 
@@ -173,9 +191,13 @@ class="page hidden">
 
 
 
-<button id="logoutButton">
+<button
+id="logoutButton">
+
 خروج
+
 </button>
+
 
 
 </header>
@@ -185,11 +207,15 @@ class="page hidden">
 
 
 
+
 <nav>
 
 
-<button id="refreshButton">
-کاربران
+<button
+id="refreshButton">
+
+🔄 کاربران
+
 </button>
 
 
@@ -199,12 +225,13 @@ class="page hidden">
 
 
 
+
+
 <main>
 
 
 
-<div id="onlineBox"
-class="online">
+<div id="onlineBox">
 
 در حال اتصال...
 
@@ -214,7 +241,7 @@ class="online">
 
 
 
-<section class="box">
+<section class="panel">
 
 
 <h2>
@@ -222,13 +249,17 @@ class="online">
 </h2>
 
 
+
 <div id="usersList">
 
+
 <div>
-در حال دریافت...
+در حال دریافت کاربران...
 </div>
 
+
 </div>
+
 
 
 </section>
@@ -239,11 +270,10 @@ class="online">
 
 
 
-<!-- CALL PANEL -->
 
-
-<section id="callPanel"
-class="box hidden">
+<section
+id="callPanel"
+class="panel hidden">
 
 
 <h2>
@@ -251,14 +281,17 @@ class="box hidden">
 </h2>
 
 
-<div id="callStatus">
-در حال اتصال
-</div>
 
+<p id="callStatus">
+
+در حال اتصال...
+
+</p>
 
 
 
 <div class="videos">
+
 
 
 <video
@@ -266,6 +299,7 @@ id="remoteVideo"
 autoplay
 playsinline>
 </video>
+
 
 
 
@@ -277,16 +311,15 @@ playsinline>
 </video>
 
 
+
 </div>
 
 
 
 
 
-<div class="controls">
-
-
-<button id="microphoneButton">
+<button
+id="microphoneButton">
 
 🎤 میکروفون
 
@@ -294,7 +327,8 @@ playsinline>
 
 
 
-<button id="cameraButton">
+<button
+id="cameraButton">
 
 📷 دوربین
 
@@ -302,19 +336,17 @@ playsinline>
 
 
 
-<button id="hangupButton">
+<button
+id="hangupButton">
 
-📞 پایان
+قطع تماس
 
 </button>
 
 
 
-</div>
-
-
-
-<button id="closeCallButton">
+<button
+id="closeCallButton">
 
 بستن
 
@@ -326,51 +358,43 @@ playsinline>
 
 
 
-
-
-
-
 </main>
-
-
-
-
-
-
-
-
-<!-- INCOMING CALL -->
+<!-- ======================
+ INCOMING CALL
+====================== -->
 
 
 <div id="incomingCall"
 class="modal hidden">
 
 
-<div class="card">
+<div class="modal-box">
 
 
 <h2>
-تماس ورودی
+📞 تماس ورودی
 </h2>
 
 
-<p id="incomingName">
-
-کاربر تماس گرفته
-
+<p>
+کاربر با شما تماس گرفته است.
 </p>
 
 
-<button id="acceptButton">
 
-پاسخ
+<button
+id="acceptButton">
+
+✅ پاسخ
 
 </button>
 
 
-<button id="rejectButton">
 
-رد
+<button
+id="rejectButton">
+
+❌ رد تماس
 
 </button>
 
@@ -384,6 +408,10 @@ class="modal hidden">
 
 
 
+
+<!-- ======================
+ TOAST
+====================== -->
 
 
 <div id="toast">
@@ -392,7 +420,10 @@ class="modal hidden">
 
 
 
+
+
 </section>
+
 
 
 
