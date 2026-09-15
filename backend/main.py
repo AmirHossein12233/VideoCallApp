@@ -7,16 +7,12 @@ from typing import Any
 
 from fastapi import FastAPI, HTTPException, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel, Field
+from pydantic import BaseModel
 
 
-# =========================
-# CONFIG
-# =========================
-
-BASE_DIR = Path(__file__).resolve().parent
-DB_PATH = BASE_DIR / "videocall.db"
-
+# =========================================================
+# APP
+# =========================================================
 
 app = FastAPI(
     title="VideoCallApp API",
@@ -24,35 +20,49 @@ app = FastAPI(
 )
 
 
-# =========================
+# =========================================================
 # CORS
-# =========================
+# =========================================================
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=[
+        "https://videocallapp-web.onrender.com",
+        "http://127.0.0.1:5500",
+        "http://localhost:5500",
+    ],
     allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
 
 
-# =========================
+# =========================================================
 # DATABASE
-# =========================
+# =========================================================
 
-def get_db():
-    db = sqlite3.connect(
-        DB_PATH,
+BASE_DIR = Path(__file__).resolve().parent
+DATABASE_PATH = BASE_DIR / "videocall.db"
+
+
+def get_db() -> sqlite3.Connection:
+    connection = sqlite3.connect(
+        DATABASE_PATH,
         check_same_thread=False,
     )
 
-    db.row_factory = sqlite3.Row
+    connection.row_factory = sqlite3.Row
 
-    return db
+    return connection
 
 
-def initialize_database():
+def now_iso() -> str:
+    return datetime.now(
+        timezone.utc
+    ).isoformat()
+
+
+def initialize_database() -> None:
     db = get_db()
 
     try:
@@ -90,57 +100,32 @@ def initialize_database():
 initialize_database()
 
 
-# =========================
+# =========================================================
 # MODELS
-# =========================
+# =========================================================
 
 class RegisterRequest(BaseModel):
-    user_id: str = Field(
-        min_length=2,
-        max_length=50,
-    )
-
-    phone: str = Field(
-        min_length=5,
-        max_length=30,
-    )
-
-    display_name: str = Field(
-        min_length=1,
-        max_length=100,
-    )
+    user_id: str
+    phone: str
+    display_name: str
 
 
 class ProfileUpdateRequest(BaseModel):
-    display_name: str | None = Field(
-        default=None,
-        max_length=100,
-    )
-
+    display_name: str | None = None
     avatar: str | None = None
 
 
 class ContactRequest(BaseModel):
-    identifier: str = Field(
-        min_length=1,
-        max_length=100,
-    )
+    identifier: str
 
 
-# =========================
-# HELPERS
-# =========================
-
-def now_iso() -> str:
-    return datetime.now(
-        timezone.utc
-    ).isoformat()
-
+# =========================================================
+# USER HELPERS
+# =========================================================
 
 def row_to_user(
     row: sqlite3.Row | None,
 ) -> dict[str, Any] | None:
-
     if row is None:
         return None
 
@@ -156,18 +141,21 @@ def row_to_user(
 
 def get_user_by_id(
     user_id: str,
-):
+) -> dict[str, Any] | None:
     db = get_db()
 
     try:
-        return db.execute(
+        row = db.execute(
             """
             SELECT *
             FROM users
             WHERE user_id = ?
+            LIMIT 1
             """,
             (user_id,),
         ).fetchone()
+
+        return row_to_user(row)
 
     finally:
         db.close()
@@ -175,11 +163,11 @@ def get_user_by_id(
 
 def get_user_by_identifier(
     identifier: str,
-):
+) -> dict[str, Any] | None:
     db = get_db()
 
     try:
-        return db.execute(
+        row = db.execute(
             """
             SELECT *
             FROM users
@@ -193,17 +181,19 @@ def get_user_by_identifier(
             ),
         ).fetchone()
 
+        return row_to_user(row)
+
     finally:
         db.close()
 
 
-# =========================
-# CONNECTION MANAGER
-# =========================
+# =========================================================
+# WEBSOCKET MANAGER
+# =========================================================
 
 class ConnectionManager:
 
-    def __init__(self):
+    def __init__(self) -> None:
         self.connections: dict[
             str,
             WebSocket,
@@ -213,16 +203,16 @@ class ConnectionManager:
         self,
         user_id: str,
         websocket: WebSocket,
-    ):
+    ) -> None:
         await websocket.accept()
 
-        old_socket = self.connections.get(
-            user_id
+        old_connection = (
+            self.connections.get(user_id)
         )
 
-        if old_socket:
+        if old_connection is not None:
             try:
-                await old_socket.close()
+                await old_connection.close()
             except Exception:
                 pass
 
@@ -233,21 +223,31 @@ class ConnectionManager:
             True,
         )
 
-    def disconnect(
+    async def disconnect(
         self,
         user_id: str,
-    ):
-        self.connections.pop(
-            user_id,
-            None,
+        websocket: WebSocket,
+    ) -> None:
+        current = self.connections.get(
+            user_id
         )
+
+        if current is websocket:
+            self.connections.pop(
+                user_id,
+                None,
+            )
+
+            await self.broadcast_online_status(
+                user_id,
+                False,
+            )
 
     async def send_to_user(
         self,
         user_id: str,
-        message: dict,
+        message: dict[str, Any],
     ) -> bool:
-
         websocket = self.connections.get(
             user_id
         )
@@ -263,14 +263,18 @@ class ConnectionManager:
             return True
 
         except Exception:
-            self.disconnect(user_id)
+            self.connections.pop(
+                user_id,
+                None,
+            )
+
             return False
 
     async def broadcast_online_status(
         self,
         user_id: str,
         online: bool,
-    ):
+    ) -> None:
         message = {
             "type": "online_status",
             "user_id": user_id,
@@ -279,33 +283,28 @@ class ConnectionManager:
 
         disconnected = []
 
-        for (
-            target_id,
-            websocket,
-        ) in list(
+        for connected_user_id, websocket in list(
             self.connections.items()
         ):
-
-            if target_id == user_id:
-                continue
-
             try:
                 await websocket.send_json(
                     message
                 )
-
             except Exception:
                 disconnected.append(
-                    target_id
+                    connected_user_id
                 )
 
-        for target_id in disconnected:
-            self.disconnect(target_id)
+        for connected_user_id in disconnected:
+            self.connections.pop(
+                connected_user_id,
+                None,
+            )
 
     async def broadcast_profile_update(
         self,
         user: dict[str, Any],
-    ):
+    ) -> None:
         message = {
             "type": "profile_updated",
             "user": user,
@@ -313,86 +312,77 @@ class ConnectionManager:
 
         disconnected = []
 
-        for (
-            target_id,
-            websocket,
-        ) in list(
+        for connected_user_id, websocket in list(
             self.connections.items()
         ):
-
             try:
                 await websocket.send_json(
                     message
                 )
-
             except Exception:
                 disconnected.append(
-                    target_id
+                    connected_user_id
                 )
 
-        for target_id in disconnected:
-            self.disconnect(target_id)
+        for connected_user_id in disconnected:
+            self.connections.pop(
+                connected_user_id,
+                None,
+            )
 
 
 manager = ConnectionManager()
 
 
-# =========================
-# ROOT
-# =========================
+# =========================================================
+# BASIC ROUTES
+# =========================================================
 
 @app.get("/")
-def root():
+async def root():
     return {
         "success": True,
-        "status": "online",
         "app": "VideoCallApp",
-        "message": "VideoCallApp API is running",
+        "status": "online",
     }
 
 
-# =========================
-# HEALTH
-# =========================
-
 @app.get("/health")
-def health():
-
+async def health():
     db = get_db()
 
     try:
         users_count = db.execute(
-            "SELECT COUNT(*) FROM users"
-        ).fetchone()[0]
+            "SELECT COUNT(*) AS count FROM users"
+        ).fetchone()["count"]
 
         contacts_count = db.execute(
-            "SELECT COUNT(*) FROM contacts"
-        ).fetchone()[0]
+            "SELECT COUNT(*) AS count FROM contacts"
+        ).fetchone()["count"]
+
+        return {
+            "success": True,
+            "status": "ok",
+            "app": "VideoCallApp",
+            "users": users_count,
+            "contacts": contacts_count,
+            "online": len(
+                manager.connections
+            ),
+        }
 
     finally:
         db.close()
 
-    return {
-        "success": True,
-        "status": "ok",
-        "app": "VideoCallApp",
-        "users": users_count,
-        "contacts": contacts_count,
-        "online": len(
-            manager.connections
-        ),
-    }
 
-
-# =========================
+# =========================================================
 # REGISTER
-# =========================
+# =========================================================
 
 @app.post("/api/register")
-def register(
+async def register(
     request: RegisterRequest,
 ):
-
     user_id = request.user_id.strip()
     phone = request.phone.strip()
     display_name = request.display_name.strip()
@@ -400,58 +390,60 @@ def register(
     if not user_id:
         raise HTTPException(
             status_code=400,
-            detail="شناسه الزامی است.",
+            detail="شناسه الزامی است",
         )
 
     if not phone:
         raise HTTPException(
             status_code=400,
-            detail="شماره موبایل الزامی است.",
+            detail="شماره موبایل الزامی است",
         )
 
     if not display_name:
         raise HTTPException(
             status_code=400,
-            detail="نام نمایشی الزامی است.",
+            detail="نام نمایشی الزامی است",
+        )
+
+    if len(user_id) < 3:
+        raise HTTPException(
+            status_code=400,
+            detail="شناسه باید حداقل ۳ کاراکتر باشد",
         )
 
     db = get_db()
 
     try:
-
         existing_user = db.execute(
             """
-            SELECT user_id
+            SELECT *
             FROM users
             WHERE user_id = ?
+               OR phone = ?
+            LIMIT 1
             """,
-            (user_id,),
+            (
+                user_id,
+                phone,
+            ),
         ).fetchone()
 
         if existing_user:
+            if (
+                existing_user["user_id"]
+                == user_id
+            ):
+                raise HTTPException(
+                    status_code=409,
+                    detail="این شناسه قبلاً ثبت شده است",
+                )
+
             raise HTTPException(
-                status_code=400,
-                detail="این شناسه قبلاً ثبت شده است.",
+                status_code=409,
+                detail="این شماره موبایل قبلاً ثبت شده است",
             )
 
-        existing_phone = db.execute(
-            """
-            SELECT user_id
-            FROM users
-            WHERE phone = ?
-            """,
-            (phone,),
-        ).fetchone()
-
-        if existing_phone:
-            raise HTTPException(
-                status_code=400,
-                detail="این شماره موبایل قبلاً ثبت شده است.",
-            )
-
-        created_at = now_iso()
-
-        db.execute(
+        cursor = db.execute(
             """
             INSERT INTO users (
                 user_id,
@@ -467,7 +459,7 @@ def register(
                 phone,
                 display_name,
                 "",
-                created_at,
+                now_iso(),
             ),
         )
 
@@ -477,9 +469,9 @@ def register(
             """
             SELECT *
             FROM users
-            WHERE user_id = ?
+            WHERE id = ?
             """,
-            (user_id,),
+            (cursor.lastrowid,),
         ).fetchone()
 
         user = row_to_user(row)
@@ -489,54 +481,62 @@ def register(
             "user": user,
         }
 
+    except HTTPException:
+        raise
+
     except sqlite3.IntegrityError:
         raise HTTPException(
-            status_code=400,
-            detail="شناسه یا شماره موبایل قبلاً ثبت شده است.",
+            status_code=409,
+            detail="شناسه یا شماره موبایل قبلاً ثبت شده است",
         )
 
     finally:
         db.close()
 
 
-# =========================
-# SEARCH USER
-# =========================
+# =========================================================
+# FIND USER
+# =========================================================
 
 @app.get("/api/users/{identifier}")
-def search_user(
+async def find_user(
     identifier: str,
 ):
-
     identifier = identifier.strip()
 
-    row = get_user_by_identifier(
+    if not identifier:
+        raise HTTPException(
+            status_code=400,
+            detail="شناسه یا شماره موبایل الزامی است",
+        )
+
+    user = get_user_by_identifier(
         identifier
     )
 
-    if row is None:
+    if not user:
         raise HTTPException(
             status_code=404,
-            detail="کاربر پیدا نشد.",
+            detail="کاربر پیدا نشد",
         )
 
-    user = row_to_user(row)
+    user["online"] = (
+        user["user_id"]
+        in manager.connections
+    )
 
     return {
         "success": True,
         "user": user,
-        "online": user["user_id"]
-        in manager.connections,
     }
 
 
-# =========================
+# =========================================================
 # ALL USERS
-# =========================
+# =========================================================
 
 @app.get("/api/users")
-def get_users():
-
+async def get_users():
     db = get_db()
 
     try:
@@ -548,24 +548,46 @@ def get_users():
             """
         ).fetchall()
 
+        users = []
+
+        for row in rows:
+            user = row_to_user(row)
+
+            if user is None:
+                continue
+
+            user["online"] = (
+                user["user_id"]
+                in manager.connections
+            )
+
+            users.append(user)
+
+        return {
+            "success": True,
+            "users": users,
+        }
+
     finally:
         db.close()
 
+
+# =========================================================
+# ONLINE USERS
+# =========================================================
+
+@app.get("/api/online")
+async def get_online_users():
     users = []
 
-    for row in rows:
-
-        user = row_to_user(row)
-
-        if user is None:
-            continue
-
-        user["online"] = (
-            user["user_id"]
-            in manager.connections
+    for user_id in manager.connections:
+        user = get_user_by_id(
+            user_id
         )
 
-        users.append(user)
+        if user:
+            user["online"] = True
+            users.append(user)
 
     return {
         "success": True,
@@ -573,95 +595,73 @@ def get_users():
     }
 
 
-# =========================
-# ONLINE USERS
-# =========================
-
-@app.get("/api/online")
-def get_online_users():
-
-    return {
-        "success": True,
-        "users": list(
-            manager.connections.keys()
-        ),
-    }
-
-
-# =========================
+# =========================================================
 # PROFILE
-# =========================
+# =========================================================
 
 @app.get("/api/profile/{user_id}")
-def get_profile(
+async def get_profile(
     user_id: str,
 ):
-
-    row = get_user_by_id(
+    user = get_user_by_id(
         user_id
     )
 
-    if row is None:
+    if not user:
         raise HTTPException(
             status_code=404,
-            detail="کاربر پیدا نشد.",
+            detail="کاربر پیدا نشد",
         )
 
-    user = row_to_user(row)
+    user["online"] = (
+        user_id
+        in manager.connections
+    )
 
     return {
         "success": True,
         "user": user,
-        "online": user_id
-        in manager.connections,
     }
 
-
-# =========================
-# UPDATE PROFILE
-# =========================
 
 @app.put("/api/profile/{user_id}")
 async def update_profile(
     user_id: str,
     request: ProfileUpdateRequest,
 ):
-
-    row = get_user_by_id(
+    existing_user = get_user_by_id(
         user_id
     )
 
-    if row is None:
+    if not existing_user:
         raise HTTPException(
             status_code=404,
-            detail="کاربر پیدا نشد.",
+            detail="کاربر پیدا نشد",
         )
 
-    current_name = row["display_name"]
-    current_avatar = row["avatar"] or ""
+    display_name = (
+        request.display_name
+        if request.display_name is not None
+        else existing_user["display_name"]
+    )
 
-    if request.display_name is not None:
-        display_name = (
-            request.display_name.strip()
-        )
-    else:
-        display_name = current_name
+    avatar = (
+        request.avatar
+        if request.avatar is not None
+        else existing_user["avatar"]
+    )
 
-    if request.avatar is not None:
-        avatar = request.avatar
-    else:
-        avatar = current_avatar
+    display_name = display_name.strip()
 
     if not display_name:
         raise HTTPException(
             status_code=400,
-            detail="نام نمایشی نمی‌تواند خالی باشد.",
+            detail="نام نمایشی نمی‌تواند خالی باشد",
         )
 
     db = get_db()
 
     try:
-
         db.execute(
             """
             UPDATE users
@@ -671,38 +671,29 @@ async def update_profile(
             """,
             (
                 display_name,
-                avatar,
+                avatar or "",
                 user_id,
             ),
         )
 
         db.commit()
 
-        updated_row = db.execute(
-            """
-            SELECT *
-            FROM users
-            WHERE user_id = ?
-            """,
-            (user_id,),
-        ).fetchone()
-
     finally:
         db.close()
 
-    user = row_to_user(
-        updated_row
+    user = get_user_by_id(
+        user_id
     )
 
-    if user is None:
-        raise HTTPException(
-            status_code=404,
-            detail="کاربر پیدا نشد.",
+    if user:
+        user["online"] = (
+            user_id
+            in manager.connections
         )
 
-    await manager.broadcast_profile_update(
-        user
-    )
+        await manager.broadcast_profile_update(
+            user
+        )
 
     return {
         "success": True,
@@ -710,28 +701,31 @@ async def update_profile(
     }
 
 
-# =========================
+# =========================================================
 # CONTACTS
-# =========================
+# =========================================================
 
 @app.get("/api/contacts/{user_id}")
-def get_contacts(
+async def get_contacts(
     user_id: str,
 ):
+    owner = get_user_by_id(
+        user_id
+    )
 
-    if get_user_by_id(user_id) is None:
+    if not owner:
         raise HTTPException(
             status_code=404,
-            detail="کاربر پیدا نشد.",
+            detail="کاربر پیدا نشد",
         )
 
     db = get_db()
 
     try:
-
         rows = db.execute(
             """
-            SELECT u.*
+            SELECT
+                u.*
             FROM contacts c
             JOIN users u
               ON u.user_id = c.contact_user_id
@@ -741,94 +735,93 @@ def get_contacts(
             (user_id,),
         ).fetchall()
 
+        contacts = []
+
+        for row in rows:
+            user = row_to_user(row)
+
+            if user:
+                user["online"] = (
+                    user["user_id"]
+                    in manager.connections
+                )
+
+                contacts.append(user)
+
+        return {
+            "success": True,
+            "contacts": contacts,
+        }
+
     finally:
         db.close()
 
-    contacts = []
-
-    for row in rows:
-
-        user = row_to_user(row)
-
-        if user is None:
-            continue
-
-        user["online"] = (
-            user["user_id"]
-            in manager.connections
-        )
-
-        contacts.append(user)
-
-    return {
-        "success": True,
-        "contacts": contacts,
-    }
-
-
-# =========================
-# ADD CONTACT
-# =========================
 
 @app.post("/api/contacts/{user_id}")
-def add_contact(
+async def add_contact(
     user_id: str,
     request: ContactRequest,
 ):
+    owner = get_user_by_id(
+        user_id
+    )
 
-    if get_user_by_id(user_id) is None:
+    if not owner:
         raise HTTPException(
             status_code=404,
-            detail="کاربر اصلی پیدا نشد.",
+            detail="کاربر پیدا نشد",
         )
 
-    identifier = request.identifier.strip()
+    identifier = (
+        request.identifier.strip()
+    )
 
     if not identifier:
         raise HTTPException(
             status_code=400,
-            detail="شناسه یا شماره موبایل را وارد کنید.",
+            detail="شناسه یا شماره موبایل را وارد کنید",
         )
 
     contact = get_user_by_identifier(
         identifier
     )
 
-    if contact is None:
+    if not contact:
         raise HTTPException(
             status_code=404,
-            detail="کاربر موردنظر پیدا نشد.",
+            detail="کاربر موردنظر پیدا نشد",
         )
 
-    contact_user_id = contact["user_id"]
-
-    if contact_user_id == user_id:
+    if (
+        contact["user_id"]
+        == user_id
+    ):
         raise HTTPException(
             status_code=400,
-            detail="نمی‌توانید خودتان را اضافه کنید.",
+            detail="نمی‌توانید خودتان را اضافه کنید",
         )
 
     db = get_db()
 
     try:
-
         existing = db.execute(
             """
             SELECT id
             FROM contacts
             WHERE owner_user_id = ?
               AND contact_user_id = ?
+            LIMIT 1
             """,
             (
                 user_id,
-                contact_user_id,
+                contact["user_id"],
             ),
         ).fetchone()
 
         if existing:
             raise HTTPException(
-                status_code=400,
-                detail="این کاربر قبلاً در مخاطبین شماست.",
+                status_code=409,
+                detail="این کاربر قبلاً در مخاطبین شماست",
             )
 
         db.execute(
@@ -842,58 +835,47 @@ def add_contact(
             """,
             (
                 user_id,
-                contact_user_id,
+                contact["user_id"],
                 now_iso(),
             ),
         )
 
         db.commit()
 
+        contact["online"] = (
+            contact["user_id"]
+            in manager.connections
+        )
+
+        return {
+            "success": True,
+            "contact": contact,
+        }
+
+    except HTTPException:
+        raise
+
     except sqlite3.IntegrityError:
         raise HTTPException(
-            status_code=400,
-            detail="این کاربر قبلاً در مخاطبین شماست.",
+            status_code=409,
+            detail="این کاربر قبلاً در مخاطبین شماست",
         )
 
     finally:
         db.close()
 
-    user = row_to_user(contact)
-
-    if user is None:
-        raise HTTPException(
-            status_code=404,
-            detail="کاربر پیدا نشد.",
-        )
-
-    user["online"] = (
-        contact_user_id
-        in manager.connections
-    )
-
-    return {
-        "success": True,
-        "contact": user,
-    }
-
-
-# =========================
-# DELETE CONTACT
-# =========================
 
 @app.delete(
     "/api/contacts/{user_id}/{contact_user_id}"
 )
-def delete_contact(
+async def delete_contact(
     user_id: str,
     contact_user_id: str,
 ):
-
     db = get_db()
 
     try:
-
-        result = db.execute(
+        cursor = db.execute(
             """
             DELETE FROM contacts
             WHERE owner_user_id = ?
@@ -907,43 +889,38 @@ def delete_contact(
 
         db.commit()
 
+        if cursor.rowcount == 0:
+            raise HTTPException(
+                status_code=404,
+                detail="مخاطب پیدا نشد",
+            )
+
+        return {
+            "success": True,
+            "message": "مخاطب حذف شد",
+        }
+
     finally:
         db.close()
 
-    if result.rowcount == 0:
-        raise HTTPException(
-            status_code=404,
-            detail="مخاطب پیدا نشد.",
-        )
-
-    return {
-        "success": True,
-        "message": "مخاطب حذف شد.",
-    }
-
-
-# =========================
-# CHECK CONTACT
-# =========================
 
 @app.get(
     "/api/contacts/{user_id}/check/{contact_user_id}"
 )
-def check_contact(
+async def check_contact(
     user_id: str,
     contact_user_id: str,
 ):
-
     db = get_db()
 
     try:
-
         row = db.execute(
             """
             SELECT id
             FROM contacts
             WHERE owner_user_id = ?
               AND contact_user_id = ?
+            LIMIT 1
             """,
             (
                 user_id,
@@ -951,33 +928,36 @@ def check_contact(
             ),
         ).fetchone()
 
+        return {
+            "success": True,
+            "is_contact": row is not None,
+        }
+
     finally:
         db.close()
 
-    return {
-        "success": True,
-        "is_contact": row is not None,
-    }
 
-
-# =========================
+# =========================================================
 # WEBSOCKET
-# =========================
+# =========================================================
 
 @app.websocket("/ws/{user_id}")
 async def websocket_endpoint(
     websocket: WebSocket,
     user_id: str,
 ):
+    user_id = user_id.strip()
 
     user = get_user_by_id(
         user_id
     )
 
-    if user is None:
+    if not user:
         await websocket.close(
-            code=1008
+            code=1008,
+            reason="User not found",
         )
+
         return
 
     await manager.connect(
@@ -986,9 +966,7 @@ async def websocket_endpoint(
     )
 
     try:
-
         while True:
-
             message = (
                 await websocket.receive_json()
             )
@@ -997,60 +975,129 @@ async def websocket_endpoint(
                 "type"
             )
 
+            # -------------------------
+            # PING
+            # -------------------------
+
             if message_type == "ping":
                 await websocket.send_json(
                     {
                         "type": "pong"
                     }
                 )
+
                 continue
 
-            if message_type == "pong":
-                continue
-
-            allowed_types = {
-                "offer",
-                "answer",
-                "ice-candidate",
-                "call-rejected",
-                "hangup",
-            }
-
-            if message_type not in allowed_types:
-                continue
+            # -------------------------
+            # TARGET
+            # -------------------------
 
             target_user_id = message.get(
                 "target_user_id"
             )
 
-            if not target_user_id:
+            if (
+                not target_user_id
+                and message_type
+                not in (
+                    "ping",
+                    "pong",
+                )
+            ):
                 continue
 
-            message["from_user_id"] = user_id
+            # -------------------------
+            # OFFER
+            # -------------------------
 
-            await manager.send_to_user(
-                target_user_id,
-                message,
-            )
+            if message_type == "offer":
+                await manager.send_to_user(
+                    target_user_id,
+                    {
+                        "type": "offer",
+                        "caller_user_id": user_id,
+                        "from_user_id": user_id,
+                        "offer": message.get(
+                            "offer"
+                        ),
+                        "call_type": message.get(
+                            "call_type",
+                            "audio",
+                        ),
+                    },
+                )
+
+            # -------------------------
+            # ANSWER
+            # -------------------------
+
+            elif message_type == "answer":
+                await manager.send_to_user(
+                    target_user_id,
+                    {
+                        "type": "answer",
+                        "from_user_id": user_id,
+                        "answer": message.get(
+                            "answer"
+                        ),
+                    },
+                )
+
+            # -------------------------
+            # ICE
+            # -------------------------
+
+            elif message_type == "ice-candidate":
+                await manager.send_to_user(
+                    target_user_id,
+                    {
+                        "type": "ice-candidate",
+                        "from_user_id": user_id,
+                        "candidate": message.get(
+                            "candidate"
+                        ),
+                    },
+                )
+
+            # -------------------------
+            # REJECT
+            # -------------------------
+
+            elif message_type == "call-rejected":
+                await manager.send_to_user(
+                    target_user_id,
+                    {
+                        "type": "call-rejected",
+                        "from_user_id": user_id,
+                    },
+                )
+
+            # -------------------------
+            # HANGUP
+            # -------------------------
+
+            elif message_type == "hangup":
+                await manager.send_to_user(
+                    target_user_id,
+                    {
+                        "type": "hangup",
+                        "from_user_id": user_id,
+                    },
+                )
 
     except WebSocketDisconnect:
-
-        manager.disconnect(
-            user_id
-        )
-
-        await manager.broadcast_online_status(
+        await manager.disconnect(
             user_id,
-            False,
+            websocket,
         )
 
-    except Exception:
-
-        manager.disconnect(
-            user_id
+    except Exception as error:
+        print(
+            "WebSocket error:",
+            error,
         )
 
-        await manager.broadcast_online_status(
+        await manager.disconnect(
             user_id,
-            False,
+            websocket,
         )
