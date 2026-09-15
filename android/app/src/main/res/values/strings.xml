@@ -1,0 +1,7 @@
+<?xml version='1.0' encoding='utf-8'?>
+<resources>
+    <string name="app_name">VideoCallApp</string>
+    <string name="title_activity_main">VideoCallApp</string>
+    <string name="package_name">com.videocallapp.app</string>
+    <string name="custom_url_scheme">com.videocallapp.app</string>
+</resources>
