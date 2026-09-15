@@ -11,22 +11,17 @@ body {
 
 body {
     direction: rtl;
-
-    font-family:
-        Tahoma,
-        Arial,
-        sans-serif;
+    font-family: Tahoma, Arial, sans-serif;
 
     background:
         linear-gradient(
             135deg,
-            #12051f 0%,
-            #29104d 45%,
-            #6d28d9 100%
+            #140822,
+            #32105d,
+            #6d28d9
         );
 
-    color: #ffffff;
-
+    color: white;
     min-height: 100vh;
 }
 
@@ -44,13 +39,12 @@ button {
 }
 
 
-/* ================= AUTH ================= */
+/* AUTH */
 
-.page {
+.auth-page {
     min-height: 100vh;
 
     display: flex;
-
     align-items: center;
     justify-content: center;
 
@@ -61,22 +55,20 @@ button {
     width: 100%;
     max-width: 410px;
 
-    padding: 35px 28px;
+    padding: 32px;
 
     text-align: center;
 
-    border-radius: 25px;
-
     background:
-        rgba(255, 255, 255, 0.09);
+        rgba(255,255,255,.09);
 
     border:
-        1px solid rgba(255, 255, 255, 0.15);
+        1px solid rgba(255,255,255,.14);
+
+    border-radius: 24px;
 
     box-shadow:
-        0 25px 70px rgba(0, 0, 0, 0.4);
-
-    backdrop-filter: blur(18px);
+        0 25px 70px rgba(0,0,0,.4);
 }
 
 .logo {
@@ -86,39 +78,22 @@ button {
     margin: 0 auto 18px;
 
     display: flex;
-
     align-items: center;
     justify-content: center;
 
     border-radius: 22px;
 
-    background:
-        linear-gradient(
-            135deg,
-            #8b5cf6,
-            #6d28d9
-        );
+    background: #7c3aed;
 
     font-size: 34px;
-
-    box-shadow:
-        0 10px 30px
-        rgba(124, 58, 237, 0.35);
 }
 
 .auth-card h1 {
     margin: 0;
-
-    font-size: 27px;
 }
 
-.subtitle {
-    margin: 8px 0 25px;
-
-    color:
-        rgba(255,255,255,0.55);
-
-    font-size: 13px;
+.auth-card p {
+    color: rgba(255,255,255,.55);
 }
 
 .auth-card input {
@@ -129,32 +104,16 @@ button {
 
     padding: 0 15px;
 
-    border:
-        1px solid rgba(255,255,255,0.14);
-
+    border: 1px solid rgba(255,255,255,.14);
     border-radius: 13px;
 
     outline: none;
 
-    background:
-        rgba(0,0,0,0.25);
-
+    background: rgba(0,0,0,.25);
     color: white;
-
-    font-size: 14px;
 }
 
-.auth-card input:focus {
-    border-color:
-        #a78bfa;
-}
-
-.auth-card input::placeholder {
-    color:
-        rgba(255,255,255,0.42);
-}
-
-.primary-button {
+.primary {
     border: 0;
 
     background:
@@ -168,30 +127,15 @@ button {
 
     font-weight: bold;
 
-    border-radius: 13px;
-
-    transition:
-        transform .2s,
-        opacity .2s;
+    border-radius: 12px;
 }
 
-.primary-button:hover {
-    transform: translateY(-1px);
-}
-
-.primary-button:disabled {
-    opacity: .6;
-    cursor: not-allowed;
-}
-
-.auth-card .primary-button {
+.auth-card .primary {
     width: 100%;
     height: 52px;
-
-    font-size: 15px;
 }
 
-.link-button {
+.link {
     margin-top: 18px;
 
     border: 0;
@@ -199,8 +143,6 @@ button {
     background: transparent;
 
     color: #c4b5fd;
-
-    font-size: 13px;
 }
 
 .message {
@@ -214,30 +156,23 @@ button {
 }
 
 
-/* ================= TOPBAR ================= */
-
-#appPage {
-    min-height: 100vh;
-}
+/* TOPBAR */
 
 .topbar {
-    min-height: 76px;
+    min-height: 75px;
 
     display: flex;
 
     align-items: center;
-
     justify-content: space-between;
-
-    gap: 20px;
 
     padding: 12px 25px;
 
     background:
-        rgba(8, 3, 18, 0.78);
+        rgba(5,2,12,.75);
 
     border-bottom:
-        1px solid rgba(255,255,255,0.1);
+        1px solid rgba(255,255,255,.1);
 }
 
 .brand {
@@ -259,8 +194,7 @@ button {
 
     border-radius: 14px;
 
-    background:
-        #7c3aed;
+    background: #7c3aed;
 
     font-size: 22px;
 }
@@ -270,15 +204,10 @@ button {
     display: block;
 }
 
-.brand strong {
-    font-size: 15px;
-}
-
 .brand small {
-    margin-top: 4px;
+    margin-top: 3px;
 
-    color:
-        rgba(255,255,255,.5);
+    color: rgba(255,255,255,.5);
 
     font-size: 10px;
 }
@@ -292,8 +221,8 @@ button {
 }
 
 .account img {
-    width: 46px;
-    height: 46px;
+    width: 45px;
+    height: 45px;
 
     border-radius: 50%;
 
@@ -302,20 +231,15 @@ button {
     background: #7c3aed;
 }
 
-.account-info strong,
-.account-info span {
+.account strong,
+.account span {
     display: block;
 }
 
-.account-info strong {
-    font-size: 13px;
-}
-
-.account-info span {
+.account span {
     margin-top: 3px;
 
-    color:
-        rgba(255,255,255,.5);
+    color: rgba(255,255,255,.5);
 
     font-size: 10px;
 }
@@ -325,7 +249,7 @@ button {
 }
 
 
-/* ================= NAVIGATION ================= */
+/* NAVIGATION */
 
 .navigation {
     display: flex;
@@ -334,21 +258,21 @@ button {
 
     gap: 8px;
 
-    padding: 11px;
+    padding: 10px;
 
     background:
-        rgba(0,0,0,.18);
+        rgba(0,0,0,.2);
 
     overflow-x: auto;
 }
 
 .navigation button {
+    padding: 10px 15px;
+
     border:
-        1px solid rgba(255,255,255,.11);
+        1px solid rgba(255,255,255,.12);
 
     border-radius: 11px;
-
-    padding: 10px 16px;
 
     background:
         rgba(255,255,255,.07);
@@ -356,26 +280,43 @@ button {
     color: white;
 
     white-space: nowrap;
-
-    transition: .2s;
-}
-
-.navigation button:hover {
-    background:
-        rgba(124,58,237,.4);
 }
 
 
-/* ================= CONTENT ================= */
+/* CONTENT */
 
 .content {
     width: 100%;
     max-width: 1050px;
 
-    margin: 0 auto;
+    margin: auto;
 
-    padding: 22px 15px 60px;
+    padding: 20px 15px 60px;
 }
+
+
+/* ONLINE */
+
+.online-box {
+    margin-bottom: 15px;
+
+    padding: 14px 16px;
+
+    border-radius: 14px;
+
+    background:
+        rgba(22,163,74,.18);
+
+    border:
+        1px solid rgba(134,239,172,.25);
+
+    color: #bbf7d0;
+
+    font-size: 13px;
+}
+
+
+/* PANEL */
 
 .panel {
     margin-bottom: 18px;
@@ -389,20 +330,6 @@ button {
 
     border:
         1px solid rgba(255,255,255,.12);
-
-    box-shadow:
-        0 12px 35px rgba(0,0,0,.18);
-}
-
-.panel-title,
-.panel-header {
-    display: flex;
-
-    align-items: center;
-
-    justify-content: space-between;
-
-    gap: 15px;
 }
 
 .panel h2 {
@@ -412,24 +339,21 @@ button {
 }
 
 .panel p {
-    margin: 6px 0 18px;
-
-    color:
-        rgba(255,255,255,.52);
+    color: rgba(255,255,255,.5);
 
     font-size: 11px;
 }
 
 
-/* ================= SEARCH ================= */
+/* SEARCH */
 
-.search-box {
+.search-row {
     display: flex;
 
     gap: 10px;
 }
 
-.search-box input {
+.search-row input {
     flex: 1;
 
     height: 50px;
@@ -437,35 +361,100 @@ button {
     padding: 0 15px;
 
     border:
-        1px solid rgba(255,255,255,.13);
+        1px solid rgba(255,255,255,.14);
 
     border-radius: 12px;
 
     outline: none;
 
     background:
-        rgba(0,0,0,.2);
+        rgba(0,0,0,.22);
 
     color: white;
-
-    font-size: 14px;
-}
-
-.search-box input:focus {
-    border-color: #a78bfa;
 }
 
 .search-button {
-    width: 115px;
+    width: 110px;
 }
 
-.secondary-button {
+
+/* SEARCH RESULT */
+
+.search-result {
+    display: flex;
+
+    align-items: center;
+
+    gap: 12px;
+
+    margin-top: 15px;
+
+    padding: 13px;
+
+    border-radius: 14px;
+
+    background:
+        rgba(0,0,0,.2);
+}
+
+.search-result img {
+    width: 55px;
+    height: 55px;
+
+    border-radius: 50%;
+}
+
+.search-info {
+    flex: 1;
+}
+
+.search-info strong,
+.search-info span {
+    display: block;
+}
+
+.search-info span {
+    margin-top: 4px;
+
+    color: rgba(255,255,255,.5);
+
+    font-size: 10px;
+}
+
+.search-actions {
+    display: flex;
+    gap: 7px;
+}
+
+.search-actions button {
+    padding: 9px 12px;
+
+    border: 0;
+
+    border-radius: 10px;
+
+    background: #7c3aed;
+
+    color: white;
+}
+
+
+/* USERS */
+
+.panel-header {
+    display: flex;
+
+    align-items: center;
+    justify-content: space-between;
+}
+
+.secondary {
+    padding: 9px 12px;
+
     border:
         1px solid rgba(255,255,255,.12);
 
     border-radius: 10px;
-
-    padding: 9px 13px;
 
     background:
         rgba(255,255,255,.08);
@@ -473,91 +462,16 @@ button {
     color: white;
 }
 
-
-/* ================= SEARCH RESULT ================= */
-
-.search-result {
-    display: flex;
-
-    align-items: center;
-
-    gap: 13px;
-
-    margin-top: 15px;
-
-    padding: 13px;
-
-    border-radius: 15px;
-
-    background:
-        rgba(0,0,0,.17);
-}
-
-.search-result > img {
-    width: 55px;
-    height: 55px;
-
-    border-radius: 50%;
-
-    object-fit: cover;
-}
-
-.search-user-info {
-    flex: 1;
-
-    min-width: 0;
-}
-
-.search-user-info strong,
-.search-user-info span {
-    display: block;
-}
-
-.search-user-info strong {
-    font-size: 13px;
-}
-
-.search-user-info span {
-    margin-top: 4px;
-
-    color:
-        rgba(255,255,255,.52);
-
-    font-size: 10px;
-}
-
-.search-actions {
-    display: flex;
-
-    gap: 7px;
-}
-
-.call-button {
-    border: 0;
-
-    border-radius: 10px;
-
-    padding: 9px 12px;
-
-    background:
-        #7c3aed;
-
-    color: white;
-}
-
-
-/* ================= USERS ================= */
-
 .users-list {
     display: grid;
 
     grid-template-columns:
         repeat(
             auto-fill,
-            minmax(280px, 1fr)
+            minmax(280px,1fr)
         );
 
-    gap: 11px;
+    gap: 10px;
 }
 
 .user-card {
@@ -565,22 +479,22 @@ button {
 
     align-items: center;
 
-    gap: 11px;
+    gap: 10px;
 
     padding: 13px;
 
     border-radius: 15px;
 
     background:
-        rgba(0,0,0,.14);
+        rgba(0,0,0,.15);
 
     border:
         1px solid rgba(255,255,255,.09);
 }
 
 .user-avatar {
-    width: 51px;
-    height: 51px;
+    width: 50px;
+    height: 50px;
 
     border-radius: 50%;
 
@@ -589,18 +503,11 @@ button {
 
 .user-info {
     flex: 1;
-
-    min-width: 0;
 }
 
 .user-name {
     font-size: 13px;
-
     font-weight: bold;
-
-    overflow: hidden;
-
-    text-overflow: ellipsis;
 }
 
 .user-id,
@@ -608,15 +515,13 @@ button {
 .user-status {
     margin-top: 4px;
 
-    color:
-        rgba(255,255,255,.48);
+    color: rgba(255,255,255,.5);
 
     font-size: 10px;
 }
 
 .user-actions {
     display: flex;
-
     gap: 5px;
 }
 
@@ -628,25 +533,23 @@ button {
 
     border-radius: 10px;
 
-    background:
-        #7c3aed;
+    background: #7c3aed;
 
     color: white;
 }
 
-.loading {
+.empty {
     grid-column: 1 / -1;
 
-    padding: 25px;
+    padding: 30px;
 
     text-align: center;
 
-    color:
-        rgba(255,255,255,.5);
+    color: rgba(255,255,255,.5);
 }
 
 
-/* ================= CALL ================= */
+/* CALL */
 
 .call-panel {
     margin-top: 18px;
@@ -655,44 +558,38 @@ button {
 
     border-radius: 20px;
 
-    background:
-        #05030a;
+    background: #030207;
 
     border:
         1px solid rgba(255,255,255,.12);
 }
 
 .call-header {
-    min-height: 60px;
-
     display: flex;
 
     align-items: center;
-
     justify-content: space-between;
 
-    padding: 12px 16px;
+    padding: 14px;
 
     background:
         rgba(0,0,0,.5);
 }
 
-.call-header strong {
+.call-header strong,
+.call-header span {
     display: block;
 }
 
 .call-header span {
-    display: block;
-
     margin-top: 4px;
 
-    color:
-        #a78bfa;
+    color: #a78bfa;
 
     font-size: 10px;
 }
 
-.small-button {
+.call-header button {
     width: 34px;
     height: 34px;
 
@@ -713,38 +610,32 @@ button {
 
     min-height: 430px;
 
-    background:
-        #020106;
+    background: #000;
 }
 
 #remoteVideo {
-    display: block;
-
     width: 100%;
     height: 430px;
 
     object-fit: cover;
-
-    background: #020106;
 }
 
 #localVideo {
     position: absolute;
 
-    left: 16px;
-    bottom: 16px;
+    left: 15px;
+    bottom: 15px;
 
-    width: 175px;
-    height: 125px;
+    width: 170px;
+    height: 120px;
 
     object-fit: cover;
 
-    border:
-        2px solid white;
+    border: 2px solid white;
 
     border-radius: 13px;
 
-    background: #000;
+    background: black;
 
     z-index: 5;
 }
@@ -763,20 +654,17 @@ button {
     align-items: center;
     justify-content: center;
 
-    color:
-        rgba(255,255,255,.55);
+    color: rgba(255,255,255,.5);
+}
+
+.remote-placeholder div {
+    font-size: 55px;
 }
 
 .remote-placeholder span {
-    margin-top: 7px;
+    margin-top: 5px;
 
-    font-size: 11px;
-}
-
-.remote-icon {
-    margin-bottom: 8px;
-
-    font-size: 55px;
+    font-size: 10px;
 }
 
 .call-controls {
@@ -794,8 +682,6 @@ button {
 
     height: 45px;
 
-    padding: 0 15px;
-
     border: 0;
 
     border-radius: 11px;
@@ -806,35 +692,19 @@ button {
     color: white;
 }
 
-.danger-button {
-    background:
-        #dc2626 !important;
-}
-
-.accept-button {
-    background:
-        #16a34a;
-
-    color: white;
-
-    border: 0;
-
-    border-radius: 11px;
-
-    height: 45px;
-
-    padding: 0 20px;
+.danger {
+    background: #dc2626 !important;
 }
 
 
-/* ================= MODAL ================= */
+/* MODAL */
 
 .modal {
     position: fixed;
 
     inset: 0;
 
-    z-index: 2000;
+    z-index: 1000;
 
     display: flex;
 
@@ -849,7 +719,7 @@ button {
 
 .incoming-card {
     width: 100%;
-    max-width: 360px;
+    max-width: 350px;
 
     padding: 30px;
 
@@ -857,45 +727,39 @@ button {
 
     border-radius: 22px;
 
-    background:
-        #211038;
-
-    border:
-        1px solid rgba(255,255,255,.15);
-
-    box-shadow:
-        0 25px 70px rgba(0,0,0,.5);
+    background: #241039;
 }
 
 .incoming-icon {
-    font-size: 52px;
+    font-size: 50px;
 }
 
-.incoming-card h2 {
-    margin: 10px 0;
-}
-
-.incoming-card p {
-    color:
-        rgba(255,255,255,.6);
-
-    font-size: 12px;
-}
-
-.incoming-actions {
+.incoming-buttons {
     display: flex;
 
     gap: 10px;
 
-    margin-top: 22px;
+    margin-top: 20px;
 }
 
-.incoming-actions button {
+.incoming-buttons button {
     flex: 1;
+
+    height: 45px;
+
+    border: 0;
+
+    border-radius: 11px;
+
+    color: white;
+}
+
+.accept {
+    background: #16a34a;
 }
 
 
-/* ================= TOAST ================= */
+/* TOAST */
 
 #toast {
     position: fixed;
@@ -905,47 +769,38 @@ button {
 
     z-index: 3000;
 
-    max-width: 90%;
-
     padding: 12px 18px;
 
     border-radius: 12px;
 
     background:
-        rgba(18,8,35,.96);
-
-    box-shadow:
-        0 10px 30px rgba(0,0,0,.3);
+        rgba(15,5,30,.96);
 
     transform:
-        translate(-50%, 25px);
+        translate(-50%,20px);
 
     opacity: 0;
 
-    pointer-events: none;
-
     transition: .25s;
-
-    font-size: 12px;
 }
 
 #toast.show {
     opacity: 1;
 
     transform:
-        translate(-50%, 0);
+        translate(-50%,0);
 }
 
 
-/* ================= MOBILE ================= */
+/* MOBILE */
 
-@media (max-width: 700px) {
+@media (max-width: 650px) {
 
     .topbar {
-        padding: 11px 13px;
+        padding: 11px;
     }
 
-    .account-info {
+    .account > div {
         display: none;
     }
 
@@ -954,19 +809,16 @@ button {
     }
 
     .content {
-        padding: 13px 9px 40px;
+        padding: 12px 9px 40px;
     }
 
-    .panel {
-        padding: 16px;
-    }
-
-    .search-box {
+    .search-row {
         flex-direction: column;
     }
 
     .search-button {
         width: 100%;
+        height: 48px;
     }
 
     .search-result {
@@ -985,17 +837,15 @@ button {
         grid-template-columns: 1fr;
     }
 
-    .video-area {
-        min-height: 320px;
-    }
-
+    .video-area,
     #remoteVideo {
+        min-height: 320px;
         height: 320px;
     }
 
     #localVideo {
-        width: 125px;
-        height: 90px;
+        width: 120px;
+        height: 85px;
     }
 
     .call-controls {
@@ -1005,9 +855,5 @@ button {
     .call-controls button {
         flex: 1;
         min-width: 100px;
-    }
-
-    .panel-header {
-        align-items: flex-start;
     }
 }

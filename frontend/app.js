@@ -2,30 +2,24 @@ const API_URL =
     "https://videocallapp-api.onrender.com";
 
 let currentUser = null;
-
 let socket = null;
 
 let peerConnection = null;
-
 let localStream = null;
-
 let remoteStream = null;
 
 let currentCallUser = null;
-
 let currentCallType = "video";
-
 let incomingOffer = null;
 
 
-/* =====================================================
+/* =========================
    HELPERS
-===================================================== */
+========================= */
 
 function $(id) {
     return document.getElementById(id);
 }
-
 
 function getUserId() {
     return localStorage.getItem(
@@ -33,19 +27,7 @@ function getUserId() {
     );
 }
 
-
-function escapeHtml(value) {
-
-    return String(value ?? "")
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll('"', "&quot;")
-        .replaceAll("'", "&#039;");
-}
-
-
-function createAvatar(name) {
+function avatar(name) {
 
     const letter =
         String(name || "U")
@@ -73,7 +55,7 @@ function createAvatar(name) {
                 font-family="Arial"
                 fill="white"
             >
-                ${escapeHtml(letter)}
+                ${letter}
             </text>
 
         </svg>
@@ -85,17 +67,25 @@ function createAvatar(name) {
     );
 }
 
+function escapeHtml(value) {
+
+    return String(value ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+}
 
 function toast(message) {
 
-    const element = $("toast");
+    const box = $("toast");
 
-    if (!element) return;
+    if (!box) return;
 
-    element.textContent =
-        message;
+    box.textContent = message;
 
-    element.classList.add("show");
+    box.classList.add("show");
 
     clearTimeout(
         window.__toastTimer
@@ -104,7 +94,7 @@ function toast(message) {
     window.__toastTimer =
         setTimeout(() => {
 
-            element.classList.remove(
+            box.classList.remove(
                 "show"
             );
 
@@ -112,9 +102,59 @@ function toast(message) {
 }
 
 
-/* =====================================================
+/* =========================
+   PAGE
+========================= */
+
+function showLogin() {
+
+    $("loginPage")
+        .classList
+        .remove("hidden");
+
+    $("registerPage")
+        .classList
+        .add("hidden");
+
+    $("appPage")
+        .classList
+        .add("hidden");
+}
+
+function showRegister() {
+
+    $("loginPage")
+        .classList
+        .add("hidden");
+
+    $("registerPage")
+        .classList
+        .remove("hidden");
+
+    $("appPage")
+        .classList
+        .add("hidden");
+}
+
+function showApp() {
+
+    $("loginPage")
+        .classList
+        .add("hidden");
+
+    $("registerPage")
+        .classList
+        .add("hidden");
+
+    $("appPage")
+        .classList
+        .remove("hidden");
+}
+
+
+/* =========================
    API
-===================================================== */
+========================= */
 
 async function api(
     path,
@@ -139,12 +179,9 @@ async function api(
     let data = null;
 
     try {
-
         data =
             await response.json();
-
     } catch {
-
         data = null;
     }
 
@@ -152,7 +189,6 @@ async function api(
 
         throw new Error(
             data?.detail ||
-            data?.message ||
             "خطا در ارتباط با سرور"
         );
     }
@@ -161,61 +197,40 @@ async function api(
 }
 
 
-/* =====================================================
-   PAGE
-===================================================== */
+/* =========================
+   PROFILE
+========================= */
 
-function showLogin() {
+function updateProfile() {
 
-    $("loginPage")
-        .classList
-        .remove("hidden");
+    if (!currentUser) return;
 
-    $("registerPage")
-        .classList
-        .add("hidden");
+    const name =
+        currentUser.display_name ||
+        currentUser.name ||
+        currentUser.user_id ||
+        "کاربر";
 
-    $("appPage")
-        .classList
-        .add("hidden");
+    const id =
+        currentUser.user_id ||
+        currentUser.id ||
+        "";
+
+    $("myName").textContent =
+        name;
+
+    $("myId").textContent =
+        "شناسه: " + id;
+
+    $("myAvatar").src =
+        currentUser.avatar ||
+        avatar(name);
 }
 
 
-function showRegister() {
-
-    $("loginPage")
-        .classList
-        .add("hidden");
-
-    $("registerPage")
-        .classList
-        .remove("hidden");
-
-    $("appPage")
-        .classList
-        .add("hidden");
-}
-
-
-function showApp() {
-
-    $("loginPage")
-        .classList
-        .add("hidden");
-
-    $("registerPage")
-        .classList
-        .add("hidden");
-
-    $("appPage")
-        .classList
-        .remove("hidden");
-}
-
-
-/* =====================================================
+/* =========================
    LOGIN
-===================================================== */
+========================= */
 
 async function login() {
 
@@ -275,26 +290,35 @@ async function login() {
         );
 
         /*
-         * صفحه تماس آنلاین
-         * بلافاصله نمایش داده می‌شود.
+         * نکته مهم:
+         * اول صفحه اصلی را نشان می‌دهیم.
+         * هیچ WebSocket یا API دیگری
+         * اجازه ندارد جلوی نمایش صفحه را بگیرد.
          */
 
         showApp();
 
-        updateMyProfile();
+        updateProfile();
+
+        $("onlineBox")
+            .textContent =
+            "🟢 ورود موفق؛ در حال اتصال به تماس آنلاین...";
+
+        /*
+         * اتصال‌ها بعد از نمایش صفحه
+         * انجام می‌شوند.
+         */
 
         connectWebSocket();
 
-        await loadUsers();
+        loadUsers();
 
-        toast(
-            "ورود موفق بود"
-        );
+        toast("ورود موفق بود");
 
     } catch (error) {
 
         console.error(
-            "Login error:",
+            "Login:",
             error
         );
 
@@ -314,9 +338,9 @@ async function login() {
 }
 
 
-/* =====================================================
+/* =========================
    REGISTER
-===================================================== */
+========================= */
 
 async function register() {
 
@@ -411,11 +435,11 @@ async function register() {
 
         showApp();
 
-        updateMyProfile();
+        updateProfile();
 
         connectWebSocket();
 
-        await loadUsers();
+        loadUsers();
 
         toast(
             "ثبت‌نام موفق بود"
@@ -424,7 +448,7 @@ async function register() {
     } catch (error) {
 
         console.error(
-            "Register error:",
+            "Register:",
             error
         );
 
@@ -444,51 +468,19 @@ async function register() {
 }
 
 
-/* =====================================================
-   PROFILE
-===================================================== */
-
-function updateMyProfile() {
-
-    if (!currentUser) return;
-
-    const name =
-        currentUser.display_name ||
-        currentUser.name ||
-        currentUser.user_id ||
-        "کاربر";
-
-    const userId =
-        currentUser.user_id ||
-        currentUser.id ||
-        "";
-
-    $("myName")
-        .textContent =
-        name;
-
-    $("myId")
-        .textContent =
-        "شناسه: " + userId;
-
-    $("myAvatar")
-        .src =
-        currentUser.avatar ||
-        createAvatar(name);
-}
-
-
-/* =====================================================
+/* =========================
    USERS
-===================================================== */
+========================= */
 
 async function loadUsers() {
 
     const list =
         $("usersList");
 
+    if (!list) return;
+
     list.innerHTML = `
-        <div class="loading">
+        <div class="empty">
             در حال دریافت کاربران...
         </div>
     `;
@@ -526,8 +518,8 @@ async function loadUsers() {
         if (!users.length) {
 
             list.innerHTML = `
-                <div class="loading">
-                    هنوز کاربر دیگری ثبت‌نام نکرده است.
+                <div class="empty">
+                    هنوز کاربر دیگری وجود ندارد.
                 </div>
             `;
 
@@ -554,7 +546,7 @@ async function loadUsers() {
 
             const image =
                 user.avatar ||
-                createAvatar(name);
+                avatar(name);
 
             const card =
                 document.createElement(
@@ -601,17 +593,11 @@ async function loadUsers() {
 
                 <div class="user-actions">
 
-                    <button
-                        class="audio-button"
-                        title="تماس صوتی"
-                    >
+                    <button class="audio">
                         📞
                     </button>
 
-                    <button
-                        class="video-button"
-                        title="تماس تصویری"
-                    >
+                    <button class="video">
                         🎥
                     </button>
 
@@ -619,7 +605,7 @@ async function loadUsers() {
             `;
 
             card.querySelector(
-                ".audio-button"
+                ".audio"
             ).onclick =
                 () => startCall(
                     id,
@@ -627,7 +613,7 @@ async function loadUsers() {
                 );
 
             card.querySelector(
-                ".video-button"
+                ".video"
             ).onclick =
                 () => startCall(
                     id,
@@ -642,12 +628,13 @@ async function loadUsers() {
     } catch (error) {
 
         console.error(
-            "Users error:",
+            "Users:",
             error
         );
 
         list.innerHTML = `
-            <div class="loading">
+            <div class="empty">
+                اتصال برقرار است، اما
                 دریافت کاربران ناموفق بود.
             </div>
         `;
@@ -655,9 +642,9 @@ async function loadUsers() {
 }
 
 
-/* =====================================================
+/* =========================
    SEARCH
-===================================================== */
+========================= */
 
 async function searchUser() {
 
@@ -699,10 +686,9 @@ async function searchUser() {
             user.name ||
             id;
 
-        $("searchAvatar")
-            .src =
+        $("searchAvatar").src =
             user.avatar ||
-            createAvatar(name);
+            avatar(name);
 
         $("searchName")
             .textContent =
@@ -737,12 +723,7 @@ async function searchUser() {
                 "video"
             );
 
-    } catch (error) {
-
-        console.error(
-            "Search error:",
-            error
-        );
+    } catch {
 
         $("searchResult")
             .classList
@@ -755,9 +736,9 @@ async function searchUser() {
 }
 
 
-/* =====================================================
+/* =========================
    WEBSOCKET
-===================================================== */
+========================= */
 
 function connectWebSocket() {
 
@@ -768,32 +749,49 @@ function connectWebSocket() {
 
     if (
         socket &&
-        socket.readyState ===
-        WebSocket.OPEN
+        (
+            socket.readyState ===
+            WebSocket.OPEN ||
+
+            socket.readyState ===
+            WebSocket.CONNECTING
+        )
     ) {
         return;
     }
 
-    const wsUrl =
+    const url =
         "wss://videocallapp-api.onrender.com/ws/" +
         encodeURIComponent(
             userId
         );
 
+    console.log(
+        "Connecting WebSocket:",
+        url
+    );
+
     try {
 
         socket =
-            new WebSocket(
-                wsUrl
-            );
+            new WebSocket(url);
 
         socket.onopen =
             () => {
 
+                console.log(
+                    "WebSocket connected"
+                );
+
                 $("myStatus")
                     .textContent =
                     "🟢 آنلاین";
+
+                $("onlineBox")
+                    .textContent =
+                    "🟢 اتصال آنلاین برقرار شد";
             };
+
 
         socket.onmessage =
             async event => {
@@ -812,11 +810,12 @@ function connectWebSocket() {
                 } catch (error) {
 
                     console.error(
-                        "Signal error:",
+                        "WebSocket message:",
                         error
                     );
                 }
             };
+
 
         socket.onerror =
             error => {
@@ -827,32 +826,39 @@ function connectWebSocket() {
                 );
             };
 
+
         socket.onclose =
             () => {
 
+                console.log(
+                    "WebSocket disconnected"
+                );
+
                 $("myStatus")
                     .textContent =
-                    "⚪ آفلاین";
+                    "🟡 اتصال مجدد...";
 
-                if (
-                    getUserId()
-                ) {
+                /*
+                 * صفحه دست نخورده باقی می‌ماند.
+                 */
 
-                    setTimeout(
-                        () => {
+                setTimeout(
+                    () => {
 
+                        if (
+                            getUserId()
+                        ) {
                             connectWebSocket();
+                        }
 
-                        },
-                        3000
-                    );
-                }
+                    },
+                    3000
+                );
             };
 
     } catch (error) {
 
         console.error(
-            "WebSocket error:",
             error
         );
     }
@@ -868,7 +874,7 @@ function sendSignal(data) {
     ) {
 
         toast(
-            "ارتباط با سرور تماس برقرار نیست."
+            "ارتباط تماس آماده نیست."
         );
 
         return false;
@@ -882,126 +888,9 @@ function sendSignal(data) {
 }
 
 
-/* =====================================================
-   START CALL
-===================================================== */
-
-async function startCall(
-    userId,
-    type
-) {
-
-    if (
-        String(userId) ===
-        String(getUserId())
-    ) {
-
-        toast(
-            "نمی‌توانید با خودتان تماس بگیرید."
-        );
-
-        return;
-    }
-
-    currentCallUser =
-        userId;
-
-    currentCallType =
-        type;
-
-    $("callPanel")
-        .classList
-        .remove("hidden");
-
-    $("callStatus")
-        .textContent =
-        "در حال دسترسی به دستگاه...";
-
-    try {
-
-        const constraints =
-            type === "audio"
-                ? {
-                    audio: true,
-                    video: false
-                }
-                : {
-                    audio: true,
-                    video: true
-                };
-
-        localStream =
-            await navigator
-                .mediaDevices
-                .getUserMedia(
-                    constraints
-                );
-
-        $("localVideo")
-            .srcObject =
-            localStream;
-
-        createPeerConnection();
-
-        localStream
-            .getTracks()
-            .forEach(track => {
-
-                peerConnection.addTrack(
-                    track,
-                    localStream
-                );
-            });
-
-        const offer =
-            await peerConnection
-                .createOffer();
-
-        await peerConnection
-            .setLocalDescription(
-                offer
-            );
-
-        sendSignal({
-
-            type: "offer",
-
-            to:
-                userId,
-
-            from:
-                getUserId(),
-
-            call_type:
-                type,
-
-            offer:
-                offer
-        });
-
-        $("callStatus")
-            .textContent =
-            "در حال تماس...";
-
-    } catch (error) {
-
-        console.error(
-            "Start call error:",
-            error
-        );
-
-        toast(
-            "دسترسی به دوربین یا میکروفون ممکن نشد."
-        );
-
-        cleanupCall();
-    }
-}
-
-
-/* =====================================================
-   PEER CONNECTION
-===================================================== */
+/* =========================
+   WEBRTC
+========================= */
 
 function createPeerConnection() {
 
@@ -1021,7 +910,6 @@ function createPeerConnection() {
                 }
 
             ]
-
         });
 
 
@@ -1100,7 +988,7 @@ function createPeerConnection() {
                     "🟢 متصل";
             }
 
-            else if (
+            if (
                 state ===
                 "connecting"
             ) {
@@ -1109,33 +997,132 @@ function createPeerConnection() {
                     .textContent =
                     "در حال اتصال...";
             }
-
-            else if (
-                state ===
-                "disconnected"
-            ) {
-
-                $("callStatus")
-                    .textContent =
-                    "اتصال قطع شد";
-            }
-
-            else if (
-                state ===
-                "failed"
-            ) {
-
-                $("callStatus")
-                    .textContent =
-                    "اتصال ناموفق بود";
-            }
         };
 }
 
 
-/* =====================================================
-   SIGNAL HANDLER
-===================================================== */
+/* =========================
+   START CALL
+========================= */
+
+async function startCall(
+    userId,
+    type
+) {
+
+    if (
+        String(userId) ===
+        String(getUserId())
+    ) {
+
+        toast(
+            "نمی‌توانید با خودتان تماس بگیرید."
+        );
+
+        return;
+    }
+
+    currentCallUser =
+        userId;
+
+    currentCallType =
+        type;
+
+    $("callPanel")
+        .classList
+        .remove("hidden");
+
+    $("callStatus")
+        .textContent =
+        "در حال دسترسی به دوربین و میکروفون...";
+
+    try {
+
+        const constraints =
+            type === "audio"
+                ? {
+                    audio: true,
+                    video: false
+                }
+                : {
+                    audio: true,
+                    video: true
+                };
+
+        localStream =
+            await navigator
+                .mediaDevices
+                .getUserMedia(
+                    constraints
+                );
+
+        $("localVideo")
+            .srcObject =
+            localStream;
+
+        createPeerConnection();
+
+        localStream
+            .getTracks()
+            .forEach(track => {
+
+                peerConnection.addTrack(
+                    track,
+                    localStream
+                );
+            });
+
+        const offer =
+            await peerConnection
+                .createOffer();
+
+        await peerConnection
+            .setLocalDescription(
+                offer
+            );
+
+        sendSignal({
+
+            type:
+                "offer",
+
+            to:
+                userId,
+
+            from:
+                getUserId(),
+
+            call_type:
+                type,
+
+            offer:
+                offer
+
+        });
+
+        $("callStatus")
+            .textContent =
+            "در حال تماس...";
+
+    } catch (error) {
+
+        console.error(
+            "Call:",
+            error
+        );
+
+        toast(
+            "دسترسی به دوربین یا میکروفون ممکن نشد."
+        );
+
+        cleanupCall();
+    }
+}
+
+
+/* =========================
+   SIGNAL
+========================= */
 
 async function handleSignal(
     data
@@ -1146,9 +1133,25 @@ async function handleSignal(
         "offer"
     ) {
 
-        await receiveOffer(
-            data
-        );
+        incomingOffer =
+            data.offer;
+
+        currentCallUser =
+            data.from;
+
+        currentCallType =
+            data.call_type ||
+            "video";
+
+        $("incomingName")
+            .textContent =
+            "کاربر " +
+            currentCallUser +
+            " با شما تماس گرفته است.";
+
+        $("incomingCall")
+            .classList
+            .remove("hidden");
 
         return;
     }
@@ -1164,11 +1167,9 @@ async function handleSignal(
 
         await peerConnection
             .setRemoteDescription(
-
                 new RTCSessionDescription(
                     data.answer
                 )
-
             );
 
         return;
@@ -1189,11 +1190,9 @@ async function handleSignal(
 
                 await peerConnection
                     .addIceCandidate(
-
                         new RTCIceCandidate(
                             data.candidate
                         )
-
                     );
 
             } catch (error) {
@@ -1233,41 +1232,13 @@ async function handleSignal(
         );
 
         cleanupCall();
-
-        return;
     }
 }
 
 
-/* =====================================================
-   INCOMING CALL
-===================================================== */
-
-async function receiveOffer(
-    data
-) {
-
-    incomingOffer =
-        data.offer;
-
-    currentCallUser =
-        data.from;
-
-    currentCallType =
-        data.call_type ||
-        "video";
-
-    $("incomingName")
-        .textContent =
-        "کاربر " +
-        currentCallUser +
-        " با شما تماس گرفته است.";
-
-    $("incomingCall")
-        .classList
-        .remove("hidden");
-}
-
+/* =========================
+   INCOMING
+========================= */
 
 async function acceptCall() {
 
@@ -1278,10 +1249,6 @@ async function acceptCall() {
     $("callPanel")
         .classList
         .remove("hidden");
-
-    $("callStatus")
-        .textContent =
-        "در حال پاسخ به تماس...";
 
     try {
 
@@ -1321,11 +1288,9 @@ async function acceptCall() {
 
         await peerConnection
             .setRemoteDescription(
-
                 new RTCSessionDescription(
                     incomingOffer
                 )
-
             );
 
         const answer =
@@ -1339,7 +1304,8 @@ async function acceptCall() {
 
         sendSignal({
 
-            type: "answer",
+            type:
+                "answer",
 
             to:
                 currentCallUser,
@@ -1358,7 +1324,6 @@ async function acceptCall() {
     } catch (error) {
 
         console.error(
-            "Accept call error:",
             error
         );
 
@@ -1393,15 +1358,17 @@ function rejectCall() {
         });
     }
 
-    incomingOffer = null;
+    incomingOffer =
+        null;
 
-    currentCallUser = null;
+    currentCallUser =
+        null;
 }
 
 
-/* =====================================================
-   MICROPHONE
-===================================================== */
+/* =========================
+   CONTROLS
+========================= */
 
 function toggleMicrophone() {
 
@@ -1421,7 +1388,7 @@ function toggleMicrophone() {
     if (!tracks.length) {
 
         toast(
-            "این تماس میکروفون ندارد."
+            "میکروفون فعال نیست."
         );
 
         return;
@@ -1444,10 +1411,6 @@ function toggleMicrophone() {
 }
 
 
-/* =====================================================
-   CAMERA
-===================================================== */
-
 function toggleCamera() {
 
     if (!localStream) {
@@ -1466,7 +1429,7 @@ function toggleCamera() {
     if (!tracks.length) {
 
         toast(
-            "این تماس تصویری نیست."
+            "دوربین فعال نیست."
         );
 
         return;
@@ -1489,23 +1452,21 @@ function toggleCamera() {
 }
 
 
-/* =====================================================
-   HANGUP
-===================================================== */
-
 function hangup() {
 
     if (currentCallUser) {
 
         sendSignal({
 
-            type: "hangup",
+            type:
+                "hangup",
 
             to:
                 currentCallUser,
 
             from:
                 getUserId()
+
         });
     }
 
@@ -1522,15 +1483,12 @@ function cleanupCall() {
     if (peerConnection) {
 
         try {
-
             peerConnection.close();
-
         } catch {}
 
         peerConnection =
             null;
     }
-
 
     if (localStream) {
 
@@ -1550,51 +1508,36 @@ function cleanupCall() {
             null;
     }
 
-
     remoteStream =
         null;
 
+    $("localVideo")
+        .srcObject =
+        null;
 
-    if ($("localVideo")) {
-
-        $("localVideo")
-            .srcObject =
-            null;
-    }
-
-
-    if ($("remoteVideo")) {
-
-        $("remoteVideo")
-            .srcObject =
-            null;
-    }
-
+    $("remoteVideo")
+        .srcObject =
+        null;
 
     $("remotePlaceholder")
         .classList
         .remove("hidden");
 
-
     $("callPanel")
         .classList
         .add("hidden");
-
 
     currentCallUser =
         null;
 
     incomingOffer =
         null;
-
-    currentCallType =
-        "video";
 }
 
 
-/* =====================================================
+/* =========================
    LOGOUT
-===================================================== */
+========================= */
 
 function logout() {
 
@@ -1618,191 +1561,85 @@ function logout() {
         null;
 
     showLogin();
-
-    toast(
-        "از حساب خارج شدید."
-    );
 }
 
 
-/* =====================================================
+/* =========================
    EVENTS
-===================================================== */
+========================= */
 
 function setupEvents() {
 
-    $("loginButton")
-        .addEventListener(
-            "click",
-            login
-        );
+    $("loginButton").onclick =
+        login;
 
+    $("registerButton").onclick =
+        register;
 
-    $("registerButton")
-        .addEventListener(
-            "click",
-            register
-        );
+    $("showRegisterButton").onclick =
+        showRegister;
 
+    $("showLoginButton").onclick =
+        showLogin;
 
-    $("showRegisterButton")
-        .addEventListener(
-            "click",
-            showRegister
-        );
+    $("searchButton").onclick =
+        searchUser;
 
+    $("refreshButton").onclick =
+        loadUsers;
 
-    $("showLoginButton")
-        .addEventListener(
-            "click",
-            showLogin
-        );
+    $("microphoneButton").onclick =
+        toggleMicrophone;
 
+    $("cameraButton").onclick =
+        toggleCamera;
 
-    $("searchButton")
-        .addEventListener(
-            "click",
-            searchUser
-        );
+    $("hangupButton").onclick =
+        hangup;
 
+    $("closeCallButton").onclick =
+        hangup;
 
-    $("refreshButton")
-        .addEventListener(
-            "click",
-            loadUsers
-        );
+    $("acceptButton").onclick =
+        acceptCall;
 
+    $("rejectButton").onclick =
+        rejectCall;
 
-    $("microphoneButton")
-        .addEventListener(
-            "click",
-            toggleMicrophone
-        );
+    $("logoutButton").onclick =
+        logout;
 
+    $("homeButton").onclick =
+        () => window.scrollTo({
+            top: 0,
+            behavior: "smooth"
+        });
 
-    $("cameraButton")
-        .addEventListener(
-            "click",
-            toggleCamera
-        );
+    $("contactsButton").onclick =
+        () => {
+            location.href =
+                "contacts.html";
+        };
 
+    $("profileButton").onclick =
+        () => {
+            location.href =
+                "profile.html";
+        };
 
-    $("hangupButton")
-        .addEventListener(
-            "click",
-            hangup
-        );
-
-
-    $("closeCallButton")
-        .addEventListener(
-            "click",
-            hangup
-        );
-
-
-    $("acceptButton")
-        .addEventListener(
-            "click",
-            acceptCall
-        );
-
-
-    $("rejectButton")
-        .addEventListener(
-            "click",
-            rejectCall
-        );
-
-
-    $("logoutButton")
-        .addEventListener(
-            "click",
-            logout
-        );
-
-
-    $("homeButton")
-        .addEventListener(
-            "click",
-            () => {
-                window.scrollTo({
-                    top: 0,
-                    behavior: "smooth"
-                });
-            }
-        );
-
-
-    $("contactsButton")
-        .addEventListener(
-            "click",
-            () => {
-                location.href =
-                    "contacts.html";
-            }
-        );
-
-
-    $("profileButton")
-        .addEventListener(
-            "click",
-            () => {
-                location.href =
-                    "profile.html";
-            }
-        );
-
-
-    $("settingsButton")
-        .addEventListener(
-            "click",
-            () => {
-                location.href =
-                    "settings.html";
-            }
-        );
-
-
-    $("loginIdentifier")
-        .addEventListener(
-            "keydown",
-            event => {
-
-                if (
-                    event.key ===
-                    "Enter"
-                ) {
-                    login();
-                }
-
-            }
-        );
-
-
-    $("searchInput")
-        .addEventListener(
-            "keydown",
-            event => {
-
-                if (
-                    event.key ===
-                    "Enter"
-                ) {
-                    searchUser();
-                }
-
-            }
-        );
-
+    $("settingsButton").onclick =
+        () => {
+            location.href =
+                "settings.html";
+        };
 }
 
 
-/* =====================================================
-   AUTO LOGIN
-===================================================== */
+/* =========================
+   START
+========================= */
 
-async function startApp() {
+async function start() {
 
     setupEvents();
 
@@ -1815,6 +1652,18 @@ async function startApp() {
 
         return;
     }
+
+    /*
+     * اول صفحه را نشان می‌دهیم.
+     * بنابراین هیچ درخواست شبکه‌ای
+     * نمی‌تواند صفحه را خالی کند.
+     */
+
+    showApp();
+
+    $("onlineBox")
+        .textContent =
+        "🟡 در حال اتصال به حساب...";
 
     try {
 
@@ -1830,35 +1679,40 @@ async function startApp() {
             data.user ||
             data;
 
-        showApp();
-
-        updateMyProfile();
-
-        connectWebSocket();
-
-        await loadUsers();
+        updateProfile();
 
     } catch (error) {
 
         console.error(
-            "Auto login error:",
+            "Profile:",
             error
         );
 
-        localStorage.removeItem(
-            "videoCallUserId"
-        );
+        /*
+         * حتی اگر API موقتاً مشکل داشت،
+         * صفحه تماس آنلاین باقی می‌ماند.
+         */
 
-        showLogin();
+        $("myName")
+            .textContent =
+            "کاربر";
+
+        $("myId")
+            .textContent =
+            "شناسه: " + savedId;
     }
+
+    /*
+     * این‌ها مستقل از نمایش صفحه هستند.
+     */
+
+    connectWebSocket();
+
+    loadUsers();
 }
 
 
-/* =====================================================
-   START
-===================================================== */
-
 document.addEventListener(
     "DOMContentLoaded",
-    startApp
+    start
 );
