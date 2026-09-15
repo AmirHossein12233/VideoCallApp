@@ -1,4 +1,4 @@
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException
+from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException, Header
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from pathlib import Path
@@ -6,6 +6,9 @@ from typing import Optional
 import sqlite3
 import logging
 import uuid
+import secrets
+import hashlib
+import hmac
 
 
 # =========================================================
@@ -22,7 +25,7 @@ logger = logging.getLogger("VideoCallApp")
 
 app = FastAPI(
     title="VideoCallApp",
-    version="4.0.0"
+    version="5.0.0"
 )
 
 
@@ -37,7 +40,7 @@ app.add_middleware(
         "http://localhost:5500",
         "http://127.0.0.1:5500",
     ],
-    allow_credentials=True,
+    allow_credentials=False,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -57,26 +60,61 @@ def get_db():
     return conn
 
 
+def column_exists(cur, table_name, column_name):
+    cur.execute(f"PRAGMA table_info({table_name})")
+    columns = cur.fetchall()
+
+    return any(
+        row["name"] == column_name
+        for row in columns
+    )
+
+
 def init_db():
     conn = get_db()
     cur = conn.cursor()
 
+    # USERS
     cur.execute("""
         CREATE TABLE IF NOT EXISTS users (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             user_id TEXT UNIQUE NOT NULL,
             phone TEXT UNIQUE NOT NULL,
             display_name TEXT NOT NULL,
-            avatar TEXT DEFAULT ''
+            avatar TEXT DEFAULT '',
+            password_hash TEXT DEFAULT '',
+            password_salt TEXT DEFAULT ''
         )
     """)
 
+    # Migration for old database
+    if not column_exists(cur, "users", "password_hash"):
+        cur.execute(
+            "ALTER TABLE users ADD COLUMN password_hash TEXT DEFAULT ''"
+        )
+
+    if not column_exists(cur, "users", "password_salt"):
+        cur.execute(
+            "ALTER TABLE users ADD COLUMN password_salt TEXT DEFAULT ''"
+        )
+
+    # MESSAGES
     cur.execute("""
         CREATE TABLE IF NOT EXISTS messages (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             sender TEXT NOT NULL,
             receiver TEXT NOT NULL,
             message TEXT NOT NULL,
+            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+        )
+    """)
+
+    # SESSIONS
+    cur.execute("""
+        CREATE TABLE IF NOT EXISTS sessions (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            token TEXT UNIQUE NOT NULL,
+            user_id TEXT NOT NULL,
             created_at DATETIME DEFAULT CURRENT_TIMESTAMP
         )
     """)
@@ -96,6 +134,12 @@ class RegisterRequest(BaseModel):
     user_id: str
     phone: str
     display_name: str
+    password: str
+
+
+class LoginRequest(BaseModel):
+    identifier: str
+    password: str
 
 
 class ProfileUpdate(BaseModel):
@@ -107,6 +151,51 @@ class MessageRequest(BaseModel):
     sender: str
     receiver: str
     message: str
+
+
+# =========================================================
+# PASSWORD HASHING
+# =========================================================
+
+def hash_password(password: str, salt: Optional[bytes] = None):
+    if salt is None:
+        salt = secrets.token_bytes(16)
+
+    password_bytes = password.encode("utf-8")
+
+    digest = hashlib.pbkdf2_hmac(
+        "sha256",
+        password_bytes,
+        salt,
+        210_000
+    )
+
+    return (
+        salt.hex(),
+        digest.hex()
+    )
+
+
+def verify_password(
+    password: str,
+    stored_hash: str,
+    stored_salt: str
+):
+    try:
+        salt = bytes.fromhex(stored_salt)
+
+        _, calculated_hash = hash_password(
+            password,
+            salt
+        )
+
+        return hmac.compare_digest(
+            calculated_hash,
+            stored_hash
+        )
+
+    except Exception:
+        return False
 
 
 # =========================================================
@@ -123,6 +212,7 @@ def user_to_dict(row):
         "phone": row["phone"],
         "display_name": row["display_name"],
         "avatar": row["avatar"] or "",
+        "online": row["user_id"] in online_users,
     }
 
 
@@ -149,6 +239,108 @@ def find_user(identifier: str):
     return user_to_dict(row)
 
 
+def get_user_row(identifier: str):
+    identifier = identifier.strip()
+
+    conn = get_db()
+    cur = conn.cursor()
+
+    cur.execute(
+        """
+        SELECT *
+        FROM users
+        WHERE user_id = ?
+           OR phone = ?
+        LIMIT 1
+        """,
+        (identifier, identifier)
+    )
+
+    row = cur.fetchone()
+    conn.close()
+
+    return row
+
+
+# =========================================================
+# TOKEN / SESSION HELPERS
+# =========================================================
+
+def create_session(user_id: str):
+    token = secrets.token_urlsafe(48)
+
+    conn = get_db()
+    cur = conn.cursor()
+
+    cur.execute(
+        """
+        INSERT INTO sessions
+        (token, user_id)
+        VALUES (?, ?)
+        """,
+        (
+            token,
+            user_id
+        )
+    )
+
+    conn.commit()
+    conn.close()
+
+    return token
+
+
+def get_user_from_token(token: Optional[str]):
+    if not token:
+        return None
+
+    conn = get_db()
+    cur = conn.cursor()
+
+    cur.execute(
+        """
+        SELECT users.*
+        FROM sessions
+        INNER JOIN users
+            ON users.user_id = sessions.user_id
+        WHERE sessions.token = ?
+        LIMIT 1
+        """,
+        (token,)
+    )
+
+    row = cur.fetchone()
+    conn.close()
+
+    return user_to_dict(row)
+
+
+def require_auth(authorization: Optional[str]):
+    if not authorization:
+        raise HTTPException(
+            status_code=401,
+            detail="وارد حساب نشده‌اید"
+        )
+
+    if not authorization.startswith("Bearer "):
+        raise HTTPException(
+            status_code=401,
+            detail="توکن نامعتبر است"
+        )
+
+    token = authorization[7:].strip()
+
+    user = get_user_from_token(token)
+
+    if not user:
+        raise HTTPException(
+            status_code=401,
+            detail="نشست شما معتبر نیست"
+        )
+
+    return user
+
+
 # =========================================================
 # ROOT
 # =========================================================
@@ -159,7 +351,7 @@ async def root():
         "success": True,
         "service": "VideoCallApp",
         "status": "running",
-        "version": "4.0.0"
+        "version": "5.0.0"
     }
 
 
@@ -181,7 +373,7 @@ async def health():
         "success": True,
         "status": "online",
         "service": "VideoCallApp",
-        "version": "4.0.0",
+        "version": "5.0.0",
         "users": users_count,
         "online_users": len(online_users),
         "rooms": len(rooms)
@@ -197,6 +389,7 @@ async def register(data: RegisterRequest):
     user_id = data.user_id.strip()
     phone = data.phone.strip()
     display_name = data.display_name.strip()
+    password = data.password
 
     if not user_id:
         raise HTTPException(
@@ -216,9 +409,13 @@ async def register(data: RegisterRequest):
             detail="نام نمایشی الزامی است"
         )
 
-    existing_by_id = find_user(user_id)
+    if len(password) < 6:
+        raise HTTPException(
+            status_code=400,
+            detail="رمز عبور باید حداقل ۶ کاراکتر باشد"
+        )
 
-    if existing_by_id:
+    if find_user(user_id):
         raise HTTPException(
             status_code=400,
             detail="این شناسه کاربری قبلاً ثبت شده است"
@@ -227,40 +424,43 @@ async def register(data: RegisterRequest):
     conn = get_db()
     cur = conn.cursor()
 
+    salt, password_hash = hash_password(password)
+
     try:
         cur.execute(
             """
             INSERT INTO users (
                 user_id,
                 phone,
-                display_name
+                display_name,
+                password_hash,
+                password_salt
             )
-            VALUES (?, ?, ?)
+            VALUES (?, ?, ?, ?, ?)
             """,
             (
                 user_id,
                 phone,
-                display_name
+                display_name,
+                password_hash,
+                salt
             )
         )
 
         conn.commit()
 
     except sqlite3.IntegrityError as e:
-        logger.error(f"REGISTER DB ERROR: {e}")
 
-        error_text = str(e).lower()
+        logger.error(
+            f"REGISTER ERROR: {e}"
+        )
 
-        if "phone" in error_text:
+        text = str(e).lower()
+
+        if "phone" in text:
             raise HTTPException(
                 status_code=400,
                 detail="این شماره تلفن قبلاً ثبت شده است"
-            )
-
-        if "user_id" in error_text:
-            raise HTTPException(
-                status_code=400,
-                detail="این شناسه کاربری قبلاً ثبت شده است"
             )
 
         raise HTTPException(
@@ -271,19 +471,143 @@ async def register(data: RegisterRequest):
     finally:
         conn.close()
 
+    token = create_session(user_id)
+
     return {
         "success": True,
-        "message": "ثبت نام با موفقیت انجام شد",
+        "message": "ثبت نام موفق بود",
+        "token": token,
         "user": find_user(user_id)
     }
 
 
 # =========================================================
-# GET USER BY ID OR PHONE
+# LOGIN
+# =========================================================
+
+@app.post("/api/login")
+async def login(data: LoginRequest):
+
+    identifier = data.identifier.strip()
+
+    if not identifier:
+        raise HTTPException(
+            status_code=400,
+            detail="شناسه یا شماره تلفن را وارد کنید"
+        )
+
+    if not data.password:
+        raise HTTPException(
+            status_code=400,
+            detail="رمز عبور را وارد کنید"
+        )
+
+    row = get_user_row(identifier)
+
+    if not row:
+        raise HTTPException(
+            status_code=401,
+            detail="شناسه یا رمز عبور اشتباه است"
+        )
+
+    password_hash = row["password_hash"] or ""
+    password_salt = row["password_salt"] or ""
+
+    if not password_hash or not password_salt:
+        raise HTTPException(
+            status_code=401,
+            detail="برای این حساب هنوز رمز عبور تنظیم نشده است"
+        )
+
+    if not verify_password(
+        data.password,
+        password_hash,
+        password_salt
+    ):
+        raise HTTPException(
+            status_code=401,
+            detail="شناسه یا رمز عبور اشتباه است"
+        )
+
+    token = create_session(
+        row["user_id"]
+    )
+
+    return {
+        "success": True,
+        "message": "ورود موفق بود",
+        "token": token,
+        "user": find_user(
+            row["user_id"]
+        )
+    }
+
+
+# =========================================================
+# ME
+# =========================================================
+
+@app.get("/api/me")
+async def me(
+    authorization: Optional[str] = Header(default=None)
+):
+    user = require_auth(
+        authorization
+    )
+
+    return {
+        "success": True,
+        "user": user
+    }
+
+
+# =========================================================
+# LOGOUT
+# =========================================================
+
+@app.post("/api/logout")
+async def logout(
+    authorization: Optional[str] = Header(default=None)
+):
+    if not authorization:
+        return {
+            "success": True
+        }
+
+    token = ""
+
+    if authorization.startswith("Bearer "):
+        token = authorization[7:].strip()
+
+    if token:
+
+        conn = get_db()
+        cur = conn.cursor()
+
+        cur.execute(
+            """
+            DELETE FROM sessions
+            WHERE token = ?
+            """,
+            (token,)
+        )
+
+        conn.commit()
+        conn.close()
+
+    return {
+        "success": True,
+        "message": "از حساب خارج شدید"
+    }
+
+
+# =========================================================
+# USER BY IDENTIFIER
 # =========================================================
 
 @app.get("/api/users/{identifier}")
 async def get_user(identifier: str):
+
     user = find_user(identifier)
 
     if not user:
@@ -304,6 +628,7 @@ async def get_user(identifier: str):
 
 @app.get("/api/users")
 async def users():
+
     conn = get_db()
     cur = conn.cursor()
 
@@ -316,31 +641,25 @@ async def users():
     )
 
     rows = cur.fetchall()
+
     conn.close()
-
-    result = []
-
-    for row in rows:
-        user = user_to_dict(row)
-
-        if user:
-            result.append({
-                **user,
-                "online": user["user_id"] in online_users
-            })
 
     return {
         "success": True,
-        "users": result
+        "users": [
+            user_to_dict(row)
+            for row in rows
+        ]
     }
 
 
 # =========================================================
-# PROFILE GET
+# PROFILE
 # =========================================================
 
 @app.get("/api/profile/{user_id}")
 async def get_profile(user_id: str):
+
     user = find_user(user_id)
 
     if not user:
@@ -355,21 +674,20 @@ async def get_profile(user_id: str):
     }
 
 
-# =========================================================
-# PROFILE UPDATE
-# =========================================================
-
 @app.put("/api/profile/{user_id}")
 async def update_profile(
     user_id: str,
-    data: ProfileUpdate
+    data: ProfileUpdate,
+    authorization: Optional[str] = Header(default=None)
 ):
-    user = find_user(user_id)
+    current_user = require_auth(
+        authorization
+    )
 
-    if not user:
+    if current_user["user_id"] != user_id:
         raise HTTPException(
-            status_code=404,
-            detail="کاربر پیدا نشد"
+            status_code=403,
+            detail="اجازه تغییر این پروفایل را ندارید"
         )
 
     display_name = data.display_name.strip()
@@ -403,13 +721,12 @@ async def update_profile(
 
     return {
         "success": True,
-        "message": "پروفایل بروزرسانی شد",
         "user": find_user(user_id)
     }
 
 
 # =========================================================
-# ONLINE USER WEBSOCKETS
+# ONLINE USERS
 # =========================================================
 
 online_users: dict[str, WebSocket] = {}
@@ -420,26 +737,21 @@ async def user_socket(
     websocket: WebSocket,
     user_id: str
 ):
+
     await websocket.accept()
 
     user_id = user_id.strip()
 
-    previous_socket: Optional[WebSocket] = online_users.get(user_id)
-
-    if previous_socket and previous_socket is not websocket:
-        try:
-            await previous_socket.close()
-        except Exception:
-            pass
-
     online_users[user_id] = websocket
 
     logger.info(
-        f"ONLINE USER: {user_id}"
+        f"ONLINE: {user_id}"
     )
 
     try:
+
         while True:
+
             data = await websocket.receive_json()
 
             if not isinstance(data, dict):
@@ -456,49 +768,59 @@ async def user_socket(
 
             target = str(target).strip()
 
-            target_socket = online_users.get(target)
+            target_socket = online_users.get(
+                target
+            )
 
             if not target_socket:
+
                 await websocket.send_json({
                     "type": "error",
                     "message": "کاربر آنلاین نیست",
                     "target": target
                 })
+
                 continue
 
             outgoing = dict(data)
+
             outgoing["from"] = user_id
 
             try:
-                await target_socket.send_json(outgoing)
 
-            except Exception as e:
-                logger.error(
-                    f"FORWARD ERROR {user_id} -> {target}: {e}"
+                await target_socket.send_json(
+                    outgoing
                 )
 
-                online_users.pop(target, None)
+            except Exception as e:
 
-                await websocket.send_json({
-                    "type": "error",
-                    "message": "ارسال پیام به کاربر مقصد ناموفق بود"
-                })
+                logger.error(
+                    f"FORWARD ERROR: {e}"
+                )
 
     except WebSocketDisconnect:
+
         logger.info(
-            f"OFFLINE USER: {user_id}"
+            f"OFFLINE: {user_id}"
         )
 
     except Exception as e:
+
         logger.error(
-            f"USER SOCKET ERROR ({user_id}): {e}"
+            f"WEBSOCKET ERROR: {e}"
         )
 
     finally:
-        current = online_users.get(user_id)
+
+        current = online_users.get(
+            user_id
+        )
 
         if current is websocket:
-            online_users.pop(user_id, None)
+            online_users.pop(
+                user_id,
+                None
+            )
 
 
 # =========================================================
@@ -507,34 +829,28 @@ async def user_socket(
 
 @app.post("/api/messages")
 async def save_message(
-    data: MessageRequest
+    data: MessageRequest,
+    authorization: Optional[str] = Header(default=None)
 ):
+
+    current_user = require_auth(
+        authorization
+    )
+
+    if current_user["user_id"] != data.sender:
+        raise HTTPException(
+            status_code=403,
+            detail="فرستنده معتبر نیست"
+        )
+
     sender = data.sender.strip()
     receiver = data.receiver.strip()
     message = data.message.strip()
 
-    if not sender:
+    if not receiver or not message:
         raise HTTPException(
             status_code=400,
-            detail="sender الزامی است"
-        )
-
-    if not receiver:
-        raise HTTPException(
-            status_code=400,
-            detail="receiver الزامی است"
-        )
-
-    if not message:
-        raise HTTPException(
-            status_code=400,
-            detail="پیام نمی‌تواند خالی باشد"
-        )
-
-    if len(message) > 5000:
-        raise HTTPException(
-            status_code=400,
-            detail="پیام خیلی طولانی است"
+            detail="گیرنده و پیام الزامی هستند"
         )
 
     conn = get_db()
@@ -542,7 +858,8 @@ async def save_message(
 
     cur.execute(
         """
-        INSERT INTO messages (
+        INSERT INTO messages
+        (
             sender,
             receiver,
             message
@@ -570,8 +887,20 @@ async def save_message(
 @app.get("/api/messages/{user1}/{user2}")
 async def get_messages(
     user1: str,
-    user2: str
+    user2: str,
+    authorization: Optional[str] = Header(default=None)
 ):
+
+    current_user = require_auth(
+        authorization
+    )
+
+    if current_user["user_id"] not in [user1, user2]:
+        raise HTTPException(
+            status_code=403,
+            detail="اجازه مشاهده این گفتگو را ندارید"
+        )
+
     conn = get_db()
     cur = conn.cursor()
 
@@ -599,6 +928,7 @@ async def get_messages(
     )
 
     rows = cur.fetchall()
+
     conn.close()
 
     return {
@@ -619,7 +949,9 @@ rooms: dict[str, dict[str, WebSocket]] = {}
 
 @app.post("/api/create-room")
 async def create_room():
-    room_id = str(uuid.uuid4())[:8]
+    room_id = str(
+        uuid.uuid4()
+    )[:8]
 
     rooms[room_id] = {}
 
@@ -635,6 +967,7 @@ async def room_socket(
     room_id: str,
     user_id: str
 ):
+
     await websocket.accept()
 
     room_id = room_id.strip()
@@ -643,36 +976,12 @@ async def room_socket(
     if room_id not in rooms:
         rooms[room_id] = {}
 
-    existing_users = [
-        x for x in rooms[room_id]
-        if x != user_id
-    ]
-
     rooms[room_id][user_id] = websocket
 
-    logger.info(
-        f"ROOM JOIN: {user_id} -> {room_id}"
-    )
-
-    for existing_user in existing_users:
-        try:
-            await websocket.send_json({
-                "type": "user_joined",
-                "user": existing_user
-            })
-        except Exception:
-            pass
-
-        try:
-            await rooms[room_id][existing_user].send_json({
-                "type": "user_joined",
-                "user": user_id
-            })
-        except Exception:
-            pass
-
     try:
+
         while True:
+
             data = await websocket.receive_json()
 
             if not isinstance(data, dict):
@@ -681,31 +990,34 @@ async def room_socket(
             target = data.get("target")
 
             if target:
-                target_socket = rooms[room_id].get(
+
+                target_socket = rooms[
+                    room_id
+                ].get(
                     str(target)
                 )
 
                 if target_socket:
+
                     outgoing = dict(data)
+
                     outgoing["from"] = user_id
 
                     await target_socket.send_json(
                         outgoing
                     )
 
-                else:
-                    await websocket.send_json({
-                        "type": "error",
-                        "message": "کاربر موردنظر در اتاق نیست"
-                    })
-
             else:
-                # پخش پیام به بقیه اعضای اتاق
-                for other_user, other_socket in rooms[room_id].items():
+
+                for other_user, other_socket in list(
+                    rooms[room_id].items()
+                ):
+
                     if other_user == user_id:
                         continue
 
                     outgoing = dict(data)
+
                     outgoing["from"] = user_id
 
                     try:
@@ -716,63 +1028,34 @@ async def room_socket(
                         pass
 
     except WebSocketDisconnect:
-        logger.info(
-            f"ROOM LEAVE: {user_id} -> {room_id}"
-        )
+        pass
 
     except Exception as e:
+
         logger.error(
-            f"ROOM SOCKET ERROR: {e}"
+            f"ROOM ERROR: {e}"
         )
 
     finally:
-        room = rooms.get(room_id)
+
+        room = rooms.get(
+            room_id
+        )
 
         if room:
-            current = room.get(user_id)
+
+            current = room.get(
+                user_id
+            )
 
             if current is websocket:
-                room.pop(user_id, None)
-
-            for other_user, other_socket in list(room.items()):
-                try:
-                    await other_socket.send_json({
-                        "type": "user_left",
-                        "user": user_id
-                    })
-                except Exception:
-                    pass
+                room.pop(
+                    user_id,
+                    None
+                )
 
             if not room:
-                rooms.pop(room_id, None)
-
-
-# =========================================================
-# RUN INFO
-# =========================================================
-
-@app.get("/api/status")
-async def api_status():
-    return {
-        "success": True,
-        "service": "VideoCallApp",
-        "version": "4.0.0",
-        "database": str(DB_FILE.name),
-        "users": len(await _get_all_users_for_status()),
-        "online_users": len(online_users),
-        "rooms": len(rooms)
-    }
-
-
-async def _get_all_users_for_status():
-    conn = get_db()
-    cur = conn.cursor()
-
-    cur.execute(
-        "SELECT user_id FROM users"
-    )
-
-    rows = cur.fetchall()
-    conn.close()
-
-    return rows
+                rooms.pop(
+                    room_id,
+                    None
+                )

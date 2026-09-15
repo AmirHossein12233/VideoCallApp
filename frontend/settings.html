@@ -1,131 +1,556 @@
+```html id="0z2ph2"
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
 
 <head>
 
-<meta charset="UTF-8">
+    <meta charset="UTF-8">
 
-<meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0">
 
-<title>تنظیمات</title>
+    <title>
+        تنظیمات | VideoCallApp
+    </title>
 
-<link rel="stylesheet" href="style.css">
+    <link
+        rel="stylesheet"
+        href="style.css">
 
 </head>
 
 
 <body>
 
-
-<div class="page">
-
-
-<div class="card">
-
-
-<h1 class="title">
-⚙️ تنظیمات
-</h1>
-
-
-
-<div class="row">
-
-<span>
-اعلان تماس
-</span>
-
-
-<input type="checkbox" checked>
-
-
-</div>
-
-
-
-
-<div class="row">
-
-<span>
-دوربین
-</span>
-
-
-<input type="checkbox" checked>
-
-
-</div>
-
-
-
-
-
-<div class="row">
-
-<span>
-میکروفن
-</span>
-
-
-<input type="checkbox" checked>
-
-
-</div>
-
-
-
-</div>
-
-
-
-
-<div class="card">
-
-
-<button
-class="button"
-onclick="logout()">
-
-خروج از حساب
-
-</button>
-
-
-</div>
-
-
-
-
-<a href="index.html">
-بازگشت
-</a>
-
-
-</div>
-
-
-
-
 <script>
 
+if (
+    !localStorage.getItem("auth_token") ||
+    !localStorage.getItem("user_id")
+) {
 
-function logout(){
-
-
-localStorage.removeItem(
-"user_id"
-);
-
-
-location.href="index.html";
-
+    location.href =
+        "login.html";
 
 }
-
 
 </script>
 
 
+<div class="page">
+
+
+    <!-- HEADER -->
+
+    <div class="card">
+
+        <h1 class="title">
+            ⚙️ تنظیمات
+        </h1>
+
+        <p class="subtitle">
+            مدیریت حساب VideoCallApp
+        </p>
+
+    </div>
+
+
+    <!-- ACCOUNT -->
+
+    <div class="card">
+
+        <h2>
+            👤 حساب کاربری
+        </h2>
+
+
+        <div class="row">
+
+            <span>
+                شناسه کاربری
+            </span>
+
+            <b id="userId">
+                -
+            </b>
+
+        </div>
+
+
+        <div class="row">
+
+            <span>
+                نام نمایشی
+            </span>
+
+            <b id="displayName">
+                -
+            </b>
+
+        </div>
+
+
+        <div class="row">
+
+            <span>
+                شماره تلفن
+            </span>
+
+            <b id="phone">
+                -
+            </b>
+
+        </div>
+
+
+        <div class="row">
+
+            <span>
+                وضعیت
+            </span>
+
+            <b
+                id="accountStatus"
+                class="online-status">
+
+                فعال
+
+            </b>
+
+        </div>
+
+    </div>
+
+
+    <!-- SETTINGS -->
+
+    <div class="card">
+
+        <h2>
+            🔧 تنظیمات برنامه
+        </h2>
+
+
+        <div class="row">
+
+            <span>
+                اعلان تماس
+            </span>
+
+            <input
+                id="callNotification"
+                type="checkbox"
+                checked>
+
+        </div>
+
+
+        <div class="row">
+
+            <span>
+                صدای زنگ تماس
+            </span>
+
+            <input
+                id="ringtoneEnabled"
+                type="checkbox"
+                checked>
+
+        </div>
+
+
+        <div class="row">
+
+            <span>
+                باز کردن خودکار تماس
+            </span>
+
+            <input
+                id="autoOpenCall"
+                type="checkbox"
+                checked>
+
+        </div>
+
+    </div>
+
+
+    <!-- SAVE -->
+
+    <div class="card">
+
+        <button
+            id="saveSettings"
+            class="button">
+
+            💾 ذخیره تنظیمات
+
+        </button>
+
+
+        <p
+            id="message"
+            class="status">
+        </p>
+
+    </div>
+
+
+    <!-- NAVIGATION -->
+
+    <div class="card">
+
+        <a href="index.html">
+            🏠 صفحه اصلی
+        </a>
+
+        <br><br>
+
+        <a href="profile.html">
+            👤 پروفایل
+        </a>
+
+    </div>
+
+
+    <!-- LOGOUT -->
+
+    <div class="card">
+
+        <button
+            id="logoutButton"
+            class="button"
+            style="background:#dc2626;">
+
+            🚪 خروج از حساب
+
+        </button>
+
+    </div>
+
+
+</div>
+
+
+<script>
+
+const API_URL =
+    "https://videocallapp-api.onrender.com";
+
+const token =
+    localStorage.getItem(
+        "auth_token"
+    );
+
+const currentUser =
+    localStorage.getItem(
+        "user_id"
+    );
+
+
+const userIdElement =
+    document.getElementById(
+        "userId"
+    );
+
+const displayNameElement =
+    document.getElementById(
+        "displayName"
+    );
+
+const phoneElement =
+    document.getElementById(
+        "phone"
+    );
+
+const messageElement =
+    document.getElementById(
+        "message"
+    );
+
+
+const callNotification =
+    document.getElementById(
+        "callNotification"
+    );
+
+const ringtoneEnabled =
+    document.getElementById(
+        "ringtoneEnabled"
+    );
+
+const autoOpenCall =
+    document.getElementById(
+        "autoOpenCall"
+    );
+
+
+// =====================================================
+// LOAD USER
+// =====================================================
+
+async function loadUser() {
+
+    try {
+
+        const response =
+            await fetch(
+                `${API_URL}/api/me`,
+                {
+                    method:
+                        "GET",
+
+                    headers: {
+                        "Authorization":
+                            `Bearer ${token}`
+                    }
+                }
+            );
+
+
+        const data =
+            await response.json();
+
+
+        if (
+            response.status === 401
+        ) {
+
+            forceLogout();
+
+            return;
+        }
+
+
+        if (!response.ok) {
+
+            throw new Error(
+                data.detail ||
+                "خطا در دریافت حساب"
+            );
+
+        }
+
+
+        const user =
+            data.user;
+
+
+        userIdElement.innerText =
+            user.user_id;
+
+
+        displayNameElement.innerText =
+            user.display_name;
+
+
+        phoneElement.innerText =
+            user.phone;
+
+
+    } catch (error) {
+
+        console.error(
+            error
+        );
+
+
+        messageElement.innerText =
+            "دریافت اطلاعات حساب ناموفق بود";
+
+    }
+
+}
+
+
+// =====================================================
+// SETTINGS STORAGE
+// =====================================================
+
+function loadSettings() {
+
+    const settingsRaw =
+        localStorage.getItem(
+            "app_settings"
+        );
+
+
+    if (!settingsRaw) {
+        return;
+    }
+
+
+    try {
+
+        const settings =
+            JSON.parse(
+                settingsRaw
+            );
+
+
+        callNotification.checked =
+            settings.callNotification
+            !== false;
+
+
+        ringtoneEnabled.checked =
+            settings.ringtoneEnabled
+            !== false;
+
+
+        autoOpenCall.checked =
+            settings.autoOpenCall
+            !== false;
+
+    } catch (error) {
+
+        console.error(
+            error
+        );
+
+    }
+
+}
+
+
+function saveSettings() {
+
+    const settings = {
+
+        callNotification:
+            callNotification.checked,
+
+        ringtoneEnabled:
+            ringtoneEnabled.checked,
+
+        autoOpenCall:
+            autoOpenCall.checked
+
+    };
+
+
+    localStorage.setItem(
+        "app_settings",
+        JSON.stringify(
+            settings
+        )
+    );
+
+
+    messageElement.innerText =
+        "تنظیمات ذخیره شد";
+
+
+    setTimeout(() => {
+
+        messageElement.innerText =
+            "";
+
+    }, 2000);
+
+}
+
+
+// =====================================================
+// SAVE BUTTON
+// =====================================================
+
+document
+.getElementById(
+    "saveSettings"
+)
+.onclick =
+    saveSettings;
+
+
+// =====================================================
+// LOGOUT
+// =====================================================
+
+async function logout() {
+
+    try {
+
+        if (token) {
+
+            await fetch(
+                `${API_URL}/api/logout`,
+                {
+                    method:
+                        "POST",
+
+                    headers: {
+                        "Authorization":
+                            `Bearer ${token}`
+                    }
+                }
+            );
+
+        }
+
+    } catch (error) {
+
+        console.error(
+            "Logout error:",
+            error
+        );
+
+    }
+
+
+    forceLogout();
+
+}
+
+
+function forceLogout() {
+
+    localStorage.removeItem(
+        "auth_token"
+    );
+
+    localStorage.removeItem(
+        "user_id"
+    );
+
+    localStorage.removeItem(
+        "call_target"
+    );
+
+    localStorage.removeItem(
+        "pending_call"
+    );
+
+    localStorage.removeItem(
+        "room_id"
+    );
+
+
+    location.href =
+        "login.html";
+
+}
+
+
+document
+.getElementById(
+    "logoutButton"
+)
+.onclick =
+    logout;
+
+
+// =====================================================
+// START
+// =====================================================
+
+loadSettings();
+loadUser();
+
+</script>
+
 </body>
 
 </html>
+```

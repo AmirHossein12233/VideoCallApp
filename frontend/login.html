@@ -1,326 +1,400 @@
+```html
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
 
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<meta charset="UTF-8">
+    <title>ورود | VideoCallApp</title>
 
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<title>
-ورود | VideoCallApp
-</title>
-
-<link rel="stylesheet" href="style.css">
-
+    <link rel="stylesheet" href="style.css">
 </head>
-
 
 <body>
 
-
 <div class="page">
 
+    <div class="card auth-box">
 
-<div class="card auth-box">
+        <h1 class="title">
+            📹 VideoCallApp
+        </h1>
 
-
-<h1 class="title">
-📹 VideoCallApp
-</h1>
-
-
-<p class="subtitle">
-ورود یا ساخت حساب
-</p>
+        <p class="subtitle">
+            ورود یا ساخت حساب
+        </p>
 
 
+        <!-- LOGIN -->
+
+        <div>
+
+            <h3>
+                ورود
+            </h3>
+
+            <input
+                id="loginIdentifier"
+                class="input"
+                type="text"
+                placeholder="شناسه کاربری یا شماره تلفن">
+
+            <input
+                id="loginPassword"
+                class="input"
+                type="password"
+                placeholder="رمز عبور">
+
+            <button
+                id="loginButton"
+                class="button">
+
+                ورود
+
+            </button>
+
+        </div>
 
 
-<input
-class="input"
-id="userId"
-placeholder="شناسه کاربری">
+        <hr style="margin: 25px 0;">
 
 
-<input
-class="input"
-id="phone"
-placeholder="شماره تلفن">
+        <!-- REGISTER -->
+
+        <div>
+
+            <h3>
+                ساخت حساب
+            </h3>
+
+            <input
+                id="registerUserId"
+                class="input"
+                type="text"
+                placeholder="شناسه کاربری">
+
+            <input
+                id="registerPhone"
+                class="input"
+                type="text"
+                placeholder="شماره تلفن">
+
+            <input
+                id="registerName"
+                class="input"
+                type="text"
+                placeholder="نام نمایشی">
+
+            <input
+                id="registerPassword"
+                class="input"
+                type="password"
+                placeholder="رمز عبور حداقل ۶ کاراکتر">
+
+            <input
+                id="registerPassword2"
+                class="input"
+                type="password"
+                placeholder="تکرار رمز عبور">
+
+            <button
+                id="registerButton"
+                class="button">
+
+                ثبت نام
+
+            </button>
+
+        </div>
 
 
-<input
-class="input"
-id="name"
-placeholder="نام نمایشی">
+        <p
+            id="message"
+            class="message">
+        </p>
 
-
-
-
-
-<button
-class="button"
-id="register">
-
-ثبت نام
-
-</button>
-
-
-<br><br>
-
-
-<button
-class="button"
-id="login">
-
-ورود
-
-</button>
-
-
-
-<p
-class="message"
-id="message">
-
-</p>
-
-
+    </div>
 
 </div>
-
-
-</div>
-
-
-
 
 
 <script>
 
-
 const API =
-"https://videocallapp-api.onrender.com";
-
-
-
-const userId =
-document.getElementById("userId");
-
-
-const phone =
-document.getElementById("phone");
-
-
-const nameInput =
-document.getElementById("name");
+    "https://videocallapp-api.onrender.com";
 
 
 const message =
-document.getElementById("message");
+    document.getElementById("message");
 
 
+function showMessage(
+    text,
+    success = false
+) {
 
+    message.innerText = text;
 
-
-// =======================
-// REGISTER
-// =======================
-
-
-document
-.getElementById("register")
-.onclick = async()=>{
-
-
-if(
-!userId.value ||
-!phone.value ||
-!nameInput.value
-){
-
-message.innerText =
-"همه فیلدها را پر کنید";
-
-return;
+    message.style.color =
+        success
+            ? "#16a34a"
+            : "#dc2626";
 
 }
 
 
-
-let response =
-await fetch(
-`${API}/api/register`,
-{
-
-method:"POST",
-
-headers:{
-
-"Content-Type":
-"application/json"
-
-},
-
-
-body:JSON.stringify({
-
-user_id:userId.value,
-
-phone:phone.value,
-
-display_name:nameInput.value
-
-})
-
-
-}
-
-);
-
-
-
-let data =
-await response.json();
-
-
-
-if(data.success){
-
-
-localStorage.setItem(
-"user_id",
-userId.value
-);
-
-
-
-message.style.color =
-"green";
-
-
-message.innerText =
-"ثبت نام موفق";
-
-
-
-setTimeout(()=>{
-
-location.href =
-"index.html";
-
-},1000);
-
-
-
-}
-
-else{
-
-
-message.innerText =
-data.detail ||
-"خطا در ثبت نام";
-
-
-}
-
-
-};
-
-
-
-
-
-
-
-// =======================
+// =================================================
 // LOGIN
-// =======================
-
+// =================================================
 
 document
-.getElementById("login")
-.onclick = async()=>{
+.getElementById("loginButton")
+.onclick = async () => {
+
+    const identifier =
+        document
+        .getElementById("loginIdentifier")
+        .value
+        .trim();
+
+    const password =
+        document
+        .getElementById("loginPassword")
+        .value;
 
 
-if(!userId.value){
+    if (!identifier || !password) {
 
-message.innerText =
-"شناسه را وارد کنید";
+        showMessage(
+            "شناسه و رمز عبور را وارد کنید"
+        );
 
-return;
-
-}
-
-
-
-let response =
-await fetch(
-
-`${API}/api/users/${userId.value}`
-
-);
+        return;
+    }
 
 
+    try {
 
-let data =
-await response.json();
+        const response =
+            await fetch(
+                `${API}/api/login`,
+                {
+                    method: "POST",
 
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
 
-
-if(data.success){
-
-
-
-localStorage.setItem(
-"user_id",
-data.user.user_id
-);
-
-
-
-message.style.color =
-"green";
-
-
-message.innerText =
-"ورود موفق";
+                    body: JSON.stringify({
+                        identifier,
+                        password
+                    })
+                }
+            );
 
 
-
-setTimeout(()=>{
-
-location.href =
-"index.html";
+        const data =
+            await response.json();
 
 
-},1000);
+        if (!response.ok) {
+
+            showMessage(
+                data.detail ||
+                "ورود ناموفق بود"
+            );
+
+            return;
+        }
 
 
+        localStorage.setItem(
+            "auth_token",
+            data.token
+        );
 
-}
-
-else{
-
-
-message.innerText =
-"کاربر پیدا نشد";
-
-
-}
+        localStorage.setItem(
+            "user_id",
+            data.user.user_id
+        );
 
 
+        showMessage(
+            "ورود موفق بود",
+            true
+        );
+
+
+        setTimeout(() => {
+
+            location.href =
+                "index.html";
+
+        }, 500);
+
+    } catch (error) {
+
+        console.error(error);
+
+        showMessage(
+            "ارتباط با سرور برقرار نشد"
+        );
+
+    }
 
 };
 
 
+// =================================================
+// REGISTER
+// =================================================
 
+document
+.getElementById("registerButton")
+.onclick = async () => {
+
+    const user_id =
+        document
+        .getElementById("registerUserId")
+        .value
+        .trim();
+
+    const phone =
+        document
+        .getElementById("registerPhone")
+        .value
+        .trim();
+
+    const display_name =
+        document
+        .getElementById("registerName")
+        .value
+        .trim();
+
+    const password =
+        document
+        .getElementById("registerPassword")
+        .value;
+
+    const password2 =
+        document
+        .getElementById("registerPassword2")
+        .value;
+
+
+    if (
+        !user_id ||
+        !phone ||
+        !display_name ||
+        !password
+    ) {
+
+        showMessage(
+            "همه فیلدها را پر کنید"
+        );
+
+        return;
+    }
+
+
+    if (password.length < 6) {
+
+        showMessage(
+            "رمز عبور باید حداقل ۶ کاراکتر باشد"
+        );
+
+        return;
+    }
+
+
+    if (password !== password2) {
+
+        showMessage(
+            "تکرار رمز عبور صحیح نیست"
+        );
+
+        return;
+    }
+
+
+    try {
+
+        const response =
+            await fetch(
+                `${API}/api/register`,
+                {
+                    method: "POST",
+
+                    headers: {
+                        "Content-Type":
+                            "application/json"
+                    },
+
+                    body: JSON.stringify({
+                        user_id,
+                        phone,
+                        display_name,
+                        password
+                    })
+                }
+            );
+
+
+        const data =
+            await response.json();
+
+
+        if (!response.ok) {
+
+            showMessage(
+                data.detail ||
+                "ثبت نام ناموفق بود"
+            );
+
+            return;
+        }
+
+
+        localStorage.setItem(
+            "auth_token",
+            data.token
+        );
+
+        localStorage.setItem(
+            "user_id",
+            data.user.user_id
+        );
+
+
+        showMessage(
+            "ثبت نام موفق بود",
+            true
+        );
+
+
+        setTimeout(() => {
+
+            location.href =
+                "index.html";
+
+        }, 500);
+
+    } catch (error) {
+
+        console.error(error);
+
+        showMessage(
+            "ارتباط با سرور برقرار نشد"
+        );
+
+    }
+
+};
 
 </script>
 
-
 </body>
-
 </html>
+```

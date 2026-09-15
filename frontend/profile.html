@@ -1,219 +1,523 @@
+```html
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
 
 <head>
 
-<meta charset="UTF-8">
+    <meta charset="UTF-8">
 
-<meta name="viewport" content="width=device-width,initial-scale=1">
+    <meta
+        name="viewport"
+        content="width=device-width, initial-scale=1.0">
 
-<title>پروفایل</title>
+    <title>
+        پروفایل | VideoCallApp
+    </title>
 
-<link rel="stylesheet" href="style.css">
+    <link
+        rel="stylesheet"
+        href="style.css">
 
 </head>
 
 
 <body>
 
-
-<div class="page">
-
-
-<div class="card">
-
-
-<h1 class="title">
-پروفایل من
-</h1>
-
-
-<div class="profile">
-
-
-<img
-id="avatar"
-src="https://via.placeholder.com/70">
-
-
-<div>
-
-<div
-class="profile-name"
-id="name">
-
-کاربر
-
-</div>
-
-
-<div
-class="profile-id"
-id="userid">
-
--
-
-</div>
-
-
-</div>
-
-
-</div>
-
-
-
-</div>
-
-
-
-
-<div class="card">
-
-
-<input
-class="input"
-id="displayName"
-placeholder="نام جدید">
-
-
-
-<button
-class="button"
-id="save">
-
-ذخیره
-
-</button>
-
-
-
-<p
-class="status"
-id="message">
-
-</p>
-
-
-
-</div>
-
-
-
-<a href="index.html">
-بازگشت
-</a>
-
-
-
-</div>
-
-
-
 <script>
 
+const savedToken =
+    localStorage.getItem("auth_token");
 
-const API="https://videocallapp-api.onrender.com";
-
-
-let userId =
-localStorage.getItem("user_id");
-
+const savedUserId =
+    localStorage.getItem("user_id");
 
 
-async function loadProfile(){
+if (!savedToken || !savedUserId) {
 
-
-if(!userId){
-
-return;
+    location.href =
+        "login.html";
 
 }
-
-
-
-let res =
-await fetch(
-`${API}/api/profile/${userId}`
-);
-
-
-
-let data =
-await res.json();
-
-
-
-if(data.user){
-
-
-name.innerText =
-data.user.display_name;
-
-
-userid.innerText =
-data.user.user_id;
-
-
-avatar.src =
-data.user.avatar ||
-"https://via.placeholder.com/70";
-
-
-displayName.value =
-data.user.display_name;
-
-
-}
-
-
-
-}
-
-
-
-save.onclick=async()=>{
-
-
-await fetch(
-`${API}/api/profile/${userId}`,
-{
-
-method:"PUT",
-
-headers:{
-"Content-Type":"application/json"
-},
-
-body:JSON.stringify({
-
-display_name:
-displayName.value,
-
-avatar:""
-
-})
-
-});
-
-
-message.innerText=
-"ذخیره شد";
-
-
-loadProfile();
-
-
-};
-
-
-
-loadProfile();
-
 
 </script>
 
 
+<div class="page">
+
+
+    <!-- HEADER -->
+
+    <div class="card">
+
+        <h1 class="title">
+            👤 پروفایل من
+        </h1>
+
+        <p class="subtitle">
+            اطلاعات حساب کاربری
+        </p>
+
+    </div>
+
+
+    <!-- PROFILE -->
+
+    <div class="card">
+
+        <div
+            class="profile">
+
+            <img
+                id="avatar"
+                class="avatar"
+                src="https://via.placeholder.com/70"
+                alt="avatar">
+
+            <div>
+
+                <div
+                    id="displayNameView"
+                    class="profile-name">
+
+                    در حال دریافت...
+
+                </div>
+
+                <div
+                    id="userIdView"
+                    class="profile-id">
+
+                    -
+
+                </div>
+
+            </div>
+
+        </div>
+
+    </div>
+
+
+    <!-- ACCOUNT INFO -->
+
+    <div class="card">
+
+        <h2>
+            اطلاعات حساب
+        </h2>
+
+
+        <div class="row">
+
+            <span>
+                شناسه کاربری
+            </span>
+
+            <b id="userIdText">
+                -
+            </b>
+
+        </div>
+
+
+        <div class="row">
+
+            <span>
+                شماره تلفن
+            </span>
+
+            <b id="phoneText">
+                -
+            </b>
+
+        </div>
+
+
+        <div class="row">
+
+            <span>
+                وضعیت حساب
+            </span>
+
+            <b class="online-status">
+                فعال
+            </b>
+
+        </div>
+
+    </div>
+
+
+    <!-- EDIT PROFILE -->
+
+    <div class="card">
+
+        <h2>
+            ✏️ ویرایش پروفایل
+        </h2>
+
+
+        <label>
+            نام نمایشی
+        </label>
+
+        <input
+            id="displayName"
+            class="input"
+            type="text"
+            placeholder="نام نمایشی">
+
+
+        <label>
+            لینک آواتار
+        </label>
+
+        <input
+            id="avatarInput"
+            class="input"
+            type="text"
+            placeholder="https://...">
+
+
+        <button
+            id="saveProfile"
+            class="button">
+
+            ذخیره تغییرات
+
+        </button>
+
+
+        <p
+            id="message"
+            class="status">
+        </p>
+
+    </div>
+
+
+    <!-- NAVIGATION -->
+
+    <div class="card">
+
+        <a href="index.html">
+            🏠 صفحه اصلی
+        </a>
+
+        <br><br>
+
+        <a href="settings.html">
+            ⚙️ تنظیمات
+        </a>
+
+    </div>
+
+
+</div>
+
+
+<script>
+
+const API_URL =
+    "https://videocallapp-api.onrender.com";
+
+const token =
+    localStorage.getItem("auth_token");
+
+const currentUserId =
+    localStorage.getItem("user_id");
+
+
+const avatar =
+    document.getElementById("avatar");
+
+const displayNameView =
+    document.getElementById("displayNameView");
+
+const userIdView =
+    document.getElementById("userIdView");
+
+const userIdText =
+    document.getElementById("userIdText");
+
+const phoneText =
+    document.getElementById("phoneText");
+
+const displayNameInput =
+    document.getElementById("displayName");
+
+const avatarInput =
+    document.getElementById("avatarInput");
+
+const message =
+    document.getElementById("message");
+
+
+// =====================================================
+// LOAD PROFILE
+// =====================================================
+
+async function loadProfile() {
+
+    try {
+
+        const response =
+            await fetch(
+                `${API_URL}/api/me`,
+                {
+                    method: "GET",
+
+                    headers: {
+                        "Authorization":
+                            `Bearer ${token}`
+                    }
+                }
+            );
+
+
+        const data =
+            await response.json();
+
+
+        if (response.status === 401) {
+
+            logoutLocal();
+
+            return;
+        }
+
+
+        if (!response.ok) {
+
+            throw new Error(
+                data.detail ||
+                "خطا در دریافت پروفایل"
+            );
+
+        }
+
+
+        const user =
+            data.user;
+
+
+        displayNameView.innerText =
+            user.display_name;
+
+
+        userIdView.innerText =
+            "@" + user.user_id;
+
+
+        userIdText.innerText =
+            user.user_id;
+
+
+        phoneText.innerText =
+            user.phone;
+
+
+        displayNameInput.value =
+            user.display_name;
+
+
+        avatarInput.value =
+            user.avatar || "";
+
+
+        avatar.src =
+            user.avatar ||
+            "https://via.placeholder.com/70";
+
+
+    } catch (error) {
+
+        console.error(
+            "Profile error:",
+            error
+        );
+
+
+        message.innerText =
+            "دریافت پروفایل ناموفق بود";
+
+    }
+
+}
+
+
+// =====================================================
+// SAVE PROFILE
+// =====================================================
+
+document
+.getElementById("saveProfile")
+.onclick =
+    async () => {
+
+        const displayName =
+            displayNameInput
+                .value
+                .trim();
+
+
+        const avatarUrl =
+            avatarInput
+                .value
+                .trim();
+
+
+        if (!displayName) {
+
+            message.innerText =
+                "نام نمایشی را وارد کنید";
+
+            return;
+        }
+
+
+        try {
+
+            const response =
+                await fetch(
+                    `${API_URL}/api/profile/${encodeURIComponent(currentUserId)}`,
+                    {
+                        method: "PUT",
+
+                        headers: {
+                            "Authorization":
+                                `Bearer ${token}`,
+
+                            "Content-Type":
+                                "application/json"
+                        },
+
+                        body: JSON.stringify({
+
+                            display_name:
+                                displayName,
+
+                            avatar:
+                                avatarUrl
+
+                        })
+                    }
+                );
+
+
+            const data =
+                await response.json();
+
+
+            if (response.status === 401) {
+
+                logoutLocal();
+
+                return;
+            }
+
+
+            if (!response.ok) {
+
+                throw new Error(
+                    data.detail ||
+                    "ذخیره تغییرات ناموفق بود"
+                );
+
+            }
+
+
+            const user =
+                data.user;
+
+
+            displayNameView.innerText =
+                user.display_name;
+
+
+            displayNameInput.value =
+                user.display_name;
+
+
+            avatar.src =
+                user.avatar ||
+                "https://via.placeholder.com/70";
+
+
+            avatarInput.value =
+                user.avatar || "";
+
+
+            message.innerText =
+                "تغییرات با موفقیت ذخیره شد";
+
+
+            setTimeout(() => {
+
+                message.innerText =
+                    "";
+
+            }, 2500);
+
+
+        } catch (error) {
+
+            console.error(
+                "Save profile error:",
+                error
+            );
+
+
+            message.innerText =
+                error.message ||
+                "ذخیره تغییرات ناموفق بود";
+
+        }
+
+    };
+
+
+// =====================================================
+// LOGOUT LOCAL
+// =====================================================
+
+function logoutLocal() {
+
+    localStorage.removeItem(
+        "auth_token"
+    );
+
+    localStorage.removeItem(
+        "user_id"
+    );
+
+    localStorage.removeItem(
+        "call_target"
+    );
+
+    localStorage.removeItem(
+        "pending_call"
+    );
+
+    localStorage.removeItem(
+        "room_id"
+    );
+
+    location.href =
+        "login.html";
+
+}
+
+
+// =====================================================
+// START
+// =====================================================
+
+loadProfile();
+
+</script>
+
 </body>
 
 </html>
+```

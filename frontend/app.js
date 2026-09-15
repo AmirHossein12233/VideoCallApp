@@ -1,17 +1,40 @@
 const API_URL = "https://videocallapp-api.onrender.com";
 const WS_URL = "wss://videocallapp-api.onrender.com";
 
-const userId = localStorage.getItem("user_id");
+const authToken =
+    localStorage.getItem("auth_token");
 
-let socket = null;
+const userId =
+    localStorage.getItem("user_id");
 
-let incomingCaller = null;
-let incomingOffer = null;
 
-let ringtone = null;
+// =========================================================
+// AUTH CHECK
+// =========================================================
+
+if (!authToken || !userId) {
+    location.href = "login.html";
+}
+
+
+// =========================================================
+// ELEMENTS
+// =========================================================
 
 const statusElement =
     document.getElementById("status");
+
+const roomInput =
+    document.getElementById("roomId");
+
+const createRoomButton =
+    document.getElementById("createRoom");
+
+const joinRoomButton =
+    document.getElementById("joinRoom");
+
+const usersList =
+    document.getElementById("usersList");
 
 const incomingCall =
     document.getElementById("incomingCall");
@@ -25,24 +48,25 @@ const acceptIncoming =
 const rejectIncoming =
     document.getElementById("rejectIncoming");
 
-const ringtoneElement =
+const ringtone =
     document.getElementById("ringtone");
 
 
-/* =========================
-   LOGIN
-========================= */
+// =========================================================
+// SOCKET
+// =========================================================
 
-if (!userId) {
+let socket = null;
 
-    location.href = "login.html";
+let incomingCaller = null;
+let incomingOffer = null;
 
-}
+let reconnectTimer = null;
 
 
-/* =========================
-   STATUS
-========================= */
+// =========================================================
+// STATUS
+// =========================================================
 
 function setStatus(text) {
 
@@ -53,26 +77,24 @@ function setStatus(text) {
 }
 
 
-/* =========================
-   RINGTONE
-========================= */
+// =========================================================
+// RINGTONE
+// =========================================================
 
 function startRingtone() {
 
-    if (!ringtoneElement) {
+    if (!ringtone) {
         return;
     }
 
-    ringtone = ringtoneElement;
-
     ringtone.currentTime = 0;
 
-    const result =
+    const promise =
         ringtone.play();
 
-    if (result) {
+    if (promise) {
 
-        result.catch(() => {
+        promise.catch(() => {
 
             console.log(
                 "پخش خودکار زنگ توسط مرورگر مسدود شد."
@@ -92,21 +114,32 @@ function stopRingtone() {
     }
 
     ringtone.pause();
-
     ringtone.currentTime = 0;
-
-    ringtone = null;
 
 }
 
 
-/* =========================
-   CONNECT USER SOCKET
-========================= */
+// =========================================================
+// CONNECT SOCKET
+// =========================================================
 
 function connectSocket() {
 
     if (!userId) {
+        return;
+    }
+
+
+    if (
+        socket &&
+        (
+            socket.readyState ===
+            WebSocket.OPEN ||
+
+            socket.readyState ===
+            WebSocket.CONNECTING
+        )
+    ) {
         return;
     }
 
@@ -120,7 +153,7 @@ function connectSocket() {
     socket.onopen = () => {
 
         console.log(
-            "User socket connected"
+            "WebSocket connected"
         );
 
         setStatus(
@@ -142,26 +175,28 @@ function connectSocket() {
         } catch (error) {
 
             console.error(
-                "WebSocket JSON error:",
+                "Invalid WebSocket data",
                 error
             );
 
             return;
-
         }
 
 
         console.log(
-            "Incoming socket:",
+            "WS:",
             data
         );
 
 
-        /* =========================
-           INCOMING CALL
-        ========================= */
+        // =================================================
+        // INCOMING CALL
+        // =================================================
 
-        if (data.type === "call_request") {
+        if (
+            data.type ===
+            "call_request"
+        ) {
 
             incomingCaller =
                 data.from;
@@ -170,13 +205,24 @@ function connectSocket() {
                 data.offer;
 
 
-            callerName.innerText =
-                data.from;
+            if (callerName) {
+
+                callerName.innerText =
+                    data.from;
+
+            }
 
 
-            incomingCall
-                .classList
-                .remove("hidden");
+            if (incomingCall) {
+
+                incomingCall
+                    .classList
+                    .remove("hidden");
+
+            }
+
+
+            startRingtone();
 
 
             setStatus(
@@ -184,34 +230,92 @@ function connectSocket() {
             );
 
 
-            startRingtone();
-
+            return;
         }
 
 
-        /* =========================
-           CALL REJECTED
-        ========================= */
+        // =================================================
+        // CALL REJECT
+        // =================================================
 
-        if (data.type === "call_reject") {
+        if (
+            data.type ===
+            "call_reject"
+        ) {
+
+            stopRingtone();
+
+
+            if (incomingCall) {
+
+                incomingCall
+                    .classList
+                    .add("hidden");
+
+            }
+
 
             setStatus(
                 "تماس رد شد"
             );
 
-            stopRingtone();
 
+            return;
         }
 
 
-        /* =========================
-           CALL ENDED
-        ========================= */
+        // =================================================
+        // CALL END
+        // =================================================
 
-        if (data.type === "call_end") {
+        if (
+            data.type ===
+            "call_end"
+        ) {
 
             setStatus(
                 "تماس پایان یافت"
+            );
+
+
+            return;
+        }
+
+
+        // =================================================
+        // CHAT
+        // =================================================
+
+        if (
+            data.type ===
+            "chat"
+        ) {
+
+            window.dispatchEvent(
+                new CustomEvent(
+                    "videocall-chat-message",
+                    {
+                        detail: data
+                    }
+                )
+            );
+
+            return;
+        }
+
+
+        // =================================================
+        // ERROR
+        // =================================================
+
+        if (
+            data.type ===
+            "error"
+        ) {
+
+            setStatus(
+                data.message ||
+                "خطایی رخ داد"
             );
 
         }
@@ -236,37 +340,57 @@ function connectSocket() {
     socket.onclose = () => {
 
         console.log(
-            "WebSocket disconnected"
+            "WebSocket closed"
         );
+
+        setStatus(
+            "اتصال قطع شد"
+        );
+
+
+        clearTimeout(
+            reconnectTimer
+        );
+
+
+        reconnectTimer =
+            setTimeout(() => {
+
+                connectSocket();
+
+            }, 3000);
 
     };
 
 }
 
 
-/* =========================
-   SEND SIGNAL
-========================= */
+// =========================================================
+// SEND SOCKET
+// =========================================================
 
 function sendSignal(data) {
 
     if (
         socket &&
-        socket.readyState === WebSocket.OPEN
+        socket.readyState ===
+        WebSocket.OPEN
     ) {
 
         socket.send(
             JSON.stringify(data)
         );
 
+        return true;
     }
 
+    return false;
 }
 
 
-/* =========================
-   ACCEPT INCOMING CALL
-========================= */
+// =========================================================
+// ACCEPT INCOMING CALL
+// =========================================================
 
 if (acceptIncoming) {
 
@@ -283,43 +407,31 @@ if (acceptIncoming) {
         stopRingtone();
 
 
-        const pendingCall = {
-
-            from:
-                incomingCaller,
-
-            offer:
-                incomingOffer
-
-        };
-
-
-        localStorage.setItem(
-            "pending_call",
-            JSON.stringify(pendingCall)
-        );
-
-
         localStorage.setItem(
             "call_target",
             incomingCaller
         );
 
 
-        incomingCall
-            .classList
-            .add("hidden");
+        localStorage.setItem(
+            "pending_call",
+            JSON.stringify({
+                from:
+                    incomingCaller,
 
-
-        setStatus(
-            "در حال ورود به تماس..."
+                offer:
+                    incomingOffer
+            })
         );
 
 
-        /*
-         * اتصال WebSocket فعلی را نمی‌بندیم
-         * چون call.html یک اتصال جدید می‌سازد.
-         */
+        if (incomingCall) {
+
+            incomingCall
+                .classList
+                .add("hidden");
+
+        }
 
 
         location.href =
@@ -330,9 +442,9 @@ if (acceptIncoming) {
 }
 
 
-/* =========================
-   REJECT INCOMING CALL
-========================= */
+// =========================================================
+// REJECT INCOMING CALL
+// =========================================================
 
 if (rejectIncoming) {
 
@@ -360,9 +472,13 @@ if (rejectIncoming) {
         incomingOffer = null;
 
 
-        incomingCall
-            .classList
-            .add("hidden");
+        if (incomingCall) {
+
+            incomingCall
+                .classList
+                .add("hidden");
+
+        }
 
 
         setStatus(
@@ -374,13 +490,9 @@ if (rejectIncoming) {
 }
 
 
-/* =========================
-   CREATE ROOM
-========================= */
-
-const createRoomButton =
-    document.getElementById("createRoom");
-
+// =========================================================
+// CREATE ROOM
+// =========================================================
 
 if (createRoomButton) {
 
@@ -393,7 +505,8 @@ if (createRoomButton) {
                     await fetch(
                         `${API_URL}/api/create-room`,
                         {
-                            method: "POST"
+                            method:
+                                "POST"
                         }
                     );
 
@@ -402,19 +515,14 @@ if (createRoomButton) {
                     await response.json();
 
 
-                if (!data.success) {
+                if (!response.ok) {
 
                     throw new Error(
+                        data.detail ||
                         "ساخت اتاق ناموفق بود"
                     );
 
                 }
-
-
-                const roomInput =
-                    document.getElementById(
-                        "roomId"
-                    );
 
 
                 if (roomInput) {
@@ -426,13 +534,12 @@ if (createRoomButton) {
 
 
                 setStatus(
-                    `اتاق ${data.room_id} ساخته شد`
+                    `اتاق ساخته شد: ${data.room_id}`
                 );
 
             } catch (error) {
 
                 console.error(
-                    "Create room error:",
                     error
                 );
 
@@ -447,24 +554,14 @@ if (createRoomButton) {
 }
 
 
-/* =========================
-   JOIN ROOM
-========================= */
-
-const joinRoomButton =
-    document.getElementById("joinRoom");
-
+// =========================================================
+// JOIN ROOM
+// =========================================================
 
 if (joinRoomButton) {
 
     joinRoomButton.onclick =
         () => {
-
-            const roomInput =
-                document.getElementById(
-                    "roomId"
-                );
-
 
             if (!roomInput) {
                 return;
@@ -482,7 +579,6 @@ if (joinRoomButton) {
                 );
 
                 return;
-
             }
 
 
@@ -496,6 +592,10 @@ if (joinRoomButton) {
                 "call_target"
             );
 
+            localStorage.removeItem(
+                "pending_call"
+            );
+
 
             location.href =
                 "call.html";
@@ -505,22 +605,280 @@ if (joinRoomButton) {
 }
 
 
-/* =========================
-   CLEANUP
-========================= */
+// =========================================================
+// LOAD USERS
+// =========================================================
 
-window.addEventListener(
-    "beforeunload",
-    () => {
+async function loadUsers() {
 
-        stopRingtone();
+    if (!usersList) {
+        return;
+    }
+
+
+    try {
+
+        const response =
+            await fetch(
+                `${API_URL}/api/users`
+            );
+
+
+        const data =
+            await response.json();
+
+
+        if (!response.ok) {
+            throw new Error(
+                data.detail ||
+                "خطا در دریافت کاربران"
+            );
+        }
+
+
+        usersList.innerHTML = "";
+
+
+        data.users.forEach(user => {
+
+            if (
+                user.user_id ===
+                userId
+            ) {
+                return;
+            }
+
+
+            const card =
+                document.createElement(
+                    "div"
+                );
+
+
+            card.className =
+                "user-card";
+
+
+            const onlineText =
+                user.online
+                    ? "آنلاین"
+                    : "آفلاین";
+
+
+            const onlineClass =
+                user.online
+                    ? "online-status"
+                    : "offline-status";
+
+
+            const avatar =
+                user.avatar ||
+                "https://via.placeholder.com/55";
+
+
+            card.innerHTML = `
+
+                <img
+                    class="avatar"
+                    src="${escapeHtml(avatar)}"
+                    alt="avatar">
+
+                <div class="user-info">
+
+                    <b>
+                        ${escapeHtml(
+                            user.display_name
+                        )}
+                    </b>
+
+                    <small>
+                        @${escapeHtml(
+                            user.user_id
+                        )}
+                    </small>
+
+                    <small class="${onlineClass}">
+                        ${onlineText}
+                    </small>
+
+                </div>
+
+                <button
+                    class="call-button"
+                    type="button"
+                    data-user="${escapeHtml(
+                        user.user_id
+                    )}">
+
+                    📞
+
+                </button>
+            `;
+
+
+            const callButton =
+                card.querySelector(
+                    ".call-button"
+                );
+
+
+            callButton.addEventListener(
+                "click",
+                () => {
+
+                    openCall(
+                        user.user_id
+                    );
+
+                }
+            );
+
+
+            usersList.appendChild(
+                card
+            );
+
+        });
+
+
+    } catch (error) {
+
+        console.error(
+            "Users error:",
+            error
+        );
 
     }
-);
+
+}
 
 
-/* =========================
-   START
-========================= */
+// =========================================================
+// ESCAPE HTML
+// =========================================================
+
+function escapeHtml(value) {
+
+    return String(value)
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+
+}
+
+
+// =========================================================
+// OPEN CALL
+// =========================================================
+
+function openCall(target) {
+
+    localStorage.setItem(
+        "call_target",
+        target
+    );
+
+
+    localStorage.removeItem(
+        "pending_call"
+    );
+
+
+    location.href =
+        "call.html";
+
+}
+
+
+// =========================================================
+// LOGOUT
+// =========================================================
+
+async function logout() {
+
+    const token =
+        localStorage.getItem(
+            "auth_token"
+        );
+
+
+    try {
+
+        if (token) {
+
+            await fetch(
+                `${API_URL}/api/logout`,
+                {
+                    method:
+                        "POST",
+
+                    headers: {
+                        "Authorization":
+                            `Bearer ${token}`
+                    }
+                }
+            );
+
+        }
+
+    } catch (error) {
+
+        console.error(
+            "Logout error:",
+            error
+        );
+
+    }
+
+
+    localStorage.removeItem(
+        "auth_token"
+    );
+
+    localStorage.removeItem(
+        "user_id"
+    );
+
+    localStorage.removeItem(
+        "call_target"
+    );
+
+    localStorage.removeItem(
+        "pending_call"
+    );
+
+    localStorage.removeItem(
+        "room_id"
+    );
+
+
+    location.href =
+        "login.html";
+
+}
+
+
+// =========================================================
+// GLOBAL LOGOUT
+// =========================================================
+
+window.logout =
+    logout;
+
+
+// =========================================================
+// INITIALIZE
+// =========================================================
 
 connectSocket();
+
+loadUsers();
+
+
+// refresh users every 5 seconds
+setInterval(
+    loadUsers,
+    5000
+);
