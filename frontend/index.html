@@ -13,118 +13,179 @@
 
 <body>
 
-
-<div class="container">
-
-    <h1>
-        📹 VideoCallApp
-    </h1>
-
-
-    <div class="box">
-
-        <label>
-            شناسه کاربر
-        </label>
-
-        <input
-            id="userId"
-            placeholder="مثلا amir"
-        >
+<script>
+    if (!localStorage.getItem("user_id")) {
+        location.href = "login.html";
+    }
+</script>
 
 
-        <label>
-            کد اتاق
-        </label>
+<div class="page">
+
+    <!-- HEADER -->
+    <div class="card">
+
+        <h1 class="title">
+            📹 VideoCallApp
+        </h1>
+
+        <p class="subtitle">
+            تماس تصویری آنلاین
+        </p>
+
+        <a href="profile.html">
+            👤 پروفایل
+        </a>
+
+        &nbsp;&nbsp;
+
+        <a href="settings.html">
+            ⚙️ تنظیمات
+        </a>
+
+    </div>
+
+
+    <!-- USERS -->
+    <div class="card">
+
+        <h2>
+            👥 کاربران
+        </h2>
+
+        <div
+            id="usersList"
+            class="users-list">
+        </div>
+
+    </div>
+
+
+    <!-- ROOM -->
+    <div class="card">
+
+        <h2>
+            اتاق تماس
+        </h2>
+
+        <button
+            id="createRoom"
+            class="button">
+            ساخت اتاق
+        </button>
+
+        <br><br>
 
         <input
             id="roomId"
-            placeholder="کد اتاق"
-        >
+            class="input"
+            placeholder="کد اتاق">
 
+        <button
+            id="joinRoom"
+            class="button">
+            ورود به اتاق
+        </button>
 
-        <div class="buttons">
-
-            <button id="createRoom">
-                ساخت اتاق
-            </button>
-
-
-            <button id="joinRoom">
-                ورود به تماس
-            </button>
-
-        </div>
-
-
-        <p id="status">
+        <p
+            id="status"
+            class="status">
             آماده
         </p>
 
-
     </div>
 
 
+    <!-- LOGOUT -->
+    <div class="card">
 
-    <div class="videos">
-
-
-        <div class="video-box">
-
-            <h3>
-                دوربین من
-            </h3>
-
-            <video
-                id="localVideo"
-                autoplay
-                muted
-                playsinline>
-            </video>
-
-        </div>
-
-
-
-        <div class="video-box">
-
-            <h3>
-                طرف مقابل
-            </h3>
-
-            <video
-                id="remoteVideo"
-                autoplay
-                playsinline>
-            </video>
-
-        </div>
-
-
-    </div>
-
-
-
-    <div class="buttons call-buttons">
-
-        <button id="startCall">
-            شروع تماس
-        </button>
-
-
-        <button id="endCall">
-            پایان تماس
+        <button
+            class="button"
+            onclick="logout()">
+            خروج از حساب
         </button>
 
     </div>
-
 
 </div>
 
 
+<!-- =========================
+     INCOMING CALL
+========================= -->
+
+<div
+    id="incomingCall"
+    class="incoming-call hidden">
+
+    <div class="incoming-box">
+
+        <div style="font-size: 45px;">
+            📞
+        </div>
+
+        <h2>
+            تماس ورودی
+        </h2>
+
+        <p
+            id="callerName"
+            style="font-size: 18px; font-weight: bold;">
+            کاربر
+        </p>
+
+        <p class="status">
+            در حال تماس با شما...
+        </p>
+
+        <div class="call-controls">
+
+            <button
+                id="acceptIncoming"
+                class="control-button accept-button">
+                ✅
+            </button>
+
+            <button
+                id="rejectIncoming"
+                class="control-button reject-button">
+                ❌
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- RINGTONE -->
+
+<audio
+    id="ringtone"
+    loop
+    preload="auto">
+
+    <source
+        src="ringtone.mp3"
+        type="audio/mpeg">
+
+</audio>
+
+
+<script>
+    function logout() {
+
+        localStorage.removeItem("user_id");
+        localStorage.removeItem("call_target");
+        localStorage.removeItem("pending_call");
+
+        location.href = "login.html";
+    }
+</script>
 
 <script src="app.js"></script>
-
+<script src="users.js"></script>
 
 </body>
 

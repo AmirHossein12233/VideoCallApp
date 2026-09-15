@@ -4,9 +4,10 @@
 <head>
 
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<title>تنظیمات | VideoCallApp</title>
+<meta name="viewport" content="width=device-width,initial-scale=1">
+
+<title>تنظیمات</title>
 
 <link rel="stylesheet" href="style.css">
 
@@ -21,90 +22,36 @@
 
 <div class="card">
 
-<button id="backButton">
-← بازگشت
-</button>
 
-
-<h1>
+<h1 class="title">
 ⚙️ تنظیمات
 </h1>
 
-</div>
 
 
+<div class="row">
 
-<div class="card">
-
-
-<h2>
-👤 پروفایل
-</h2>
+<span>
+اعلان تماس
+</span>
 
 
-<div class="profile">
-
-
-<img
-id="profileAvatar"
-class="avatar"
-src=""
->
-
-
-<div>
-
-<b id="profileName">
-در حال دریافت...
-</b>
-
-
-<p id="profileId">
-</p>
-
-
-<p id="profilePhone">
-</p>
+<input type="checkbox" checked>
 
 
 </div>
 
 
-</div>
 
 
-<br>
+<div class="row">
+
+<span>
+دوربین
+</span>
 
 
-<input
-id="nameInput"
-class="input"
-placeholder="نام جدید"
->
-
-
-<input
-id="avatarInput"
-class="input"
-placeholder="لینک تصویر"
->
-
-
-
-<button
-id="saveButton"
-class="button">
-
-💾 ذخیره
-
-</button>
-
-
-
-<div id="message"
-class="message">
-
-</div>
+<input type="checkbox" checked>
 
 
 </div>
@@ -113,88 +60,21 @@ class="message">
 
 
 
-<div class="card">
+<div class="row">
+
+<span>
+میکروفن
+</span>
 
 
-<h2>
-🎤📷 دستگاه‌ها
-</h2>
-
-
-<button
-id="micButton"
-class="button">
-
-بررسی میکروفون
-
-</button>
-
-
-<br><br>
-
-
-<button
-id="cameraButton"
-class="button">
-
-بررسی دوربین
-
-</button>
-
-
-<p id="deviceResult"></p>
-
-
-</div>
-<div class="card">
-
-
-<h2>
-🔔 اعلان‌ها
-</h2>
-
-
-<label>
-
-<input
-type="checkbox"
-id="notificationToggle"
-checked
->
-
- فعال بودن اعلان تماس
-
-</label>
+<input type="checkbox" checked>
 
 
 </div>
 
 
 
-
-
-<div class="card">
-
-
-<h2>
-📱 برنامه
-</h2>
-
-
-<p>
-نام:
-VideoCallApp
-</p>
-
-
-<p>
-نسخه:
-1.0.0
-</p>
-
-
 </div>
-
 
 
 
@@ -203,10 +83,10 @@ VideoCallApp
 
 
 <button
-id="logoutButton"
-class="button">
+class="button"
+onclick="logout()">
 
-🚪 خروج از حساب
+خروج از حساب
 
 </button>
 
@@ -216,8 +96,12 @@ class="button">
 
 
 
-</div>
+<a href="index.html">
+بازگشت
+</a>
 
+
+</div>
 
 
 
@@ -225,442 +109,18 @@ class="button">
 <script>
 
 
-const API_URL =
-"https://videocallapp-api.onrender.com";
+function logout(){
 
 
-
-const userId =
-localStorage.getItem(
-"videoCallUserId"
+localStorage.removeItem(
+"user_id"
 );
 
-
-
-if(!userId){
-
-location.href =
-"index.html";
-
-}
-
-
-
-
-
-const profileName =
-document.getElementById(
-"profileName"
-);
-
-
-const profileId =
-document.getElementById(
-"profileId"
-);
-
-
-const profilePhone =
-document.getElementById(
-"profilePhone"
-);
-
-
-const profileAvatar =
-document.getElementById(
-"profileAvatar"
-);
-
-
-const nameInput =
-document.getElementById(
-"nameInput"
-);
-
-
-const avatarInput =
-document.getElementById(
-"avatarInput"
-);
-
-
-const message =
-document.getElementById(
-"message"
-);
-
-
-
-
-function defaultAvatar(name){
-
-return (
-
-"https://ui-avatars.com/api/?name="
-
-+
-
-encodeURIComponent(name)
-
-);
-
-}
-
-
-
-
-
-function showMessage(text){
-
-message.textContent=text;
-
-
-setTimeout(()=>{
-
-message.textContent="";
-
-},3000);
-
-}
-
-
-
-
-
-
-async function loadProfile(){
-
-
-try{
-
-
-const res =
-await fetch(
-
-`${API_URL}/api/profile/${encodeURIComponent(userId)}`
-
-);
-
-
-
-const data =
-await res.json();
-
-
-
-const user =
-data.user;
-
-
-
-profileName.textContent =
-user.display_name;
-
-
-
-profileId.textContent =
-"شناسه: " + user.user_id;
-
-
-
-profilePhone.textContent =
-"شماره: " + user.phone;
-
-
-
-profileAvatar.src =
-user.avatar ||
-defaultAvatar(
-user.display_name
-);
-
-
-
-nameInput.value =
-user.display_name;
-
-
-
-avatarInput.value =
-user.avatar || "";
-
-
-
-}
-
-catch(e){
-
-showMessage(
-"خطا در دریافت اطلاعات"
-);
-
-}
-
-
-}
-
-
-
-
-
-async function saveProfile(){
-
-
-try{
-
-
-await fetch(
-
-`${API_URL}/api/profile/${encodeURIComponent(userId)}`,
-
-{
-
-method:"PUT",
-
-headers:{
-
-"Content-Type":
-"application/json"
-
-},
-
-
-body:JSON.stringify({
-
-display_name:
-nameInput.value,
-
-
-avatar:
-avatarInput.value
-
-
-})
-
-}
-
-);
-
-
-
-showMessage(
-"ذخیره شد ✅"
-);
-
-
-
-loadProfile();
-
-
-}
-
-catch(e){
-
-showMessage(
-"خطا در ذخیره"
-);
-
-}
-
-
-
-}
-
-
-
-
-
-async function testMic(){
-
-
-try{
-
-
-let stream =
-await navigator.mediaDevices.getUserMedia({
-
-audio:true
-
-});
-
-
-stream.getTracks()
-.forEach(
-t=>t.stop()
-);
-
-
-
-document.getElementById(
-"deviceResult"
-)
-.textContent =
-"✅ میکروفون فعال است";
-
-
-}
-
-catch{
-
-
-document.getElementById(
-"deviceResult"
-)
-.textContent =
-"❌ دسترسی رد شد";
-
-
-}
-
-
-}
-
-
-
-
-
-
-async function testCamera(){
-
-
-try{
-
-
-let stream =
-await navigator.mediaDevices.getUserMedia({
-
-video:true
-
-});
-
-
-stream.getTracks()
-.forEach(
-t=>t.stop()
-);
-
-
-
-document.getElementById(
-"deviceResult"
-)
-.textContent =
-"✅ دوربین فعال است";
-
-
-}
-
-catch{
-
-
-document.getElementById(
-"deviceResult"
-)
-.textContent =
-"❌ دسترسی رد شد";
-
-
-}
-
-
-}
-
-
-
-
-
-
-document
-.getElementById(
-"saveButton"
-)
-.onclick =
-saveProfile;
-
-
-
-
-document
-.getElementById(
-"micButton"
-)
-.onclick =
-testMic;
-
-
-
-document
-.getElementById(
-"cameraButton"
-)
-.onclick =
-testCamera;
-
-
-
-
-
-document
-.getElementById(
-"backButton"
-)
-.onclick =
-()=>{
 
 location.href="index.html";
 
-};
 
-
-
-
-
-document
-.getElementById(
-"logoutButton"
-)
-.onclick =
-()=>{
-
-
-localStorage.clear();
-
-
-location.href =
-"index.html";
-
-
-};
-
-
-
-
-
-document
-.getElementById(
-"notificationToggle"
-)
-.onchange =
-(e)=>{
-
-
-localStorage.setItem(
-
-"videoCallNotifications",
-
-e.target.checked
-
-);
-
-
-};
-
-
-
-
-
-loadProfile();
-
+}
 
 
 </script>

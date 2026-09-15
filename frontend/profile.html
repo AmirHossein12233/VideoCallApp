@@ -1,508 +1,219 @@
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>پروفایل | VideoCallApp</title>
 
-    <style>
-        * {
-            box-sizing: border-box;
-        }
+<meta charset="UTF-8">
 
-        body {
-            margin: 0;
-            min-height: 100vh;
-            background: #0f172a;
-            color: #f8fafc;
-            font-family: Tahoma, Arial, sans-serif;
-        }
+<meta name="viewport" content="width=device-width,initial-scale=1">
 
-        .page {
-            width: 100%;
-            max-width: 620px;
-            margin: 0 auto;
-            padding: 20px;
-        }
+<title>پروفایل</title>
 
-        .topbar {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 20px;
-        }
+<link rel="stylesheet" href="style.css">
 
-        .topbar h1 {
-            margin: 0;
-            font-size: 22px;
-        }
-
-        .back-button {
-            border: 1px solid #334155;
-            background: #1e293b;
-            color: #fff;
-            border-radius: 10px;
-            padding: 10px 16px;
-            cursor: pointer;
-        }
-
-        .card {
-            background: #1e293b;
-            border: 1px solid #334155;
-            border-radius: 18px;
-            padding: 24px;
-        }
-
-        .avatar-area {
-            text-align: center;
-            margin-bottom: 25px;
-        }
-
-        .avatar {
-            width: 120px;
-            height: 120px;
-            border-radius: 50%;
-            object-fit: cover;
-            background: #334155;
-            border: 4px solid #475569;
-            display: block;
-            margin: 0 auto 15px;
-        }
-
-        .avatar-button {
-            display: inline-block;
-            background: #2563eb;
-            color: white;
-            padding: 10px 16px;
-            border-radius: 10px;
-            cursor: pointer;
-        }
-
-        #avatarInput {
-            display: none;
-        }
-
-        .field {
-            margin-bottom: 18px;
-        }
-
-        .field label {
-            display: block;
-            margin-bottom: 8px;
-            color: #cbd5e1;
-            font-size: 14px;
-        }
-
-        .field input {
-            width: 100%;
-            padding: 13px;
-            border-radius: 10px;
-            border: 1px solid #475569;
-            background: #0f172a;
-            color: #fff;
-            outline: none;
-            font-size: 15px;
-        }
-
-        .field input:focus {
-            border-color: #3b82f6;
-        }
-
-        .field input[readonly] {
-            color: #94a3b8;
-        }
-
-        .save-button {
-            width: 100%;
-            border: 0;
-            background: #2563eb;
-            color: white;
-            padding: 14px;
-            border-radius: 11px;
-            cursor: pointer;
-            font-size: 16px;
-            font-weight: bold;
-        }
-
-        .save-button:hover {
-            background: #1d4ed8;
-        }
-
-        .save-button:disabled {
-            opacity: 0.6;
-            cursor: not-allowed;
-        }
-
-        #statusMessage {
-            text-align: center;
-            margin-top: 15px;
-            min-height: 22px;
-            color: #94a3b8;
-        }
-
-        .success {
-            color: #22c55e !important;
-        }
-
-        .error {
-            color: #ef4444 !important;
-        }
-
-        @media (max-width: 600px) {
-            .page {
-                padding: 14px;
-            }
-
-            .card {
-                padding: 18px;
-            }
-
-            .topbar h1 {
-                font-size: 19px;
-            }
-        }
-    </style>
 </head>
+
 
 <body>
 
+
 <div class="page">
 
-    <div class="topbar">
-        <h1>👤 پروفایل من</h1>
-        <button class="back-button" id="backButton">بازگشت</button>
-    </div>
 
-    <div class="card">
+<div class="card">
 
-        <div class="avatar-area">
-            <img
-                id="avatarPreview"
-                class="avatar"
-                src=""
-                alt="تصویر پروفایل"
-            >
 
-            <label for="avatarInput" class="avatar-button">
-                تغییر تصویر
-            </label>
+<h1 class="title">
+پروفایل من
+</h1>
 
-            <input
-                type="file"
-                id="avatarInput"
-                accept="image/*"
-            >
-        </div>
 
-        <div class="field">
-            <label for="displayName">نام نمایشی</label>
-            <input
-                type="text"
-                id="displayName"
-                maxlength="50"
-                placeholder="نام نمایشی"
-            >
-        </div>
+<div class="profile">
 
-        <div class="field">
-            <label for="userId">شناسه</label>
-            <input
-                type="text"
-                id="userId"
-                readonly
-            >
-        </div>
 
-        <div class="field">
-            <label for="phone">شماره موبایل</label>
-            <input
-                type="text"
-                id="phone"
-                readonly
-            >
-        </div>
+<img
+id="avatar"
+src="https://via.placeholder.com/70">
 
-        <button class="save-button" id="saveButton">
-            ذخیره تغییرات
-        </button>
 
-        <div id="statusMessage"></div>
+<div>
 
-    </div>
+<div
+class="profile-name"
+id="name">
+
+کاربر
 
 </div>
 
+
+<div
+class="profile-id"
+id="userid">
+
+-
+
+</div>
+
+
+</div>
+
+
+</div>
+
+
+
+</div>
+
+
+
+
+<div class="card">
+
+
+<input
+class="input"
+id="displayName"
+placeholder="نام جدید">
+
+
+
+<button
+class="button"
+id="save">
+
+ذخیره
+
+</button>
+
+
+
+<p
+class="status"
+id="message">
+
+</p>
+
+
+
+</div>
+
+
+
+<a href="index.html">
+بازگشت
+</a>
+
+
+
+</div>
+
+
+
 <script>
-    const API_URL = "https://videocallapp-api.onrender.com";
 
-    const currentUserId = localStorage.getItem("videoCallUserId");
 
-    const avatarPreview = document.getElementById("avatarPreview");
-    const avatarInput = document.getElementById("avatarInput");
-    const displayNameInput = document.getElementById("displayName");
-    const userIdInput = document.getElementById("userId");
-    const phoneInput = document.getElementById("phone");
-    const saveButton = document.getElementById("saveButton");
-    const statusMessage = document.getElementById("statusMessage");
-    const backButton = document.getElementById("backButton");
+const API="http://127.0.0.1:8000";
 
-    let currentAvatar = "";
 
-    function setStatus(message, type = "") {
-        statusMessage.textContent = message;
-        statusMessage.className = type;
-    }
+let userId =
+localStorage.getItem("user_id");
 
-    function defaultAvatar(name = "U") {
-        const letter = String(name || "U").trim().charAt(0).toUpperCase() || "U";
 
-        const svg = `
-            <svg xmlns="http://www.w3.org/2000/svg"
-                 width="200"
-                 height="200"
-                 viewBox="0 0 200 200">
-                <rect width="200" height="200" fill="#334155"/>
-                <text x="100"
-                      y="125"
-                      text-anchor="middle"
-                      font-size="90"
-                      font-family="Arial"
-                      fill="white">${letter}</text>
-            </svg>
-        `;
 
-        return "data:image/svg+xml;charset=UTF-8," + encodeURIComponent(svg);
-    }
+async function loadProfile(){
 
-    function showAvatar(src, name) {
-        if (src) {
-            avatarPreview.src = src;
-        } else {
-            avatarPreview.src = defaultAvatar(name);
-        }
-    }
 
-    function validateUserId() {
-        if (
-            !currentUserId ||
-            currentUserId === "undefined" ||
-            currentUserId === "null"
-        ) {
-            localStorage.removeItem("videoCallUserId");
-            window.location.href = "index.html";
-            return false;
-        }
+if(!userId){
 
-        return true;
-    }
+return;
 
-    async function loadProfile() {
-        if (!validateUserId()) {
-            return;
-        }
+}
 
-        setStatus("در حال دریافت اطلاعات...");
 
-        try {
-            const response = await fetch(
-                `${API_URL}/api/profile/${encodeURIComponent(currentUserId)}`
-            );
 
-            const data = await response.json();
+let res =
+await fetch(
+`${API}/api/profile/${userId}`
+);
 
-            if (!response.ok) {
-                throw new Error(data.detail || "دریافت پروفایل ناموفق بود");
-            }
 
-            const user = data.user || data;
 
-            if (!user.user_id) {
-                throw new Error("شناسه کاربر از سرور دریافت نشد");
-            }
+let data =
+await res.json();
 
-            displayNameInput.value = user.display_name || "";
-            userIdInput.value = user.user_id || "";
-            phoneInput.value = user.phone || "";
 
-            currentAvatar = user.avatar || "";
 
-            showAvatar(
-                currentAvatar,
-                user.display_name || user.user_id
-            );
+if(data.user){
 
-            localStorage.setItem("videoCallUserId", user.user_id);
 
-            if (user.phone) {
-                localStorage.setItem("videoCallIdentifier", user.phone);
-            }
+name.innerText =
+data.user.display_name;
 
-            if (user.display_name) {
-                localStorage.setItem(
-                    "videoCallDisplayName",
-                    user.display_name
-                );
-            }
 
-            if (user.avatar) {
-                localStorage.setItem(
-                    "videoCallAvatar",
-                    user.avatar
-                );
-            } else {
-                localStorage.removeItem("videoCallAvatar");
-            }
+userid.innerText =
+data.user.user_id;
 
-            setStatus("اطلاعات پروفایل دریافت شد", "success");
 
-        } catch (error) {
-            console.error(error);
-            setStatus(
-                error.message || "خطا در دریافت پروفایل",
-                "error"
-            );
-        }
-    }
+avatar.src =
+data.user.avatar ||
+"https://via.placeholder.com/70";
 
-    avatarInput.addEventListener("change", function () {
-        const file = avatarInput.files?.[0];
 
-        if (!file) {
-            return;
-        }
+displayName.value =
+data.user.display_name;
 
-        if (!file.type.startsWith("image/")) {
-            setStatus("لطفاً یک تصویر انتخاب کنید", "error");
-            avatarInput.value = "";
-            return;
-        }
 
-        if (file.size > 1.5 * 1024 * 1024) {
-            setStatus(
-                "حجم تصویر نباید بیشتر از ۱.۵ مگابایت باشد",
-                "error"
-            );
-            avatarInput.value = "";
-            return;
-        }
+}
 
-        const reader = new FileReader();
 
-        reader.onload = function () {
-            currentAvatar = reader.result;
-            avatarPreview.src = currentAvatar;
-            setStatus("تصویر جدید انتخاب شد", "success");
-        };
 
-        reader.onerror = function () {
-            setStatus("خواندن تصویر ناموفق بود", "error");
-        };
+}
 
-        reader.readAsDataURL(file);
-    });
 
-    saveButton.addEventListener("click", async function () {
-        if (!validateUserId()) {
-            return;
-        }
 
-        const displayName = displayNameInput.value.trim();
+save.onclick=async()=>{
 
-        if (!displayName) {
-            setStatus("نام نمایشی را وارد کنید", "error");
-            displayNameInput.focus();
-            return;
-        }
 
-        saveButton.disabled = true;
-        setStatus("در حال ذخیره...");
+await fetch(
+`${API}/api/profile/${userId}`,
+{
 
-        try {
-            const response = await fetch(
-                `${API_URL}/api/profile/${encodeURIComponent(currentUserId)}`,
-                {
-                    method: "PUT",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({
-                        display_name: displayName,
-                        avatar: currentAvatar || ""
-                    })
-                }
-            );
+method:"PUT",
 
-            const data = await response.json();
+headers:{
+"Content-Type":"application/json"
+},
 
-            if (!response.ok) {
-                throw new Error(
-                    data.detail || "ذخیره پروفایل ناموفق بود"
-                );
-            }
+body:JSON.stringify({
 
-            const user = data.user || data;
+display_name:
+displayName.value,
 
-            if (!user.user_id) {
-                throw new Error("اطلاعات کاربر از سرور ناقص است");
-            }
+avatar:""
 
-            localStorage.setItem(
-                "videoCallUserId",
-                user.user_id
-            );
+})
 
-            localStorage.setItem(
-                "videoCallDisplayName",
-                user.display_name || displayName
-            );
+});
 
-            if (user.phone) {
-                localStorage.setItem(
-                    "videoCallIdentifier",
-                    user.phone
-                );
-            }
 
-            if (user.avatar) {
-                localStorage.setItem(
-                    "videoCallAvatar",
-                    user.avatar
-                );
-            } else {
-                localStorage.removeItem("videoCallAvatar");
-            }
+message.innerText=
+"ذخیره شد";
 
-            currentAvatar = user.avatar || "";
 
-            showAvatar(
-                currentAvatar,
-                user.display_name || displayName
-            );
+loadProfile();
 
-            setStatus(
-                "پروفایل با موفقیت ذخیره شد ✅",
-                "success"
-            );
 
-        } catch (error) {
-            console.error(error);
+};
 
-            setStatus(
-                error.message || "خطا در ذخیره پروفایل",
-                "error"
-            );
 
-        } finally {
-            saveButton.disabled = false;
-        }
-    });
 
-    backButton.addEventListener("click", function () {
-        window.location.href = "index.html";
-    });
+loadProfile();
 
-    loadProfile();
+
 </script>
 
+
 </body>
+
 </html>

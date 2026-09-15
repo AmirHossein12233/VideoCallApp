@@ -1,0 +1,150 @@
+```html
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>تماس تصویری | VideoCallApp</title>
+
+    <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+<script>
+    if (!localStorage.getItem("user_id")) {
+        location.href = "login.html";
+    }
+</script>
+
+<div class="page">
+
+    <div class="card">
+
+        <h1 class="title">📞 تماس تصویری</h1>
+
+        <div class="video-area">
+
+            <video
+                id="remoteVideo"
+                autoplay
+                playsinline>
+            </video>
+
+            <video
+                id="localVideo"
+                autoplay
+                muted
+                playsinline>
+            </video>
+
+        </div>
+
+        <div class="call-controls">
+
+            <button
+                id="toggleMic"
+                class="control-button">
+                🎤
+            </button>
+
+            <button
+                id="toggleCamera"
+                class="control-button">
+                📷
+            </button>
+
+            <button
+                id="fullscreen"
+                class="control-button">
+                ⛶
+            </button>
+
+            <button
+                id="endCall"
+                class="control-button hangup-button">
+                ❌
+            </button>
+
+        </div>
+
+        <p
+            id="callTimer"
+            class="status">
+            00:00
+        </p>
+
+        <p
+            id="status"
+            class="status">
+            آماده تماس
+        </p>
+
+    </div>
+
+</div>
+
+
+<!-- =========================
+     INCOMING CALL
+========================= -->
+
+<div
+    id="incomingCall"
+    class="incoming-call hidden">
+
+    <div class="incoming-box">
+
+        <div class="incoming-icon">
+            📞
+        </div>
+
+        <h2>
+            تماس ورودی
+        </h2>
+
+        <p id="incomingUser">
+            کاربر
+        </p>
+
+        <p class="status">
+            در حال تماس با شما...
+        </p>
+
+        <div class="call-controls">
+
+            <button
+                id="acceptCall"
+                class="control-button accept-button">
+                ✅
+            </button>
+
+            <button
+                id="rejectCall"
+                class="control-button reject-button">
+                ❌
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- صدای زنگ -->
+<audio
+    id="ringtone"
+    loop
+    preload="auto">
+    <source src="ringtone.mp3" type="audio/mpeg">
+</audio>
+
+
+<script src="call.js"></script>
+
+</body>
+</html>
+```

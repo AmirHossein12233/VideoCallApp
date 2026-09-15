@@ -8,7 +8,7 @@ import uuid
 
 
 # =========================
-# LOGGING
+# LOG
 # =========================
 
 logging.basicConfig(level=logging.INFO)
@@ -23,7 +23,7 @@ logger = logging.getLogger("VideoCallApp")
 
 app = FastAPI(
     title="VideoCallApp",
-    version="2.0.0"
+    version="3.0.0"
 )
 
 
@@ -36,16 +36,18 @@ app.add_middleware(
     CORSMiddleware,
 
     allow_origins=[
-        "http://localhost:5500",
-        "http://127.0.0.1:5500",
-        "https://videocallapp-web.onrender.com",
+        "*"
     ],
 
     allow_credentials=True,
 
-    allow_methods=["*"],
+    allow_methods=[
+        "*"
+    ],
 
-    allow_headers=["*"],
+    allow_headers=[
+        "*"
+    ]
 )
 
 
@@ -73,9 +75,9 @@ def get_db():
 
 def init_db():
 
-    conn = get_db()
+    conn=get_db()
 
-    cur = conn.cursor()
+    cur=conn.cursor()
 
 
     cur.execute("""
@@ -95,6 +97,25 @@ def init_db():
     """)
 
 
+
+    cur.execute("""
+    CREATE TABLE IF NOT EXISTS messages(
+
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+
+        sender TEXT NOT NULL,
+
+        receiver TEXT NOT NULL,
+
+        message TEXT NOT NULL,
+
+        created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+
+    )
+    """)
+
+
+
     conn.commit()
 
     conn.close()
@@ -102,6 +123,7 @@ def init_db():
 
 
 init_db()
+
 
 
 
@@ -122,22 +144,35 @@ class RegisterRequest(BaseModel):
 
 
 
+
 class ProfileUpdate(BaseModel):
 
     display_name:str
 
-    avatar:str = ""
+    avatar:str=""
+
+
+
+
+
+class MessageRequest(BaseModel):
+
+    sender:str
+
+    receiver:str
+
+    message:str
 
 
 
 
 
 # =========================
-# USER FUNCTIONS
+# USER HELPERS
 # =========================
 
 
-def user_to_dict(row):
+def user_dict(row):
 
     if not row:
 
@@ -146,15 +181,15 @@ def user_to_dict(row):
 
     return {
 
-        "id": row["id"],
+        "id":row["id"],
 
-        "user_id": row["user_id"],
+        "user_id":row["user_id"],
 
-        "phone": row["phone"],
+        "phone":row["phone"],
 
-        "display_name": row["display_name"],
+        "display_name":row["display_name"],
 
-        "avatar": row["avatar"]
+        "avatar":row["avatar"]
 
     }
 
@@ -162,11 +197,11 @@ def user_to_dict(row):
 
 
 
-def find_user(identifier):
+def find_user(value):
 
-    conn = get_db()
+    conn=get_db()
 
-    cur = conn.cursor()
+    cur=conn.cursor()
 
 
     cur.execute(
@@ -179,20 +214,20 @@ def find_user(identifier):
         """,
 
         (
-            identifier,
-            identifier
+            value,
+            value
         )
 
     )
 
 
-    row = cur.fetchone()
-
+    row=cur.fetchone()
 
     conn.close()
 
 
-    return user_to_dict(row)
+    return user_dict(row)
+
 
 
 
@@ -211,39 +246,41 @@ async def register(data:RegisterRequest):
 
         raise HTTPException(
             400,
-            "این کاربر وجود دارد"
+            "کاربر وجود دارد"
         )
 
 
 
-    conn = get_db()
+    conn=get_db()
 
-    cur = conn.cursor()
+    cur=conn.cursor()
 
 
     try:
 
-
         cur.execute(
 
-            """
-            INSERT INTO users
-            (user_id,phone,display_name)
+        """
+        INSERT INTO users
+        (
+        user_id,
+        phone,
+        display_name
+        )
+        VALUES(?,?,?)
 
-            VALUES(?,?,?)
-            """,
+        """,
 
-            (
-                data.user_id,
-                data.phone,
-                data.display_name
-            )
+        (
+            data.user_id,
+            data.phone,
+            data.display_name
+        )
 
         )
 
 
         conn.commit()
-
 
 
     except sqlite3.IntegrityError:
@@ -268,6 +305,8 @@ async def register(data:RegisterRequest):
         "user":find_user(data.user_id)
 
     }
+
+
 
 
 
@@ -297,13 +336,17 @@ async def users():
     conn.close()
 
 
+
     return {
 
         "success":True,
 
         "users":[
-            user_to_dict(row)
-            for row in rows
+
+            user_dict(x)
+
+            for x in rows
+
         ]
 
     }
@@ -311,10 +354,6 @@ async def users():
 
 
 
-
-# =========================
-# PROFILE
-# =========================
 
 
 @app.get("/api/profile/{user_id}")
@@ -344,6 +383,8 @@ async def profile(user_id:str):
 
 
 
+
+
 @app.put("/api/profile/{user_id}")
 async def update_profile(
     user_id:str,
@@ -358,25 +399,21 @@ async def update_profile(
 
     cur.execute(
 
-        """
-        UPDATE users
+    """
+    UPDATE users
 
-        SET display_name=?,
-            avatar=?
+    SET display_name=?,
+    avatar=?
 
-        WHERE user_id=?
+    WHERE user_id=?
 
-        """,
+    """,
 
-        (
-
-            data.display_name,
-
-            data.avatar,
-
-            user_id
-
-        )
+    (
+        data.display_name,
+        data.avatar,
+        user_id
+    )
 
     )
 
@@ -399,13 +436,228 @@ async def update_profile(
 
 
 
-# ==================================================
-# WEBRTC SIGNALING
-# ==================================================
 
 
-rooms = {}
+# =========================
+# ONLINE USERS SOCKET
+# =========================
 
+
+online_users={}
+
+
+
+
+
+@app.websocket("/ws/user/{user_id}")
+async def user_socket(
+    websocket:WebSocket,
+    user_id:str
+):
+
+
+    await websocket.accept()
+
+
+    online_users[user_id]=websocket
+
+
+    logger.info(
+        f"ONLINE {user_id}"
+    )
+
+
+
+    try:
+
+
+        while True:
+
+
+            data=await websocket.receive_json()
+
+
+
+            target=data.get(
+                "target"
+            )
+
+
+
+            if target in online_users:
+
+
+                data["from"]=user_id
+
+
+                await online_users[target].send_json(
+                    data
+                )
+
+
+
+            else:
+
+
+                await websocket.send_json({
+
+                    "type":"error",
+
+                    "message":"کاربر آنلاین نیست"
+
+                })
+
+
+
+    except WebSocketDisconnect:
+
+
+        online_users.pop(
+            user_id,
+            None
+        )
+
+
+        logger.info(
+            f"OFFLINE {user_id}"
+        )
+
+
+
+
+
+
+# =========================
+# CHAT
+# =========================
+
+
+@app.post("/api/messages")
+async def save_message(
+    data:MessageRequest
+):
+
+
+    conn=get_db()
+
+    cur=conn.cursor()
+
+
+
+    cur.execute(
+
+    """
+    INSERT INTO messages
+
+    (
+    sender,
+    receiver,
+    message
+    )
+
+    VALUES(?,?,?)
+
+    """,
+
+    (
+        data.sender,
+        data.receiver,
+        data.message
+    )
+
+    )
+
+
+
+    conn.commit()
+
+    conn.close()
+
+
+
+    return {
+
+        "success":True
+
+    }
+
+
+
+
+
+
+
+@app.get("/api/messages/{a}/{b}")
+async def messages(
+    a:str,
+    b:str
+):
+
+
+    conn=get_db()
+
+    cur=conn.cursor()
+
+
+
+    cur.execute(
+
+    """
+    SELECT *
+
+    FROM messages
+
+    WHERE
+
+    (sender=? AND receiver=?)
+
+    OR
+
+    (sender=? AND receiver=?)
+
+    ORDER BY id ASC
+
+    """,
+
+    (
+        a,
+        b,
+        b,
+        a
+    )
+
+    )
+
+
+
+    rows=cur.fetchall()
+
+
+
+    conn.close()
+
+
+
+    return {
+
+        "success":True,
+
+        "messages":[dict(x) for x in rows]
+
+    }
+
+
+
+
+
+
+
+# =========================
+# ROOMS
+# =========================
+
+
+rooms={}
 
 
 
@@ -413,10 +665,12 @@ rooms = {}
 async def create_room():
 
 
-    room_id = str(uuid.uuid4())[:8]
+    room_id=str(
+        uuid.uuid4()
+    )[:8]
 
 
-    rooms[room_id] = {}
+    rooms[room_id]=[]
 
 
 
@@ -434,61 +688,24 @@ async def create_room():
 
 
 
-@app.websocket("/ws/call/{room_id}/{user_id}")
+@app.websocket("/ws/call/{room}/{user}")
 async def call_socket(
     websocket:WebSocket,
-    room_id:str,
-    user_id:str
+    room:str,
+    user:str
 ):
 
 
     await websocket.accept()
 
 
+    if room not in rooms:
 
-    if room_id not in rooms:
-
-        rooms[room_id]={}
-
-
-
-    rooms[room_id][user_id]=websocket
+        rooms[room]=[]
 
 
 
-    logger.info(
-        f"{user_id} joined {room_id}"
-    )
-
-
-
-
-    # اطلاع به افراد اتاق
-
-    for old_user, socket in rooms[room_id].items():
-
-
-        if old_user != user_id:
-
-
-            await websocket.send_json({
-
-                "type":"user_joined",
-
-                "user":old_user
-
-            })
-
-
-            await socket.send_json({
-
-                "type":"user_joined",
-
-                "user":user_id
-
-            })
-
-
+    rooms[room].append(websocket)
 
 
 
@@ -498,66 +715,25 @@ async def call_socket(
         while True:
 
 
-            data = await websocket.receive_json()
-
-
-            target=data.get("target")
+            data=await websocket.receive_json()
 
 
 
-            if target:
+            for client in rooms[room]:
 
 
-                target_socket = rooms[room_id].get(target)
+                if client != websocket:
 
-
-
-                if target_socket:
-
-
-                    await target_socket.send_json({
-
-                        **data,
-
-                        "from":user_id
-
-                    })
+                    await client.send_json(data)
 
 
 
     except WebSocketDisconnect:
 
 
-        logger.info(
-            f"{user_id} left {room_id}"
-        )
+        rooms[room].remove(websocket)
 
 
-
-        if room_id in rooms:
-
-
-            rooms[room_id].pop(
-                user_id,
-                None
-            )
-
-
-            for socket in rooms[room_id].values():
-
-                await socket.send_json({
-
-                    "type":"user_left",
-
-                    "user":user_id
-
-                })
-
-
-
-            if not rooms[room_id]:
-
-                rooms.pop(room_id)
 
 
 
@@ -599,7 +775,7 @@ async def health():
 
         "users":count,
 
-        "rooms":len(rooms)
+        "online_users":len(online_users)
 
     }
 
@@ -607,9 +783,6 @@ async def health():
 
 
 
-# =========================
-# ROOT
-# =========================
 
 
 @app.get("/")

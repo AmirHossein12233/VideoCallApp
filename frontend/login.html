@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+
+<head>
+
+<meta charset="UTF-8">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>
+ورود | VideoCallApp
+</title>
+
+<link rel="stylesheet" href="style.css">
+
+</head>
+
+
+<body>
+
+
+<div class="page">
+
+
+<div class="card auth-box">
+
+
+<h1 class="title">
+📹 VideoCallApp
+</h1>
+
+
+<p class="subtitle">
+ورود یا ساخت حساب
+</p>
+
+
+
+
+<input
+class="input"
+id="userId"
+placeholder="شناسه کاربری">
+
+
+<input
+class="input"
+id="phone"
+placeholder="شماره تلفن">
+
+
+<input
+class="input"
+id="name"
+placeholder="نام نمایشی">
+
+
+
+
+
+<button
+class="button"
+id="register">
+
+ثبت نام
+
+</button>
+
+
+<br><br>
+
+
+<button
+class="button"
+id="login">
+
+ورود
+
+</button>
+
+
+
+<p
+class="message"
+id="message">
+
+</p>
+
+
+
+</div>
+
+
+</div>
+
+
+
+
+
+<script>
+
+
+const API =
+"http://127.0.0.1:8000";
+
+
+
+const userId =
+document.getElementById("userId");
+
+
+const phone =
+document.getElementById("phone");
+
+
+const nameInput =
+document.getElementById("name");
+
+
+const message =
+document.getElementById("message");
+
+
+
+
+
+// =======================
+// REGISTER
+// =======================
+
+
+document
+.getElementById("register")
+.onclick = async()=>{
+
+
+if(
+!userId.value ||
+!phone.value ||
+!nameInput.value
+){
+
+message.innerText =
+"همه فیلدها را پر کنید";
+
+return;
+
+}
+
+
+
+let response =
+await fetch(
+`${API}/api/register`,
+{
+
+method:"POST",
+
+headers:{
+
+"Content-Type":
+"application/json"
+
+},
+
+
+body:JSON.stringify({
+
+user_id:userId.value,
+
+phone:phone.value,
+
+display_name:nameInput.value
+
+})
+
+
+}
+
+);
+
+
+
+let data =
+await response.json();
+
+
+
+if(data.success){
+
+
+localStorage.setItem(
+"user_id",
+userId.value
+);
+
+
+
+message.style.color =
+"green";
+
+
+message.innerText =
+"ثبت نام موفق";
+
+
+
+setTimeout(()=>{
+
+location.href =
+"index.html";
+
+},1000);
+
+
+
+}
+
+else{
+
+
+message.innerText =
+data.detail ||
+"خطا در ثبت نام";
+
+
+}
+
+
+};
+
+
+
+
+
+
+
+// =======================
+// LOGIN
+// =======================
+
+
+document
+.getElementById("login")
+.onclick = async()=>{
+
+
+if(!userId.value){
+
+message.innerText =
+"شناسه را وارد کنید";
+
+return;
+
+}
+
+
+
+let response =
+await fetch(
+
+`${API}/api/users/${userId.value}`
+
+);
+
+
+
+let data =
+await response.json();
+
+
+
+if(data.success){
+
+
+
+localStorage.setItem(
+"user_id",
+data.user.user_id
+);
+
+
+
+message.style.color =
+"green";
+
+
+message.innerText =
+"ورود موفق";
+
+
+
+setTimeout(()=>{
+
+location.href =
+"index.html";
+
+
+},1000);
+
+
+
+}
+
+else{
+
+
+message.innerText =
+"کاربر پیدا نشد";
+
+
+}
+
+
+
+};
+
+
+
+
+</script>
+
+
+</body>
+
+</html>

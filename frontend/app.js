@@ -1,517 +1,526 @@
 const API_URL = "http://127.0.0.1:8000";
+const WS_URL = "ws://127.0.0.1:8000";
 
-let userId = "";
-let roomId = "";
+const userId = localStorage.getItem("user_id");
 
-let ws = null;
+let socket = null;
 
-let peer = null;
+let incomingCaller = null;
+let incomingOffer = null;
 
-let localStream = null;
+let ringtone = null;
 
-let otherUser = null;
+const statusElement =
+    document.getElementById("status");
 
+const incomingCall =
+    document.getElementById("incomingCall");
 
+const callerName =
+    document.getElementById("callerName");
 
-const userInput = document.getElementById("userId");
-const roomInput = document.getElementById("roomId");
+const acceptIncoming =
+    document.getElementById("acceptIncoming");
 
-const localVideo = document.getElementById("localVideo");
-const remoteVideo = document.getElementById("remoteVideo");
+const rejectIncoming =
+    document.getElementById("rejectIncoming");
 
-const statusText = document.getElementById("status");
-
-
-
-// =========================
-// CREATE ROOM
-// =========================
-
-document
-.getElementById("createRoom")
-.onclick = async()=>{
+const ringtoneElement =
+    document.getElementById("ringtone");
 
 
-    const response =
-    await fetch(
-        `${API_URL}/api/create-room`,
-        {
-            method:"POST"
-        }
-    );
+/* =========================
+   LOGIN
+========================= */
+
+if (!userId) {
+
+    location.href = "login.html";
+
+}
 
 
-    const data =
-    await response.json();
+/* =========================
+   STATUS
+========================= */
+
+function setStatus(text) {
+
+    if (statusElement) {
+        statusElement.innerText = text;
+    }
+
+}
 
 
+/* =========================
+   RINGTONE
+========================= */
 
-    roomInput.value =
-    data.room_id;
+function startRingtone() {
 
-
-    statusText.innerText =
-    "اتاق ساخته شد: " + data.room_id;
-
-
-};
-
-
-
-
-// =========================
-// JOIN ROOM
-// =========================
-
-document
-.getElementById("joinRoom")
-.onclick = async()=>{
-
-
-    userId =
-    userInput.value.trim();
-
-
-    roomId =
-    roomInput.value.trim();
-
-
-
-    if(!userId || !roomId){
-
-        alert(
-            "شناسه و کد اتاق را وارد کنید"
-        );
-
+    if (!ringtoneElement) {
         return;
+    }
+
+    ringtone = ringtoneElement;
+
+    ringtone.currentTime = 0;
+
+    const result =
+        ringtone.play();
+
+    if (result) {
+
+        result.catch(() => {
+
+            console.log(
+                "پخش خودکار زنگ توسط مرورگر مسدود شد."
+            );
+
+        });
 
     }
 
-
-
-    await startCamera();
-
-
-    connectSocket();
-
-
-};
-
-
-
-
-// =========================
-// CAMERA
-// =========================
-
-async function startCamera(){
-
-
-    localStream =
-    await navigator.mediaDevices.getUserMedia(
-        {
-            video:true,
-            audio:true
-        }
-    );
-
-
-    localVideo.srcObject =
-    localStream;
-
 }
 
 
+function stopRingtone() {
 
-
-
-// =========================
-// SOCKET
-// =========================
-
-function connectSocket(){
-
-
-    ws =
-    new WebSocket(
-
-        `ws://127.0.0.1:8000/ws/call/${roomId}/${userId}`
-
-    );
-
-
-
-    ws.onopen = ()=>{
-
-
-        statusText.innerText =
-        "به اتاق وصل شدی";
-
-
-    };
-
-
-
-
-
-    ws.onmessage = async(event)=>{
-
-
-        const data =
-        JSON.parse(event.data);
-
-
-
-        // نفر جدید وارد شد
-
-        if(data.type==="user_joined"){
-
-
-            otherUser =
-            data.user;
-
-
-
-            statusText.innerText =
-            "کاربر وصل شد";
-
-
-        }
-
-
-
-
-
-        // دریافت Offer
-
-        if(data.type==="offer"){
-
-
-            otherUser =
-            data.from;
-
-
-
-            await createPeer();
-
-
-
-            await peer.setRemoteDescription(
-                data.offer
-            );
-
-
-
-            const answer =
-            await peer.createAnswer();
-
-
-
-            await peer.setLocalDescription(
-                answer
-            );
-
-
-
-            send({
-
-                type:"answer",
-
-                target:data.from,
-
-                answer:answer
-
-            });
-
-
-
-        }
-
-
-
-
-
-        // دریافت Answer
-
-        if(data.type==="answer"){
-
-
-            await peer.setRemoteDescription(
-                data.answer
-            );
-
-
-        }
-
-
-
-
-
-
-        // دریافت ICE
-
-        if(data.type==="ice"){
-
-
-            if(peer){
-
-
-                await peer.addIceCandidate(
-                    data.candidate
-                );
-
-
-            }
-
-
-        }
-
-
-
-
-
-        if(data.type==="user_left"){
-
-
-            statusText.innerText =
-            "کاربر خارج شد";
-
-
-            remoteVideo.srcObject=null;
-
-
-        }
-
-
-
-    };
-
-
-
-}
-
-
-
-
-// =========================
-// PEER CONNECTION
-// =========================
-
-async function createPeer(){
-
-
-    if(peer)
+    if (!ringtone) {
         return;
+    }
 
+    ringtone.pause();
 
+    ringtone.currentTime = 0;
 
-    peer =
-    new RTCPeerConnection({
-
-        iceServers:[
-
-            {
-                urls:
-                "stun:stun.l.google.com:19302"
-            }
-
-        ]
-
-    });
-
-
-
-
-
-    localStream
-    .getTracks()
-    .forEach(track=>{
-
-
-        peer.addTrack(
-            track,
-            localStream
-        );
-
-
-    });
-
-
-
-
-
-    peer.ontrack =
-    event=>{
-
-
-        remoteVideo.srcObject =
-        event.streams[0];
-
-
-    };
-
-
-
-
-
-    peer.onicecandidate =
-    event=>{
-
-
-        if(
-            event.candidate &&
-            otherUser
-        ){
-
-
-            send({
-
-                type:"ice",
-
-                target:otherUser,
-
-                candidate:event.candidate
-
-            });
-
-
-        }
-
-
-    };
-
+    ringtone = null;
 
 }
 
 
+/* =========================
+   CONNECT USER SOCKET
+========================= */
 
+function connectSocket() {
 
-// =========================
-// START CALL
-// =========================
-
-document
-.getElementById("startCall")
-.onclick = async()=>{
-
-
-    if(!otherUser){
-
-        alert(
-            "هنوز کاربر دیگری وارد نشده"
-        );
-
+    if (!userId) {
         return;
-
     }
 
 
-
-    await createPeer();
-
-
-
-    const offer =
-    await peer.createOffer();
+    socket =
+        new WebSocket(
+            `${WS_URL}/ws/user/${encodeURIComponent(userId)}`
+        );
 
 
+    socket.onopen = () => {
 
-    await peer.setLocalDescription(
-        offer
-    );
+        console.log(
+            "User socket connected"
+        );
 
+        setStatus(
+            "آنلاین"
+        );
 
-
-    send({
-
-        type:"offer",
-
-        target:otherUser,
-
-        offer:offer
-
-    });
+    };
 
 
+    socket.onmessage = (event) => {
 
-};
+        let data;
+
+        try {
+
+            data =
+                JSON.parse(event.data);
+
+        } catch (error) {
+
+            console.error(
+                "WebSocket JSON error:",
+                error
+            );
+
+            return;
+
+        }
 
 
+        console.log(
+            "Incoming socket:",
+            data
+        );
 
 
+        /* =========================
+           INCOMING CALL
+        ========================= */
 
-// =========================
-// SEND SIGNAL
-// =========================
+        if (data.type === "call_request") {
 
-function send(data){
+            incomingCaller =
+                data.from;
 
-
-    if(
-        ws &&
-        ws.readyState === WebSocket.OPEN
-    ){
+            incomingOffer =
+                data.offer;
 
 
-        ws.send(
+            callerName.innerText =
+                data.from;
+
+
+            incomingCall
+                .classList
+                .remove("hidden");
+
+
+            setStatus(
+                "تماس ورودی"
+            );
+
+
+            startRingtone();
+
+        }
+
+
+        /* =========================
+           CALL REJECTED
+        ========================= */
+
+        if (data.type === "call_reject") {
+
+            setStatus(
+                "تماس رد شد"
+            );
+
+            stopRingtone();
+
+        }
+
+
+        /* =========================
+           CALL ENDED
+        ========================= */
+
+        if (data.type === "call_end") {
+
+            setStatus(
+                "تماس پایان یافت"
+            );
+
+        }
+
+    };
+
+
+    socket.onerror = (error) => {
+
+        console.error(
+            "WebSocket error:",
+            error
+        );
+
+        setStatus(
+            "خطا در اتصال"
+        );
+
+    };
+
+
+    socket.onclose = () => {
+
+        console.log(
+            "WebSocket disconnected"
+        );
+
+    };
+
+}
+
+
+/* =========================
+   SEND SIGNAL
+========================= */
+
+function sendSignal(data) {
+
+    if (
+        socket &&
+        socket.readyState === WebSocket.OPEN
+    ) {
+
+        socket.send(
             JSON.stringify(data)
         );
 
-
     }
-
 
 }
 
 
+/* =========================
+   ACCEPT INCOMING CALL
+========================= */
+
+if (acceptIncoming) {
+
+    acceptIncoming.onclick = () => {
+
+        if (
+            !incomingCaller ||
+            !incomingOffer
+        ) {
+            return;
+        }
 
 
-// =========================
-// END CALL
-// =========================
-
-document
-.getElementById("endCall")
-.onclick = ()=>{
+        stopRingtone();
 
 
-    if(peer){
+        const pendingCall = {
 
-        peer.close();
+            from:
+                incomingCaller,
 
-        peer=null;
+            offer:
+                incomingOffer
 
-    }
+        };
 
 
-
-    if(localStream){
-
-        localStream
-        .getTracks()
-        .forEach(
-            track=>track.stop()
+        localStorage.setItem(
+            "pending_call",
+            JSON.stringify(pendingCall)
         );
 
+
+        localStorage.setItem(
+            "call_target",
+            incomingCaller
+        );
+
+
+        incomingCall
+            .classList
+            .add("hidden");
+
+
+        setStatus(
+            "در حال ورود به تماس..."
+        );
+
+
+        /*
+         * اتصال WebSocket فعلی را نمی‌بندیم
+         * چون call.html یک اتصال جدید می‌سازد.
+         */
+
+
+        location.href =
+            "call.html";
+
+    };
+
+}
+
+
+/* =========================
+   REJECT INCOMING CALL
+========================= */
+
+if (rejectIncoming) {
+
+    rejectIncoming.onclick = () => {
+
+        if (incomingCaller) {
+
+            sendSignal({
+
+                type:
+                    "call_reject",
+
+                target:
+                    incomingCaller
+
+            });
+
+        }
+
+
+        stopRingtone();
+
+
+        incomingCaller = null;
+        incomingOffer = null;
+
+
+        incomingCall
+            .classList
+            .add("hidden");
+
+
+        setStatus(
+            "تماس رد شد"
+        );
+
+    };
+
+}
+
+
+/* =========================
+   CREATE ROOM
+========================= */
+
+const createRoomButton =
+    document.getElementById("createRoom");
+
+
+if (createRoomButton) {
+
+    createRoomButton.onclick =
+        async () => {
+
+            try {
+
+                const response =
+                    await fetch(
+                        `${API_URL}/api/create-room`,
+                        {
+                            method: "POST"
+                        }
+                    );
+
+
+                const data =
+                    await response.json();
+
+
+                if (!data.success) {
+
+                    throw new Error(
+                        "ساخت اتاق ناموفق بود"
+                    );
+
+                }
+
+
+                const roomInput =
+                    document.getElementById(
+                        "roomId"
+                    );
+
+
+                if (roomInput) {
+
+                    roomInput.value =
+                        data.room_id;
+
+                }
+
+
+                setStatus(
+                    `اتاق ${data.room_id} ساخته شد`
+                );
+
+            } catch (error) {
+
+                console.error(
+                    "Create room error:",
+                    error
+                );
+
+                setStatus(
+                    "ساخت اتاق ناموفق بود"
+                );
+
+            }
+
+        };
+
+}
+
+
+/* =========================
+   JOIN ROOM
+========================= */
+
+const joinRoomButton =
+    document.getElementById("joinRoom");
+
+
+if (joinRoomButton) {
+
+    joinRoomButton.onclick =
+        () => {
+
+            const roomInput =
+                document.getElementById(
+                    "roomId"
+                );
+
+
+            if (!roomInput) {
+                return;
+            }
+
+
+            const roomId =
+                roomInput.value.trim();
+
+
+            if (!roomId) {
+
+                setStatus(
+                    "کد اتاق را وارد کنید"
+                );
+
+                return;
+
+            }
+
+
+            localStorage.setItem(
+                "room_id",
+                roomId
+            );
+
+
+            localStorage.removeItem(
+                "call_target"
+            );
+
+
+            location.href =
+                "call.html";
+
+        };
+
+}
+
+
+/* =========================
+   CLEANUP
+========================= */
+
+window.addEventListener(
+    "beforeunload",
+    () => {
+
+        stopRingtone();
+
     }
+);
 
 
+/* =========================
+   START
+========================= */
 
-    if(ws){
-
-        ws.close();
-
-    }
-
-
-
-    localVideo.srcObject=null;
-
-    remoteVideo.srcObject=null;
-
-
-    statusText.innerText =
-    "تماس بسته شد";
-
-
-};
+connectSocket();
