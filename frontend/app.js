@@ -1,4 +1,4 @@
-const API_URL = "http://127.0.0.1:8000";
+const API_URL = "https://videocallapp-api.onrender.com";
 const WS_URL = "ws://127.0.0.1:8000";
 
 const userId = localStorage.getItem("user_id");
