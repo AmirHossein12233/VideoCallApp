@@ -1,46 +1,63 @@
-*{
-    box-sizing:border-box;
+/* =========================
+   VideoCallApp STYLE
+   White / Black Theme
+========================= */
+
+
+:root {
+
+    --bg: #f8fafc;
+
+    --card: #ffffff;
+
+    --text: #111827;
+
+    --muted: #64748b;
+
+    --border: #e5e7eb;
+
+    --primary: #2563eb;
+
+    --primary-hover: #1d4ed8;
+
+    --success: #16a34a;
+
+    --danger: #dc2626;
+
+    --dark: #111827;
+
 }
 
 
-body{
 
-    margin:0;
 
-    padding:0;
+
+* {
+
+    box-sizing: border-box;
+
+}
+
+
+
+
+body {
+
+    margin: 0;
+
+    min-height: 100vh;
+
+    background: var(--bg);
+
+    color: var(--text);
 
     font-family:
-    Tahoma,
-    Arial,
-    sans-serif;
 
-    background:#ffffff;
+        Tahoma,
 
-    color:#111;
+        Arial,
 
-}
-
-
-
-.hidden{
-
-    display:none !important;
-
-}
-
-
-
-.page{
-
-    min-height:100vh;
-
-    display:flex;
-
-    justify-content:center;
-
-    align-items:center;
-
-    padding:20px;
+        sans-serif;
 
 }
 
@@ -48,48 +65,87 @@ body{
 
 
 
-/* =====================
+.hidden {
+
+    display: none !important;
+
+}
+
+
+
+
+
+button {
+
+    font-family: inherit;
+
+    cursor: pointer;
+
+}
+
+
+
+
+
+input {
+
+    font-family: inherit;
+
+}
+
+
+
+
+
+
+
+/* =========================
+   MAIN CONTAINER
+========================= */
+
+
+.page {
+
+    width: 100%;
+
+    max-width: 700px;
+
+    margin: auto;
+
+    padding: 20px;
+
+}
+
+
+
+
+
+
+/* =========================
    CARD
-===================== */
+========================= */
 
 
-.card{
+.card {
 
-    width:100%;
+    background: var(--card);
 
-    max-width:400px;
+    border: 1px solid var(--border);
 
-    background:#fff;
+    border-radius: 22px;
 
-    border:1px solid #ddd;
+    padding: 22px;
 
-    border-radius:20px;
-
-    padding:30px;
+    margin-bottom: 18px;
 
     box-shadow:
-    0 10px 30px
-    rgba(0,0,0,.08);
 
-    text-align:center;
-
-}
-
-
-
-.card h1{
-
-    margin-top:0;
-
-    color:#000;
-
-}
-
-
-
-.card p{
-
-    color:#555;
+        0 10px 25px rgba(
+            0,
+            0,
+            0,
+            .05
+        );
 
 }
 
@@ -97,29 +153,22 @@ body{
 
 
 
-input{
-
-    width:100%;
-
-    padding:14px;
-
-    margin:8px 0;
-
-    border-radius:12px;
-
-    border:1px solid #ccc;
-
-    font-size:15px;
-
-    outline:none;
-
-}
 
 
+/* =========================
+   TITLE
+========================= */
 
-input:focus{
 
-    border-color:#000;
+.title {
+
+    text-align: center;
+
+    font-size: 28px;
+
+    font-weight: bold;
+
+    margin-bottom: 20px;
 
 }
 
@@ -127,19 +176,16 @@ input:focus{
 
 
 
-button{
 
-    cursor:pointer;
+.subtitle {
 
-    border:none;
+    text-align: center;
 
-    border-radius:12px;
+    color: var(--muted);
 
-    padding:12px 18px;
+    font-size: 14px;
 
-    font-size:15px;
-
-    transition:.2s;
+    margin-bottom: 20px;
 
 }
 
@@ -147,54 +193,42 @@ button{
 
 
 
-button:hover{
-
-    opacity:.8;
-
-}
 
 
-
-#loginButton,
-#registerButton{
-
-    width:100%;
-
-    background:#000;
-
-    color:#fff;
-
-    margin-top:10px;
-
-}
+/* =========================
+   INPUT
+========================= */
 
 
+.input {
 
-.link{
+    width: 100%;
 
-    background:none;
+    padding: 14px;
 
-    color:#000;
+    border-radius: 14px;
 
-    margin-top:15px;
+    border:
+
+        1px solid var(--border);
+
+    background: white;
+
+    color: var(--text);
+
+    outline: none;
+
+    margin-bottom: 12px;
+
+    font-size: 15px;
 
 }
 
 
 
+.input:focus {
 
-
-/* =====================
- APP
-===================== */
-
-
-
-#appPage{
-
-    min-height:100vh;
-
-    background:#f5f5f5;
+    border-color: var(--primary);
 
 }
 
@@ -202,368 +236,40 @@ button:hover{
 
 
 
-.topbar{
-
-    background:#000;
-
-    color:#fff;
-
-    padding:15px;
-
-    display:flex;
-
-    justify-content:space-between;
-
-    align-items:center;
-
-}
 
 
+/* =========================
+   BUTTON
+========================= */
 
 
+.button {
 
-.profile{
+    width: 100%;
 
-    display:flex;
+    border: none;
 
-    align-items:center;
+    padding: 14px;
 
-    gap:12px;
+    border-radius: 14px;
+
+    background: var(--primary);
+
+    color: white;
+
+    font-weight: bold;
+
+    font-size: 15px;
 
 }
 
 
 
-.avatar{
-
-    width:55px;
-
-    height:55px;
-
-    border-radius:50%;
-
-    object-fit:cover;
-
-    background:#fff;
-
-}
-
-
-
-
-
-#logoutButton{
-
-    background:#fff;
-
-    color:#000;
-
-}
-
-
-
-
-
-nav{
-
-    padding:15px;
-
-    text-align:center;
-
-}
-
-
-
-nav button{
-
-    background:#000;
-
-    color:#fff;
-
-}
-
-
-
-
-
-main{
-
-    max-width:900px;
-
-    margin:auto;
-
-    padding:15px;
-
-}
-
-
-
-
-
-#onlineBox{
-
-    background:#fff;
-
-    border-radius:15px;
-
-    padding:15px;
-
-    margin-bottom:15px;
-
-    border:1px solid #ddd;
-
-}
-
-
-
-
-
-.panel{
-
-    background:#fff;
-
-    border-radius:20px;
-
-    padding:20px;
-
-    margin-bottom:20px;
-
-    border:1px solid #ddd;
-
-}
-
-
-
-
-
-/* =====================
- USERS
-===================== */
-
-
-.user-card{
-
-    display:flex;
-
-    align-items:center;
-
-    gap:12px;
-
-    padding:12px;
-
-    margin:10px 0;
-
-    border-radius:15px;
-
-    background:#fafafa;
-
-    border:1px solid #ddd;
-
-}
-
-
-
-.user-card .avatar{
-
-    width:50px;
-
-    height:50px;
-
-}
-
-
-
-.user-info{
-
-    flex:1;
-
-}
-
-
-
-.user-info p{
-
-    margin:5px 0;
-
-    color:#666;
-
-}
-
-
-
-
-
-.audio,
-.video{
-
-    width:45px;
-
-    height:45px;
-
-    background:#000;
-
-    color:#fff;
-
-}
-
-
-
-
-
-/* =====================
- CALL
-===================== */
-
-
-.videos{
-
-    position:relative;
-
-    width:100%;
-
-    height:450px;
-
-    background:#000;
-
-    border-radius:20px;
-
-    overflow:hidden;
-
-}
-
-
-
-#remoteVideo{
-
-    width:100%;
-
-    height:100%;
-
-    object-fit:cover;
-
-}
-
-
-
-#localVideo{
-
-    position:absolute;
-
-    bottom:15px;
-
-    right:15px;
-
-    width:150px;
-
-    height:110px;
-
-    border-radius:15px;
-
-    border:3px solid #fff;
-
-    object-fit:cover;
-
-}
-
-
-
-
-
-#microphoneButton,
-#cameraButton{
-
-    background:#000;
-
-    color:#fff;
-
-    margin:10px;
-
-}
-
-
-
-#hangupButton,
-#closeCallButton{
-
-    background:#fff;
-
-    color:#000;
-
-    border:2px solid #000;
-
-    margin:10px;
-
-}
-
-
-
-
-
-/* =====================
- MODAL
-===================== */
-
-
-.modal{
-
-    position:fixed;
-
-    inset:0;
+.button:hover {
 
     background:
-    rgba(0,0,0,.6);
 
-    display:flex;
-
-    align-items:center;
-
-    justify-content:center;
-
-}
-
-
-
-.modal-box{
-
-    background:#fff;
-
-    color:#000;
-
-    padding:30px;
-
-    border-radius:20px;
-
-    text-align:center;
-
-}
-
-
-
-.modal-box button{
-
-    margin:10px;
-
-}
-
-
-
-#acceptButton{
-
-    background:#000;
-
-    color:#fff;
-
-}
-
-
-
-#rejectButton{
-
-    background:#fff;
-
-    color:#000;
-
-    border:1px solid #000;
+        var(--primary-hover);
 
 }
 
@@ -571,43 +277,521 @@ main{
 
 
 
-/* =====================
- TOAST
-===================== */
 
 
-#toast{
+/* =========================
+   LOGIN REGISTER
+========================= */
 
-    position:fixed;
 
-    bottom:30px;
+.auth-box {
 
-    left:50%;
+    width: 100%;
+
+    max-width: 420px;
+
+    margin: 60px auto;
+
+}
+
+
+
+
+
+.message {
+
+    text-align: center;
+
+    margin-top: 12px;
+
+    font-size: 13px;
+
+    color: var(--danger);
+
+}
+
+
+
+
+
+
+
+/* =========================
+   PROFILE
+========================= */
+
+
+.profile {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 15px;
+
+}
+
+
+
+.profile img {
+
+    width: 70px;
+
+    height: 70px;
+
+    border-radius: 50%;
+
+    object-fit: cover;
+
+}
+
+
+
+
+
+.profile-name {
+
+    font-size: 18px;
+
+    font-weight: bold;
+
+}
+
+
+
+
+
+.profile-id {
+
+    color: var(--muted);
+
+    margin-top: 5px;
+
+    font-size: 13px;
+
+}
+
+
+
+
+
+
+
+/* =========================
+   USERS
+========================= */
+
+
+.users-list {
+
+    display: flex;
+
+    flex-direction: column;
+
+    gap: 12px;
+
+}
+
+
+
+
+
+
+.user-card {
+
+    display: flex;
+
+    align-items: center;
+
+    gap: 12px;
+
+    padding: 14px;
+
+    background:
+
+        #f8fafc;
+
+    border:
+
+        1px solid var(--border);
+
+    border-radius: 16px;
+
+}
+
+
+
+
+
+.avatar {
+
+    width: 55px;
+
+    height: 55px;
+
+    border-radius: 50%;
+
+    object-fit: cover;
+
+}
+
+
+
+
+
+
+.user-info {
+
+    flex: 1;
+
+}
+
+
+
+
+
+.user-info b {
+
+    display: block;
+
+    font-size: 15px;
+
+}
+
+
+
+
+
+.user-info small {
+
+    color: var(--muted);
+
+}
+
+
+
+
+
+
+.call-button {
+
+    width: 40px;
+
+    height: 40px;
+
+    border: none;
+
+    border-radius: 12px;
+
+    background: var(--dark);
+
+    color: white;
+
+    font-size: 18px;
+
+}
+
+
+
+
+
+
+.call-button:hover {
+
+    opacity: .8;
+
+}
+/* =========================
+   VIDEO CALL
+========================= */
+
+
+.video-area {
+
+    position: relative;
+
+    width: 100%;
+
+    background: #000;
+
+    border-radius: 20px;
+
+    overflow: hidden;
+
+    min-height: 420px;
+
+}
+
+
+
+
+
+#remoteVideo {
+
+    width: 100%;
+
+    height: 100%;
+
+    object-fit: cover;
+
+    background: black;
+
+}
+
+
+
+
+
+#localVideo {
+
+    position: absolute;
+
+    width: 140px;
+
+    height: 180px;
+
+    right: 15px;
+
+    bottom: 15px;
+
+    object-fit: cover;
+
+    background: #111;
+
+    border-radius: 16px;
+
+    border: 3px solid white;
+
+}
+
+
+
+
+
+
+.call-controls {
+
+    display: flex;
+
+    justify-content: center;
+
+    gap: 15px;
+
+    margin-top: 18px;
+
+}
+
+
+
+
+
+.control-button {
+
+    width: 55px;
+
+    height: 55px;
+
+    border-radius: 50%;
+
+    border: none;
+
+    color: white;
+
+    font-size: 22px;
+
+}
+
+
+
+
+
+.accept-button {
+
+    background: #16a34a;
+
+}
+
+
+
+
+
+.reject-button {
+
+    background: #dc2626;
+
+}
+
+
+
+
+
+.hangup-button {
+
+    background: #dc2626;
+
+}
+
+
+
+
+
+
+
+/* =========================
+   INCOMING CALL
+========================= */
+
+
+.incoming-call {
+
+    position: fixed;
+
+    inset: 0;
+
+    background:
+
+        rgba(
+            0,
+            0,
+            0,
+            .45
+        );
+
+    display: flex;
+
+    align-items: center;
+
+    justify-content: center;
+
+    z-index: 999;
+
+}
+
+
+
+
+
+.incoming-box {
+
+    width: 90%;
+
+    max-width: 350px;
+
+    background: white;
+
+    border-radius: 22px;
+
+    padding: 25px;
+
+    text-align: center;
+
+}
+
+
+
+
+
+.incoming-box h2 {
+
+    margin-top: 0;
+
+}
+
+
+
+
+
+
+
+/* =========================
+   STATUS
+========================= */
+
+
+.status {
+
+    text-align: center;
+
+    color: var(--muted);
+
+    margin-top: 10px;
+
+    font-size: 13px;
+
+}
+
+
+
+
+
+
+
+/* =========================
+   ONLINE STATUS
+========================= */
+
+
+.online-status {
+
+    color: #16a34a;
+
+    font-size: 13px;
+
+}
+
+
+
+
+
+.offline-status {
+
+    color: #64748b;
+
+    font-size: 13px;
+
+}
+
+
+
+
+
+
+
+/* =========================
+   TOAST
+========================= */
+
+
+#toast {
+
+    position: fixed;
+
+    bottom: 25px;
+
+    left: 50%;
 
     transform:
-    translateX(-50%);
 
-    background:#000;
+        translateX(-50%)
 
-    color:#fff;
-
-    padding:12px 20px;
-
-    border-radius:30px;
-
-    opacity:0;
-
-    pointer-events:none;
-
-    transition:.3s;
-
-}
+        translateY(100px);
 
 
+    background: #111827;
 
-#toast.show{
+    color: white;
 
-    opacity:1;
+    padding: 13px 22px;
+
+    border-radius: 14px;
+
+    font-size: 14px;
+
+    opacity: 0;
+
+    transition: .3s;
+
+    z-index: 2000;
 
 }
 
@@ -615,35 +799,138 @@ main{
 
 
 
-/* =====================
- MOBILE
-===================== */
+#toast.show {
+
+    opacity: 1;
+
+    transform:
+
+        translateX(-50%)
+
+        translateY(0);
+
+}
+
+
+
+
+
+
+
+/* =========================
+   SETTINGS / CONTACTS
+========================= */
+
+
+.settings-card,
+.contact-card {
+
+    background: white;
+
+    border:
+
+        1px solid var(--border);
+
+    border-radius: 18px;
+
+    padding: 18px;
+
+    margin-bottom: 15px;
+
+}
+
+
+
+
+
+.row {
+
+    display: flex;
+
+    justify-content: space-between;
+
+    align-items: center;
+
+    padding: 13px 0;
+
+    border-bottom:
+
+        1px solid var(--border);
+
+}
+
+
+
+
+
+.row:last-child {
+
+    border-bottom: none;
+
+}
+
+
+
+
+
+
+
+/* =========================
+   MOBILE
+========================= */
 
 
 @media(max-width:600px){
 
 
-    .videos{
+    .page {
 
-        height:300px;
-
-    }
-
-
-    #localVideo{
-
-        width:100px;
-
-        height:80px;
+        padding: 12px;
 
     }
 
 
-    .user-card{
 
-        flex-wrap:wrap;
+    .card {
+
+        padding: 16px;
 
     }
+
+
+
+    .title {
+
+        font-size: 22px;
+
+    }
+
+
+
+    .user-card {
+
+        flex-wrap: wrap;
+
+    }
+
+
+
+    #localVideo {
+
+        width: 110px;
+
+        height: 140px;
+
+    }
+
+
+
+    .video-area {
+
+        min-height: 300px;
+
+    }
+
 
 
 }

@@ -1,716 +1,840 @@
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>مخاطبین | VideoCallApp</title>
 
-    <style>
-        * {
-            box-sizing: border-box;
-        }
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-        body {
-            margin: 0;
-            min-height: 100vh;
-            background: #0f172a;
-            color: #f8fafc;
-            font-family: Tahoma, Arial, sans-serif;
-        }
+<title>مخاطبین | VideoCallApp</title>
 
-        .page {
-            width: 100%;
-            max-width: 700px;
-            margin: auto;
-            padding: 18px;
-        }
+<style>
 
-        .topbar {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            margin-bottom: 18px;
-        }
+*{
+    box-sizing:border-box;
+}
 
-        h1 {
-            margin: 0;
-            font-size: 22px;
-        }
+body{
 
-        button {
-            font-family: inherit;
-        }
+    margin:0;
+    min-height:100vh;
 
-        .back-button {
-            border: 1px solid #334155;
-            background: #1e293b;
-            color: white;
-            border-radius: 10px;
-            padding: 10px 15px;
-            cursor: pointer;
-        }
+    background:#020617;
+    color:white;
 
-        .card {
-            background: #1e293b;
-            border: 1px solid #334155;
-            border-radius: 18px;
-            padding: 18px;
-            margin-bottom: 18px;
-        }
+    font-family:
+    Tahoma,
+    Arial,
+    sans-serif;
+}
 
-        .add-row {
-            display: flex;
-            gap: 10px;
-        }
 
-        .add-row input {
-            flex: 1;
-            min-width: 0;
-            padding: 13px;
-            border-radius: 10px;
-            border: 1px solid #475569;
-            background: #0f172a;
-            color: white;
-            outline: none;
-            font-size: 15px;
-        }
+.container{
 
-        .add-row input:focus {
-            border-color: #3b82f6;
-        }
+    width:100%;
+    max-width:700px;
 
-        .add-button {
-            border: 0;
-            background: #2563eb;
-            color: white;
-            padding: 0 18px;
-            border-radius: 10px;
-            cursor: pointer;
-            font-weight: bold;
-        }
+    margin:auto;
 
-        .add-button:disabled {
-            opacity: .6;
-            cursor: not-allowed;
-        }
+    padding:20px;
 
-        #statusMessage {
-            min-height: 22px;
-            text-align: center;
-            margin-top: 12px;
-            color: #94a3b8;
-        }
+}
 
-        .success {
-            color: #22c55e !important;
-        }
 
-        .error {
-            color: #ef4444 !important;
-        }
 
-        .contacts-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 15px;
-        }
+.header{
 
-        .contacts-header h2 {
-            margin: 0;
-            font-size: 18px;
-        }
+    display:flex;
 
-        .count {
-            color: #94a3b8;
-            font-size: 14px;
-        }
+    justify-content:space-between;
 
-        .contact {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 13px 0;
-            border-bottom: 1px solid #334155;
-        }
+    align-items:center;
 
-        .contact:last-child {
-            border-bottom: 0;
-        }
+    margin-bottom:20px;
 
-        .avatar {
-            width: 52px;
-            height: 52px;
-            flex-shrink: 0;
-            border-radius: 50%;
-            object-fit: cover;
-            background: #334155;
-        }
+}
 
-        .contact-info {
-            flex: 1;
-            min-width: 0;
-        }
 
-        .contact-name {
-            font-weight: bold;
-            margin-bottom: 5px;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
+.header h1{
 
-        .contact-id {
-            color: #94a3b8;
-            font-size: 13px;
-            direction: ltr;
-            text-align: right;
-        }
+    margin:0;
 
-        .contact-phone {
-            color: #64748b;
-            font-size: 12px;
-            margin-top: 3px;
-        }
+    font-size:22px;
 
-        .online {
-            color: #22c55e;
-            font-size: 12px;
-            margin-top: 4px;
-        }
+}
 
-        .offline {
-            color: #64748b;
-            font-size: 12px;
-            margin-top: 4px;
-        }
 
-        .actions {
-            display: flex;
-            gap: 6px;
-            flex-shrink: 0;
-        }
 
-        .action-button {
-            width: 38px;
-            height: 38px;
-            border: 0;
-            border-radius: 9px;
-            color: white;
-            cursor: pointer;
-            font-size: 17px;
-        }
+button{
 
-        .audio-button {
-            background: #16a34a;
-        }
+    border:0;
 
-        .video-button {
-            background: #2563eb;
-        }
+    cursor:pointer;
 
-        .delete-button {
-            background: #dc2626;
-        }
+    font-family:inherit;
 
-        .empty {
-            text-align: center;
-            color: #94a3b8;
-            padding: 35px 10px;
-        }
+}
 
-        .loading {
-            text-align: center;
-            color: #94a3b8;
-            padding: 25px;
-        }
 
-        @media (max-width: 600px) {
-            .page {
-                padding: 12px;
-            }
 
-            .add-row {
-                flex-direction: column;
-            }
+.back{
 
-            .add-button {
-                height: 45px;
-            }
+    background:#1e293b;
 
-            .contact {
-                align-items: flex-start;
-            }
+    color:white;
 
-            .actions {
-                flex-direction: column;
-            }
-        }
-    </style>
+    padding:10px 15px;
+
+    border-radius:12px;
+
+}
+
+
+
+.card{
+
+    background:#111827;
+
+    border:1px solid #334155;
+
+    border-radius:20px;
+
+    padding:20px;
+
+    margin-bottom:18px;
+
+}
+
+
+
+.add-box{
+
+    display:flex;
+
+    gap:10px;
+
+}
+
+
+
+input{
+
+    flex:1;
+
+    background:#020617;
+
+    color:white;
+
+    border:
+
+    1px solid #475569;
+
+    padding:13px;
+
+    border-radius:12px;
+
+    outline:none;
+
+}
+
+
+
+.add-btn{
+
+    background:#2563eb;
+
+    color:white;
+
+    padding:0 20px;
+
+    border-radius:12px;
+
+}
+
+
+
+.message{
+
+    text-align:center;
+
+    margin-top:12px;
+
+    min-height:20px;
+
+}
+
+
+
+.success{
+
+    color:#22c55e;
+
+}
+
+
+.error{
+
+    color:#ef4444;
+
+}
+
+
+
+.title-row{
+
+    display:flex;
+
+    justify-content:space-between;
+
+}
+
+
+
+.count{
+
+    color:#94a3b8;
+
+}
+
+
+
+.contact{
+
+    display:flex;
+
+    align-items:center;
+
+    gap:12px;
+
+    padding:15px 0;
+
+    border-bottom:1px solid #334155;
+
+}
+
+
+
+.contact:last-child{
+
+    border:none;
+
+}
+
+
+
+.avatar{
+
+    width:55px;
+
+    height:55px;
+
+    border-radius:50%;
+
+    background:#334155;
+
+}
+
+
+
+.info{
+
+    flex:1;
+
+}
+
+
+
+.name{
+
+    font-weight:bold;
+
+}
+
+
+
+.id{
+
+    color:#94a3b8;
+
+    font-size:13px;
+
+}
+
+
+
+.actions{
+
+    display:flex;
+
+    gap:5px;
+
+}
+
+
+
+.call{
+
+    width:38px;
+
+    height:38px;
+
+    border-radius:10px;
+
+    color:white;
+
+}
+
+
+
+.audio{
+
+    background:#16a34a;
+
+}
+
+
+
+.video{
+
+    background:#2563eb;
+
+}
+
+
+
+.empty{
+
+    text-align:center;
+
+    color:#94a3b8;
+
+    padding:30px;
+
+}
+
+
+
+</style>
+
 </head>
+
 
 <body>
 
-<div class="page">
 
-    <div class="topbar">
-        <h1>👥 مخاطبین</h1>
-        <button class="back-button" id="backButton">بازگشت</button>
-    </div>
+<div class="container">
 
-    <div class="card">
 
-        <div class="add-row">
-            <input
-                id="contactIdentifier"
-                type="text"
-                placeholder="شناسه یا شماره موبایل"
-                autocomplete="off"
-            >
+<div class="header">
 
-            <button
-                class="add-button"
-                id="addContactButton"
-            >
-                افزودن
-            </button>
-        </div>
+<h1>
+👥 مخاطبین
+</h1>
 
-        <div id="statusMessage"></div>
 
-    </div>
+<button
+class="back"
+onclick="goBack()">
 
-    <div class="card">
+بازگشت
 
-        <div class="contacts-header">
-            <h2>مخاطبین من</h2>
-            <span class="count" id="contactsCount">۰ نفر</span>
-        </div>
+</button>
 
-        <div id="contactsList">
-            <div class="loading">
-                در حال دریافت مخاطبین...
-            </div>
-        </div>
-
-    </div>
 
 </div>
 
+
+
+<div class="card">
+
+
+<div class="add-box">
+
+
+<input
+
+id="identifier"
+
+placeholder="شناسه یا شماره موبایل"
+
+>
+
+
+<button
+
+class="add-btn"
+
+onclick="addContact()">
+
+افزودن
+
+</button>
+
+
+</div>
+
+
+<div
+id="message"
+class="message">
+
+</div>
+
+
+</div>
+
+
+
+
+<div class="card">
+
+
+<div class="title-row">
+
+<h3>
+مخاطبین من
+</h3>
+
+
+<span
+id="count"
+class="count">
+
+۰ نفر
+
+</span>
+
+
+</div>
+
+
+
+<div id="list">
+
+<div class="empty">
+
+در حال دریافت...
+
+</div>
+
+</div>
+
+
+
+</div>
+
+
+</div>
+
+
+
+
+
 <script>
-    const API_URL = "https://videocallapp-api.onrender.com";
-
-    const currentUserId =
-        localStorage.getItem("videoCallUserId");
-
-    const contactIdentifier =
-        document.getElementById("contactIdentifier");
-
-    const addContactButton =
-        document.getElementById("addContactButton");
-
-    const statusMessage =
-        document.getElementById("statusMessage");
-
-    const contactsCount =
-        document.getElementById("contactsCount");
-
-    const contactsList =
-        document.getElementById("contactsList");
-
-    const backButton =
-        document.getElementById("backButton");
-
-    function isInvalidUserId(id) {
-        return (
-            !id ||
-            id === "undefined" ||
-            id === "null"
-        );
-    }
-
-    if (isInvalidUserId(currentUserId)) {
-        localStorage.removeItem("videoCallUserId");
-        window.location.href = "index.html";
-    }
-
-    function setStatus(message, type = "") {
-        statusMessage.textContent = message;
-        statusMessage.className = type;
-    }
-
-    function defaultAvatar(name = "U") {
-        const letter =
-            String(name || "U").trim().charAt(0).toUpperCase() || "U";
-
-        const svg = `
-            <svg xmlns="http://www.w3.org/2000/svg"
-                 width="200"
-                 height="200"
-                 viewBox="0 0 200 200">
-                <rect width="200" height="200" fill="#334155"/>
-                <text x="100"
-                      y="125"
-                      text-anchor="middle"
-                      font-size="90"
-                      font-family="Arial"
-                      fill="white">${letter}</text>
-            </svg>
-        `;
-
-        return "data:image/svg+xml;charset=UTF-8," +
-            encodeURIComponent(svg);
-    }
-
-    function escapeHtml(value) {
-        return String(value || "")
-            .replace(/&/g, "&amp;")
-            .replace(/</g, "&lt;")
-            .replace(/>/g, "&gt;")
-            .replace(/"/g, "&quot;")
-            .replace(/'/g, "&#039;");
-    }
-
-    async function loadContacts() {
-        try {
-            contactsList.innerHTML =
-                `<div class="loading">در حال دریافت مخاطبین...</div>`;
-
-            const response = await fetch(
-                `${API_URL}/api/contacts/${encodeURIComponent(currentUserId)}`
-            );
-
-            const data = await response.json();
-
-            if (!response.ok) {
-                throw new Error(
-                    data.detail || "دریافت مخاطبین ناموفق بود"
-                );
-            }
-
-            const contacts = Array.isArray(data.contacts)
-                ? data.contacts
-                : [];
-
-            contactsCount.textContent =
-                `${contacts.length.toLocaleString("fa-IR")} نفر`;
-
-            renderContacts(contacts);
-
-        } catch (error) {
-            console.error(error);
-
-            contactsList.innerHTML = `
-                <div class="empty">
-                    دریافت مخاطبین ناموفق بود
-                </div>
-            `;
-
-            setStatus(
-                error.message || "خطا در دریافت مخاطبین",
-                "error"
-            );
-        }
-    }
-
-    function renderContacts(contacts) {
-
-        if (!contacts.length) {
-            contactsList.innerHTML = `
-                <div class="empty">
-                    هنوز مخاطبی اضافه نکرده‌اید.
-                    <br>
-                    شناسه یا شماره موبایل یک کاربر را وارد کنید.
-                </div>
-            `;
-            return;
-        }
-
-        contactsList.innerHTML = "";
-
-        contacts.forEach(contact => {
-
-            const user =
-                contact.user || contact;
-
-            const userId =
-                user.user_id || contact.contact_user_id;
-
-            const name =
-                user.display_name ||
-                user.user_id ||
-                "کاربر";
-
-            const phone =
-                user.phone || "";
-
-            const avatar =
-                user.avatar ||
-                defaultAvatar(name);
-
-            const online =
-                Boolean(
-                    contact.online ??
-                    user.online
-                );
-
-            const item =
-                document.createElement("div");
-
-            item.className = "contact";
-
-            item.innerHTML = `
-                <img
-                    class="avatar"
-                    src="${avatar}"
-                    alt=""
-                >
-
-                <div class="contact-info">
-
-                    <div class="contact-name">
-                        ${escapeHtml(name)}
-                    </div>
-
-                    <div class="contact-id">
-                        ${escapeHtml(userId)}
-                    </div>
-
-                    ${
-                        phone
-                        ? `<div class="contact-phone">
-                            ${escapeHtml(phone)}
-                           </div>`
-                        : ""
-                    }
-
-                    <div class="${online ? "online" : "offline"}">
-                        ${online ? "● آنلاین" : "● آفلاین"}
-                    </div>
-
-                </div>
-
-                <div class="actions">
-
-                    <button
-                        class="action-button audio-button"
-                        title="تماس صوتی"
-                        data-action="audio"
-                        data-user-id="${escapeHtml(userId)}"
-                    >
-                        📞
-                    </button>
-
-                    <button
-                        class="action-button video-button"
-                        title="تماس تصویری"
-                        data-action="video"
-                        data-user-id="${escapeHtml(userId)}"
-                    >
-                        🎥
-                    </button>
-
-                    <button
-                        class="action-button delete-button"
-                        title="حذف مخاطب"
-                        data-action="delete"
-                        data-user-id="${escapeHtml(userId)}"
-                    >
-                        🗑
-                    </button>
-
-                </div>
-            `;
-
-            contactsList.appendChild(item);
-        });
-    }
-
-    async function addContact() {
-
-        const identifier =
-            contactIdentifier.value.trim();
-
-        if (!identifier) {
-            setStatus(
-                "شناسه یا شماره موبایل را وارد کنید",
-                "error"
-            );
-            contactIdentifier.focus();
-            return;
-        }
-
-        addContactButton.disabled = true;
-        setStatus("در حال افزودن مخاطب...");
-
-        try {
-
-            const response = await fetch(
-                `${API_URL}/api/contacts/${encodeURIComponent(currentUserId)}`,
-                {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json"
-                    },
-                    body: JSON.stringify({
-                        identifier: identifier
-                    })
-                }
-            );
-
-            const data = await response.json();
-
-            if (!response.ok) {
-                throw new Error(
-                    data.detail || "افزودن مخاطب ناموفق بود"
-                );
-            }
-
-            contactIdentifier.value = "";
-
-            setStatus(
-                "مخاطب با موفقیت اضافه شد ✅",
-                "success"
-            );
-
-            await loadContacts();
-
-        } catch (error) {
-
-            console.error(error);
-
-            setStatus(
-                error.message || "خطا در افزودن مخاطب",
-                "error"
-            );
-
-        } finally {
-            addContactButton.disabled = false;
-        }
-    }
-
-    async function deleteContact(userId) {
-
-        const confirmed =
-            confirm("این مخاطب حذف شود؟");
-
-        if (!confirmed) {
-            return;
-        }
-
-        try {
-
-            const response = await fetch(
-                `${API_URL}/api/contacts/${encodeURIComponent(currentUserId)}/${encodeURIComponent(userId)}`,
-                {
-                    method: "DELETE"
-                }
-            );
-
-            const data = await response.json();
-
-            if (!response.ok) {
-                throw new Error(
-                    data.detail || "حذف مخاطب ناموفق بود"
-                );
-            }
-
-            setStatus(
-                "مخاطب حذف شد",
-                "success"
-            );
-
-            await loadContacts();
-
-        } catch (error) {
-
-            console.error(error);
-
-            setStatus(
-                error.message || "خطا در حذف مخاطب",
-                "error"
-            );
-        }
-    }
-
-    function startCall(userId, type) {
-
-        if (
-            !userId ||
-            userId === "undefined" ||
-            userId === "null"
-        ) {
-            setStatus(
-                "شناسه کاربر نامعتبر است",
-                "error"
-            );
-            return;
-        }
-
-        localStorage.setItem(
-            "videoCallTargetUser",
-            userId
-        );
-
-        localStorage.setItem(
-            "videoCallTargetType",
-            type
-        );
-
-        window.location.href = "index.html";
-    }
-
-    contactsList.addEventListener("click", function(event) {
-
-        const button =
-            event.target.closest("button[data-action]");
-
-        if (!button) {
-            return;
-        }
-
-        const action =
-            button.dataset.action;
-
-        const userId =
-            button.dataset.userId;
-
-        if (action === "audio") {
-            startCall(userId, "audio");
-        }
-
-        if (action === "video") {
-            startCall(userId, "video");
-        }
-
-        if (action === "delete") {
-            deleteContact(userId);
-        }
-    });
-
-    addContactButton.addEventListener(
-        "click",
-        addContact
-    );
-
-    contactIdentifier.addEventListener(
-        "keydown",
-        function(event) {
-            if (event.key === "Enter") {
-                addContact();
-            }
-        }
-    );
-
-    backButton.addEventListener(
-        "click",
-        function() {
-            window.location.href = "index.html";
-        }
-    );
-
-    loadContacts();
+
+
+const API_URL =
+"https://videocallapp-api.onrender.com";
+
+
+
+const userId =
+localStorage.getItem(
+"videoCallUserId"
+);
+
+
+
+if(!userId){
+
+    location.href="index.html";
+
+}
+
+
+
+function avatar(name){
+
+
+let letter =
+(name || "U")
+.charAt(0)
+.toUpperCase();
+
+
+
+return (
+
+"data:image/svg+xml;charset=UTF-8," +
+
+encodeURIComponent(`
+
+<svg xmlns="http://www.w3.org/2000/svg"
+width="100"
+height="100">
+
+<circle cx="50"
+cy="50"
+r="50"
+fill="#334155"/>
+
+<text x="50"
+y="60"
+text-anchor="middle"
+font-size="45"
+fill="white">
+
+${letter}
+
+</text>
+
+</svg>
+
+`)
+
+);
+
+}
+
+
+
+
+function message(text,type=""){
+
+
+const box =
+document.getElementById(
+"message"
+);
+
+
+box.textContent=text;
+
+
+box.className =
+"message " + type;
+
+
+}
+
+
+
+
+async function loadContacts(){
+
+
+try{
+
+
+const res =
+await fetch(
+
+`${API_URL}/api/contacts/${userId}`
+
+);
+
+
+
+const data =
+await res.json();
+
+
+
+const list =
+document.getElementById(
+"list"
+);
+
+
+
+const contacts =
+data.contacts || [];
+
+
+
+document.getElementById(
+"count"
+)
+.textContent =
+contacts.length +
+" نفر";
+
+
+
+if(!contacts.length){
+
+list.innerHTML=
+
+`
+<div class="empty">
+
+مخاطبی وجود ندارد
+
+</div>
+`;
+
+return;
+
+}
+
+
+
+list.innerHTML="";
+
+
+
+contacts.forEach(item=>{
+
+
+const user =
+item.user || item;
+
+
+
+list.innerHTML +=
+
+`
+
+<div class="contact">
+
+
+<img
+
+class="avatar"
+
+src="${
+user.avatar ||
+avatar(user.display_name)
+}"
+
+>
+
+
+<div class="info">
+
+
+<div class="name">
+
+${user.display_name}
+
+</div>
+
+
+<div class="id">
+
+${user.user_id}
+
+</div>
+
+
+</div>
+
+
+
+<div class="actions">
+
+
+<button
+
+class="call audio"
+
+onclick="callUser('${user.user_id}','audio')">
+
+📞
+
+</button>
+
+
+
+<button
+
+class="call video"
+
+onclick="callUser('${user.user_id}','video')">
+
+🎥
+
+</button>
+
+
+</div>
+
+
+</div>
+
+`;
+
+
+
+});
+
+
+}
+catch(e){
+
+
+message(
+"خطا در دریافت مخاطبین",
+"error"
+);
+
+
+}
+
+
+
+}
+
+
+
+
+async function addContact(){
+
+
+const value =
+document
+.getElementById("identifier")
+.value
+.trim();
+
+
+
+if(!value){
+
+message(
+"شناسه را وارد کنید",
+"error"
+);
+
+return;
+
+}
+
+
+
+try{
+
+
+const res =
+await fetch(
+
+`${API_URL}/api/contacts/${userId}`,
+
+{
+
+method:"POST",
+
+headers:{
+
+"Content-Type":
+"application/json"
+
+},
+
+
+body:
+JSON.stringify({
+
+identifier:value
+
+})
+
+
+}
+
+);
+
+
+
+const data =
+await res.json();
+
+
+
+if(!res.ok)
+
+throw new Error(
+data.detail
+);
+
+
+
+message(
+"مخاطب اضافه شد ✅",
+"success"
+);
+
+
+
+document
+.getElementById("identifier")
+.value="";
+
+
+
+loadContacts();
+
+
+
+}
+catch(e){
+
+
+message(
+e.message ||
+"خطا",
+"error"
+);
+
+
+}
+
+
+
+}
+
+
+
+
+function callUser(id,type){
+
+
+localStorage.setItem(
+"videoCallTargetUser",
+id
+);
+
+
+localStorage.setItem(
+"videoCallTargetType",
+type
+);
+
+
+
+location.href="index.html";
+
+}
+
+
+
+
+function goBack(){
+
+
+location.href="index.html";
+
+}
+
+
+
+loadContacts();
+
+
+
 </script>
 
+
 </body>
+
 </html>

@@ -1,888 +1,602 @@
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
+
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>تنظیمات | VideoCallApp</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <link rel="stylesheet" href="style.css">
+<title>تنظیمات | VideoCallApp</title>
 
-    <style>
-        .settings-page {
-            min-height: 100vh;
-            padding: 20px;
-        }
+<link rel="stylesheet" href="style.css">
 
-        .settings-container {
-            width: 100%;
-            max-width: 650px;
-            margin: 0 auto;
-        }
-
-        .settings-topbar {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-
-        .settings-topbar h1 {
-            margin: 0;
-            font-size: 22px;
-        }
-
-        .back-button {
-            border: 1px solid var(--border);
-            background: var(--card);
-            color: var(--text);
-            border-radius: 12px;
-            padding: 11px 15px;
-            cursor: pointer;
-        }
-
-        .settings-card {
-            background: var(--card);
-            border: 1px solid var(--border);
-            border-radius: 20px;
-            padding: 22px;
-            margin-bottom: 15px;
-        }
-
-        .settings-card h2 {
-            margin: 0 0 7px;
-            font-size: 17px;
-        }
-
-        .settings-description {
-            color: var(--muted);
-            font-size: 12px;
-            line-height: 1.8;
-            margin-bottom: 15px;
-        }
-
-        .setting-row {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 15px;
-            padding: 14px 0;
-            border-bottom: 1px solid var(--border);
-        }
-
-        .setting-row:last-child {
-            border-bottom: none;
-        }
-
-        .setting-info {
-            min-width: 0;
-        }
-
-        .setting-title {
-            font-size: 14px;
-            font-weight: bold;
-        }
-
-        .setting-value {
-            margin-top: 5px;
-            color: var(--muted);
-            font-size: 11px;
-            word-break: break-word;
-        }
-
-        .readonly-box {
-            width: 100%;
-            margin-top: 8px;
-            padding: 13px;
-            background: #0d1528;
-            border: 1px solid var(--border);
-            border-radius: 12px;
-            color: var(--muted);
-            font-size: 13px;
-            word-break: break-all;
-        }
-
-        .toggle {
-            position: relative;
-            width: 48px;
-            height: 27px;
-            flex-shrink: 0;
-        }
-
-        .toggle input {
-            display: none;
-        }
-
-        .toggle-slider {
-            position: absolute;
-            inset: 0;
-            cursor: pointer;
-            background: #37445c;
-            border-radius: 30px;
-            transition: 0.2s;
-        }
-
-        .toggle-slider::before {
-            content: "";
-            position: absolute;
-            width: 21px;
-            height: 21px;
-            top: 3px;
-            right: 3px;
-            background: white;
-            border-radius: 50%;
-            transition: 0.2s;
-        }
-
-        .toggle input:checked + .toggle-slider {
-            background: var(--primary);
-        }
-
-        .toggle input:checked + .toggle-slider::before {
-            transform: translateX(-21px);
-        }
-
-        .danger-button {
-            width: 100%;
-            border: none;
-            background: var(--danger);
-            color: white;
-            padding: 14px;
-            border-radius: 13px;
-            font-weight: bold;
-            cursor: pointer;
-        }
-
-        .danger-button:hover {
-            background: #c93636;
-        }
-
-        .save-button {
-            width: 100%;
-            border: none;
-            background: var(--primary);
-            color: white;
-            padding: 14px;
-            border-radius: 13px;
-            font-weight: bold;
-            cursor: pointer;
-            margin-top: 15px;
-        }
-
-        .save-button:hover {
-            background: var(--primary-hover);
-        }
-
-        .status-message {
-            min-height: 22px;
-            margin-top: 10px;
-            text-align: center;
-            font-size: 12px;
-        }
-
-        .status-success {
-            color: var(--success);
-        }
-
-        .status-error {
-            color: var(--danger);
-        }
-
-        .device-button {
-            border: 1px solid var(--border);
-            background: var(--card-light);
-            color: var(--text);
-            border-radius: 10px;
-            padding: 9px 12px;
-            cursor: pointer;
-        }
-
-        .device-button:hover {
-            background: #263653;
-        }
-
-        .device-result {
-            margin-top: 12px;
-            padding: 12px;
-            background: #0d1528;
-            border-radius: 12px;
-            color: var(--muted);
-            font-size: 12px;
-            line-height: 1.8;
-        }
-
-        @media (max-width: 600px) {
-            .settings-page {
-                padding: 12px;
-            }
-
-            .settings-card {
-                padding: 17px;
-            }
-
-            .settings-topbar h1 {
-                font-size: 18px;
-            }
-
-            .setting-row {
-                align-items: flex-start;
-            }
-        }
-    </style>
 </head>
+
 
 <body>
 
-<div class="settings-page">
 
-    <div class="settings-container">
+<div class="page">
 
-        <!-- HEADER -->
 
-        <div class="settings-topbar">
+<div class="topbar">
 
-            <button
-                id="backButton"
-                class="back-button"
-            >
-                ← بازگشت
-            </button>
+<button id="backButton">
+← بازگشت
+</button>
 
-            <h1>
-                ⚙️ تنظیمات
-            </h1>
 
-        </div>
+<h1>
+⚙️ تنظیمات
+</h1>
 
-
-        <!-- ACCOUNT -->
-
-        <section class="settings-card">
-
-            <h2>
-                حساب کاربری
-            </h2>
-
-            <div class="settings-description">
-                اطلاعات حساب شما در این بخش نمایش داده می‌شود.
-            </div>
-
-
-            <div class="setting-row">
-
-                <div class="setting-info">
-
-                    <div class="setting-title">
-                        شناسه
-                    </div>
-
-                    <div
-                        id="userId"
-                        class="readonly-box"
-                    >
-                        در حال دریافت...
-                    </div>
-
-                </div>
-
-            </div>
-
-
-            <div class="setting-row">
-
-                <div class="setting-info">
-
-                    <div class="setting-title">
-                        شماره موبایل
-                    </div>
-
-                    <div
-                        id="phone"
-                        class="readonly-box"
-                    >
-                        در حال دریافت...
-                    </div>
-
-                </div>
-
-            </div>
-
-        </section>
-
-
-        <!-- NOTIFICATIONS -->
-
-        <section class="settings-card">
-
-            <h2>
-                اعلان‌ها
-            </h2>
-
-            <div class="settings-description">
-                تنظیمات اعلان تماس‌های ورودی.
-            </div>
-
-
-            <div class="setting-row">
-
-                <div class="setting-info">
-
-                    <div class="setting-title">
-                        اعلان تماس
-                    </div>
-
-                    <div class="setting-value">
-                        نمایش اعلان هنگام دریافت تماس
-                    </div>
-
-                </div>
-
-
-                <label class="toggle">
-
-                    <input
-                        id="callNotifications"
-                        type="checkbox"
-                    >
-
-                    <span class="toggle-slider"></span>
-
-                </label>
-
-            </div>
-
-        </section>
-
-
-        <!-- DEVICES -->
-
-        <section class="settings-card">
-
-            <h2>
-                🎤📷 دستگاه‌ها
-            </h2>
-
-            <div class="settings-description">
-                برای بررسی دسترسی مرورگر به میکروفون و دوربین استفاده کنید.
-            </div>
-
-
-            <div class="setting-row">
-
-                <div class="setting-info">
-
-                    <div class="setting-title">
-                        میکروفون
-                    </div>
-
-                    <div class="setting-value">
-                        بررسی دسترسی میکروفون
-                    </div>
-
-                </div>
-
-                <button
-                    id="testMicButton"
-                    class="device-button"
-                >
-                    بررسی
-                </button>
-
-            </div>
-
-
-            <div class="setting-row">
-
-                <div class="setting-info">
-
-                    <div class="setting-title">
-                        دوربین
-                    </div>
-
-                    <div class="setting-value">
-                        بررسی دسترسی دوربین
-                    </div>
-
-                </div>
-
-                <button
-                    id="testCameraButton"
-                    class="device-button"
-                >
-                    بررسی
-                </button>
-
-            </div>
-
-
-            <div
-                id="deviceResult"
-                class="device-result hidden"
-            ></div>
-
-        </section>
-
-
-        <!-- APP -->
-
-        <section class="settings-card">
-
-            <h2>
-                برنامه
-            </h2>
-
-            <div class="settings-description">
-                اطلاعات نسخه برنامه.
-            </div>
-
-
-            <div class="setting-row">
-
-                <div class="setting-info">
-
-                    <div class="setting-title">
-                        نام برنامه
-                    </div>
-
-                    <div class="setting-value">
-                        VideoCallApp
-                    </div>
-
-                </div>
-
-            </div>
-
-
-            <div class="setting-row">
-
-                <div class="setting-info">
-
-                    <div class="setting-title">
-                        نسخه
-                    </div>
-
-                    <div class="setting-value">
-                        1.0.0
-                    </div>
-
-                </div>
-
-            </div>
-
-        </section>
-
-
-        <!-- SAVE -->
-
-        <section class="settings-card">
-
-            <button
-                id="saveButton"
-                class="save-button"
-            >
-                💾 ذخیره تنظیمات
-            </button>
-
-            <div
-                id="statusMessage"
-                class="status-message"
-            ></div>
-
-        </section>
-
-
-        <!-- LOGOUT -->
-
-        <section class="settings-card">
-
-            <h2>
-                خروج
-            </h2>
-
-            <div class="settings-description">
-                با خروج، حساب شما از این دستگاه خارج می‌شود.
-            </div>
-
-            <button
-                id="logoutButton"
-                class="danger-button"
-            >
-                🚪 خروج از حساب
-            </button>
-
-        </section>
-
-    </div>
 
 </div>
 
 
+
+<div class="card">
+
+
+<h2>
+حساب کاربری
+</h2>
+
+
+<div class="profile-box">
+
+
+<img
+id="avatar"
+class="profile-avatar"
+src=""
+>
+
+
+<input
+id="avatarInput"
+placeholder="لینک عکس پروفایل"
+/>
+
+
+
+<input
+id="displayName"
+placeholder="نام نمایشی"
+/>
+
+
+<div class="info">
+
+شناسه:
+<span id="userId">
+-
+</span>
+
+</div>
+
+
+
+<div class="info">
+
+شماره:
+<span id="phone">
+-
+</span>
+
+</div>
+
+
+<button id="saveProfile">
+💾 ذخیره پروفایل
+</button>
+
+
+</div>
+
+
+</div>
+
+
+
+
+<div class="card">
+
+
+<h2>
+🎤📷 دستگاه‌ها
+</h2>
+
+
+<button id="testMic">
+بررسی میکروفون
+</button>
+
+
+<button id="testCamera">
+بررسی دوربین
+</button>
+
+
+
+<p id="deviceResult">
+-
+</p>
+
+
+</div>
+
+
+
+
+<div class="card">
+
+
+<h2>
+اعلان‌ها
+</h2>
+
+
+<label>
+
+<input
+type="checkbox"
+id="notifications"
+checked
+>
+
+ اعلان تماس
+
+</label>
+
+
+</div>
+
+
+
+
+<div class="card">
+
+
+<button
+id="logout"
+class="danger"
+>
+
+🚪 خروج از حساب
+
+</button>
+
+
+</div>
+
+
+
+
+<p id="message"></p>
+
+
+
+</div>
+
+
+
+
+
 <script>
 
-const API_URL = "https://videocallapp-api.onrender.com";
 
-const currentUserId =
-    localStorage.getItem("videoCallUserId");
-
-
-const userIdElement =
-    document.getElementById("userId");
-
-const phoneElement =
-    document.getElementById("phone");
-
-const notificationElement =
-    document.getElementById(
-        "callNotifications"
-    );
-
-const deviceResult =
-    document.getElementById(
-        "deviceResult"
-    );
-
-const statusMessage =
-    document.getElementById(
-        "statusMessage"
-    );
+const API_URL =
+"https://videocallapp-api.onrender.com";
 
 
-/* =========================
-   CHECK LOGIN
-========================= */
 
-if (!currentUserId) {
+const userId =
+localStorage.getItem(
+"videoCallUserId"
+);
 
-    window.location.href =
-        "index.html";
+
+
+if(!userId){
+
+window.location.href =
+"index.html";
 
 }
 
 
-/* =========================
-   LOAD PROFILE
-========================= */
 
-async function loadProfile() {
-
-    try {
-
-        const response =
-            await fetch(
-                `${API_URL}/api/profile/${encodeURIComponent(currentUserId)}`
-            );
+const avatar =
+document.getElementById(
+"avatar"
+);
 
 
-        if (!response.ok) {
-
-            throw new Error(
-                "دریافت اطلاعات حساب ناموفق بود."
-            );
-
-        }
+const avatarInput =
+document.getElementById(
+"avatarInput"
+);
 
 
-        const data =
-            await response.json();
+
+const displayName =
+document.getElementById(
+"displayName"
+);
 
 
-        userIdElement.textContent =
-            data.user_id || currentUserId;
+
+const phone =
+document.getElementById(
+"phone"
+);
 
 
-        phoneElement.textContent =
-            data.phone || "ثبت نشده";
+
+const userIdBox =
+document.getElementById(
+"userId"
+);
 
 
-        const savedNotification =
-            localStorage.getItem(
-                "videoCallNotifications"
-            );
+
+const message =
+document.getElementById(
+"message"
+);
 
 
-        notificationElement.checked =
-            savedNotification !== "false";
 
 
-    } catch (error) {
 
-        userIdElement.textContent =
-            currentUserId;
+function showMessage(text){
 
-        phoneElement.textContent =
-            "خطا در دریافت شماره موبایل";
+message.textContent=text;
 
-        showStatus(
-            error.message,
-            true
-        );
+setTimeout(()=>{
 
-    }
+message.textContent="";
+
+},3000);
 
 }
 
 
-/* =========================
-   SAVE SETTINGS
-========================= */
-
-function saveSettings() {
-
-    const enabled =
-        notificationElement.checked;
 
 
-    localStorage.setItem(
-        "videoCallNotifications",
-        enabled
-            ? "true"
-            : "false"
-    );
 
+function defaultAvatar(name){
 
-    showStatus(
-        "تنظیمات با موفقیت ذخیره شد.",
-        false
-    );
+return (
+"https://ui-avatars.com/api/?name="
++
+encodeURIComponent(name)
+);
 
 }
 
 
-/* =========================
-   DEVICE TEST
-========================= */
-
-async function testMicrophone() {
-
-    showDeviceResult(
-        "در حال بررسی میکروفون..."
-    );
 
 
-    try {
-
-        const stream =
-            await navigator.mediaDevices
-                .getUserMedia({
-                    audio: true,
-                    video: false
-                });
 
 
-        stream
-            .getTracks()
-            .forEach(
-                track => track.stop()
-            );
+async function loadProfile(){
 
 
-        showDeviceResult(
-            "✅ میکروفون در دسترس است."
-        );
+try{
 
 
-    } catch (error) {
+const res =
+await fetch(
 
-        showDeviceResult(
-            "❌ دسترسی به میکروفون داده نشد."
-        );
+`${API_URL}/api/profile/${encodeURIComponent(userId)}`
 
-    }
+);
+
+
+
+const data =
+await res.json();
+
+
+
+const user =
+data.user;
+
+
+
+displayName.value =
+user.display_name || "";
+
+
+
+phone.textContent =
+user.phone || "-";
+
+
+
+userIdBox.textContent =
+user.user_id;
+
+
+
+avatar.src =
+user.avatar ||
+defaultAvatar(
+user.display_name
+);
+
+
+
+avatarInput.value =
+user.avatar || "";
+
+
+
+}
+
+catch(e){
+
+
+showMessage(
+"خطا در دریافت اطلاعات"
+);
+
 
 }
 
 
-async function testCamera() {
-
-    showDeviceResult(
-        "در حال بررسی دوربین..."
-    );
-
-
-    try {
-
-        const stream =
-            await navigator.mediaDevices
-                .getUserMedia({
-                    audio: false,
-                    video: true
-                });
-
-
-        stream
-            .getTracks()
-            .forEach(
-                track => track.stop()
-            );
-
-
-        showDeviceResult(
-            "✅ دوربین در دسترس است."
-        );
-
-
-    } catch (error) {
-
-        showDeviceResult(
-            "❌ دسترسی به دوربین داده نشد."
-        );
-
-    }
 
 }
 
 
-function showDeviceResult(message) {
 
-    deviceResult.textContent =
-        message;
 
-    deviceResult.classList.remove(
-        "hidden"
-    );
+
+
+
+async function saveProfile(){
+
+
+
+try{
+
+
+const res =
+await fetch(
+
+`${API_URL}/api/profile/${encodeURIComponent(userId)}`,
+
+{
+
+method:"PUT",
+
+headers:{
+
+"Content-Type":
+"application/json"
+
+},
+
+
+body:JSON.stringify({
+
+display_name:
+displayName.value.trim(),
+
+
+avatar:
+avatarInput.value.trim()
+
+
+})
+
+
+}
+
+);
+
+
+
+const data =
+await res.json();
+
+
+
+avatar.src =
+data.user.avatar ||
+defaultAvatar(
+data.user.display_name
+);
+
+
+
+showMessage(
+"پروفایل ذخیره شد ✅"
+);
+
+
+
+}
+
+catch(e){
+
+
+showMessage(
+"خطا در ذخیره"
+);
+
 
 }
 
 
-/* =========================
-   STATUS
-========================= */
-
-function showStatus(
-    message,
-    error = false
-) {
-
-    statusMessage.textContent =
-        message;
-
-    statusMessage.className =
-        error
-            ? "status-message status-error"
-            : "status-message status-success";
-
-
-    clearTimeout(
-        window.statusTimer
-    );
-
-
-    window.statusTimer =
-        setTimeout(
-            () => {
-
-                statusMessage.textContent =
-                    "";
-
-                statusMessage.className =
-                    "status-message";
-
-            },
-            3500
-        );
 
 }
 
 
-/* =========================
-   BACK
-========================= */
+
+
+
+
+async function testMic(){
+
+
+try{
+
+
+const stream =
+await navigator.mediaDevices.getUserMedia({
+
+audio:true
+
+});
+
+
+stream.getTracks()
+.forEach(
+t=>t.stop()
+);
+
+
+
+deviceResult.textContent =
+"✅ میکروفون فعال است";
+
+
+}
+
+catch{
+
+
+deviceResult.textContent =
+"❌ دسترسی میکروفون رد شد";
+
+
+}
+
+
+}
+
+
+
+
+
+
+async function testCamera(){
+
+
+try{
+
+
+const stream =
+await navigator.mediaDevices.getUserMedia({
+
+video:true
+
+});
+
+
+stream.getTracks()
+.forEach(
+t=>t.stop()
+);
+
+
+
+deviceResult.textContent =
+"✅ دوربین فعال است";
+
+
+}
+
+catch{
+
+
+deviceResult.textContent =
+"❌ دسترسی دوربین رد شد";
+
+
+}
+
+
+}
+
+
+
+
+
+
 
 document
-    .getElementById("backButton")
-    .addEventListener(
-        "click",
-        () => {
-
-            window.location.href =
-                "index.html";
-
-        }
-    );
+.getElementById(
+"saveProfile"
+)
+.onclick =
+saveProfile;
 
 
-/* =========================
-   SAVE
-========================= */
 
 document
-    .getElementById("saveButton")
-    .addEventListener(
-        "click",
-        saveSettings
-    );
+.getElementById(
+"testMic"
+)
+.onclick =
+testMic;
 
 
-/* =========================
-   TEST MIC
-========================= */
 
 document
-    .getElementById("testMicButton")
-    .addEventListener(
-        "click",
-        testMicrophone
-    );
+.getElementById(
+"testCamera"
+)
+.onclick =
+testCamera;
 
 
-/* =========================
-   TEST CAMERA
-========================= */
 
 document
-    .getElementById("testCameraButton")
-    .addEventListener(
-        "click",
-        testCamera
-    );
+.getElementById(
+"backButton"
+)
+.onclick =
+()=>{
+
+location.href="index.html";
+
+};
 
 
-/* =========================
-   LOGOUT
-========================= */
+
 
 document
-    .getElementById("logoutButton")
-    .addEventListener(
-        "click",
-        () => {
-
-            localStorage.removeItem(
-                "videoCallUserId"
-            );
-
-            localStorage.removeItem(
-                "videoCallIdentifier"
-            );
-
-            localStorage.removeItem(
-                "videoCallDisplayName"
-            );
-
-            localStorage.removeItem(
-                "videoCallAvatar"
-            );
-
-            localStorage.removeItem(
-                "videoCallNotifications"
-            );
+.getElementById(
+"logout"
+)
+.onclick =
+()=>{
 
 
-            window.location.href =
-                "index.html";
-
-        }
-    );
+localStorage.clear();
 
 
-/* =========================
-   START
-========================= */
+location.href =
+"index.html";
+
+
+};
+
+
+
+
 
 loadProfile();
 
+
+
 </script>
 
+
 </body>
+
 </html>
