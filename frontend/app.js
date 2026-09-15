@@ -5,10 +5,11 @@ let roomId = "";
 
 let ws = null;
 
-let localStream = null;
 let peer = null;
 
-let isCaller = false;
+let localStream = null;
+
+let otherUser = null;
 
 
 
@@ -28,10 +29,11 @@ const statusText = document.getElementById("status");
 
 document
 .getElementById("createRoom")
-.onclick = async ()=>{
+.onclick = async()=>{
 
 
-    const res = await fetch(
+    const response =
+    await fetch(
         `${API_URL}/api/create-room`,
         {
             method:"POST"
@@ -39,40 +41,20 @@ document
     );
 
 
-    const data = await res.json();
+    const data =
+    await response.json();
 
 
-    roomInput.value = data.room_id;
+
+    roomInput.value =
+    data.room_id;
+
 
     statusText.innerText =
-        "اتاق ساخته شد: " + data.room_id;
+    "اتاق ساخته شد: " + data.room_id;
 
 
 };
-
-
-
-
-// =========================
-// START CAMERA
-// =========================
-
-async function startCamera(){
-
-
-    localStream =
-        await navigator.mediaDevices.getUserMedia(
-            {
-                video:true,
-                audio:true
-            }
-        );
-
-
-    localVideo.srcObject =
-        localStream;
-
-}
 
 
 
@@ -83,21 +65,24 @@ async function startCamera(){
 
 document
 .getElementById("joinRoom")
-.onclick = async ()=>{
+.onclick = async()=>{
 
 
     userId =
-        userInput.value.trim();
+    userInput.value.trim();
 
 
     roomId =
-        roomInput.value.trim();
+    roomInput.value.trim();
 
 
 
     if(!userId || !roomId){
 
-        alert("شناسه و اتاق را وارد کنید");
+        alert(
+            "شناسه و کد اتاق را وارد کنید"
+        );
+
         return;
 
     }
@@ -110,17 +95,38 @@ document
     connectSocket();
 
 
-    statusText.innerText =
-        "وصل شدی به اتاق";
-
 };
+
+
+
+
+// =========================
+// CAMERA
+// =========================
+
+async function startCamera(){
+
+
+    localStream =
+    await navigator.mediaDevices.getUserMedia(
+        {
+            video:true,
+            audio:true
+        }
+    );
+
+
+    localVideo.srcObject =
+    localStream;
+
+}
 
 
 
 
 
 // =========================
-// WEBSOCKET
+// SOCKET
 // =========================
 
 function connectSocket(){
@@ -128,16 +134,23 @@ function connectSocket(){
 
     ws =
     new WebSocket(
+
         `ws://127.0.0.1:8000/ws/call/${roomId}/${userId}`
+
     );
 
 
 
     ws.onopen = ()=>{
 
-        console.log("socket connected");
+
+        statusText.innerText =
+        "به اتاق وصل شدی";
+
 
     };
+
+
 
 
 
@@ -149,10 +162,38 @@ function connectSocket(){
 
 
 
+        // نفر جدید وارد شد
+
+        if(data.type==="user_joined"){
+
+
+            otherUser =
+            data.user;
+
+
+
+            statusText.innerText =
+            "کاربر وصل شد";
+
+
+        }
+
+
+
+
+
+        // دریافت Offer
+
         if(data.type==="offer"){
 
 
+            otherUser =
+            data.from;
+
+
+
             await createPeer();
+
 
 
             await peer.setRemoteDescription(
@@ -160,8 +201,10 @@ function connectSocket(){
             );
 
 
+
             const answer =
             await peer.createAnswer();
+
 
 
             await peer.setLocalDescription(
@@ -170,7 +213,7 @@ function connectSocket(){
 
 
 
-            sendSignal({
+            send({
 
                 type:"answer",
 
@@ -181,10 +224,14 @@ function connectSocket(){
             });
 
 
+
         }
 
 
 
+
+
+        // دریافت Answer
 
         if(data.type==="answer"){
 
@@ -199,64 +246,96 @@ function connectSocket(){
 
 
 
+
+
+        // دریافت ICE
+
         if(data.type==="ice"){
 
 
             if(peer){
 
+
                 await peer.addIceCandidate(
                     data.candidate
                 );
 
+
             }
+
 
         }
 
 
+
+
+
+        if(data.type==="user_left"){
+
+
+            statusText.innerText =
+            "کاربر خارج شد";
+
+
+            remoteVideo.srcObject=null;
+
+
+        }
+
+
+
     };
+
+
 
 }
 
 
 
+
 // =========================
-// CREATE PEER
+// PEER CONNECTION
 // =========================
 
 async function createPeer(){
 
 
+    if(peer)
+        return;
+
+
+
     peer =
-    new RTCPeerConnection(
-        {
+    new RTCPeerConnection({
 
-            iceServers:[
+        iceServers:[
 
-                {
-                    urls:
-                    "stun:stun.l.google.com:19302"
-                }
+            {
+                urls:
+                "stun:stun.l.google.com:19302"
+            }
 
-            ]
+        ]
 
-        }
-    );
+    });
+
 
 
 
 
     localStream
     .getTracks()
-    .forEach(
-        track=>{
+    .forEach(track=>{
 
-            peer.addTrack(
-                track,
-                localStream
-            );
 
-        }
-    );
+        peer.addTrack(
+            track,
+            localStream
+        );
+
+
+    });
+
 
 
 
@@ -279,14 +358,17 @@ async function createPeer(){
     event=>{
 
 
-        if(event.candidate){
+        if(
+            event.candidate &&
+            otherUser
+        ){
 
 
-            sendSignal({
+            send({
 
                 type:"ice",
 
-                target:getOtherUser(),
+                target:otherUser,
 
                 candidate:event.candidate
 
@@ -310,10 +392,19 @@ async function createPeer(){
 
 document
 .getElementById("startCall")
-.onclick = async ()=>{
+.onclick = async()=>{
 
 
-    isCaller=true;
+    if(!otherUser){
+
+        alert(
+            "هنوز کاربر دیگری وارد نشده"
+        );
+
+        return;
+
+    }
+
 
 
     await createPeer();
@@ -331,15 +422,16 @@ document
 
 
 
-    sendSignal({
+    send({
 
         type:"offer",
 
-        target:getOtherUser(),
+        target:otherUser,
 
         offer:offer
 
     });
+
 
 
 };
@@ -347,35 +439,27 @@ document
 
 
 
+
 // =========================
-// SEND MESSAGE
+// SEND SIGNAL
 // =========================
 
-function sendSignal(data){
+function send(data){
 
 
-    if(ws && ws.readyState===WebSocket.OPEN){
+    if(
+        ws &&
+        ws.readyState === WebSocket.OPEN
+    ){
+
 
         ws.send(
             JSON.stringify(data)
         );
 
+
     }
 
-
-}
-
-
-
-// =========================
-// FIND OTHER USER
-// =========================
-
-function getOtherUser(){
-
-    return isCaller
-    ? "guest"
-    : "host";
 
 }
 
@@ -394,9 +478,11 @@ document
     if(peer){
 
         peer.close();
+
         peer=null;
 
     }
+
 
 
     if(localStream){
@@ -404,10 +490,11 @@ document
         localStream
         .getTracks()
         .forEach(
-            t=>t.stop()
+            track=>track.stop()
         );
 
     }
+
 
 
     if(ws){
@@ -417,12 +504,14 @@ document
     }
 
 
+
     localVideo.srcObject=null;
+
     remoteVideo.srcObject=null;
 
 
     statusText.innerText =
-    "تماس پایان یافت";
+    "تماس بسته شد";
 
 
 };
