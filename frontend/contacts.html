@@ -1,0 +1,716 @@
+<!DOCTYPE html>
+<html lang="fa" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>مخاطبین | VideoCallApp</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            background: #0f172a;
+            color: #f8fafc;
+            font-family: Tahoma, Arial, sans-serif;
+        }
+
+        .page {
+            width: 100%;
+            max-width: 700px;
+            margin: auto;
+            padding: 18px;
+        }
+
+        .topbar {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 18px;
+        }
+
+        h1 {
+            margin: 0;
+            font-size: 22px;
+        }
+
+        button {
+            font-family: inherit;
+        }
+
+        .back-button {
+            border: 1px solid #334155;
+            background: #1e293b;
+            color: white;
+            border-radius: 10px;
+            padding: 10px 15px;
+            cursor: pointer;
+        }
+
+        .card {
+            background: #1e293b;
+            border: 1px solid #334155;
+            border-radius: 18px;
+            padding: 18px;
+            margin-bottom: 18px;
+        }
+
+        .add-row {
+            display: flex;
+            gap: 10px;
+        }
+
+        .add-row input {
+            flex: 1;
+            min-width: 0;
+            padding: 13px;
+            border-radius: 10px;
+            border: 1px solid #475569;
+            background: #0f172a;
+            color: white;
+            outline: none;
+            font-size: 15px;
+        }
+
+        .add-row input:focus {
+            border-color: #3b82f6;
+        }
+
+        .add-button {
+            border: 0;
+            background: #2563eb;
+            color: white;
+            padding: 0 18px;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: bold;
+        }
+
+        .add-button:disabled {
+            opacity: .6;
+            cursor: not-allowed;
+        }
+
+        #statusMessage {
+            min-height: 22px;
+            text-align: center;
+            margin-top: 12px;
+            color: #94a3b8;
+        }
+
+        .success {
+            color: #22c55e !important;
+        }
+
+        .error {
+            color: #ef4444 !important;
+        }
+
+        .contacts-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+
+        .contacts-header h2 {
+            margin: 0;
+            font-size: 18px;
+        }
+
+        .count {
+            color: #94a3b8;
+            font-size: 14px;
+        }
+
+        .contact {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 13px 0;
+            border-bottom: 1px solid #334155;
+        }
+
+        .contact:last-child {
+            border-bottom: 0;
+        }
+
+        .avatar {
+            width: 52px;
+            height: 52px;
+            flex-shrink: 0;
+            border-radius: 50%;
+            object-fit: cover;
+            background: #334155;
+        }
+
+        .contact-info {
+            flex: 1;
+            min-width: 0;
+        }
+
+        .contact-name {
+            font-weight: bold;
+            margin-bottom: 5px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .contact-id {
+            color: #94a3b8;
+            font-size: 13px;
+            direction: ltr;
+            text-align: right;
+        }
+
+        .contact-phone {
+            color: #64748b;
+            font-size: 12px;
+            margin-top: 3px;
+        }
+
+        .online {
+            color: #22c55e;
+            font-size: 12px;
+            margin-top: 4px;
+        }
+
+        .offline {
+            color: #64748b;
+            font-size: 12px;
+            margin-top: 4px;
+        }
+
+        .actions {
+            display: flex;
+            gap: 6px;
+            flex-shrink: 0;
+        }
+
+        .action-button {
+            width: 38px;
+            height: 38px;
+            border: 0;
+            border-radius: 9px;
+            color: white;
+            cursor: pointer;
+            font-size: 17px;
+        }
+
+        .audio-button {
+            background: #16a34a;
+        }
+
+        .video-button {
+            background: #2563eb;
+        }
+
+        .delete-button {
+            background: #dc2626;
+        }
+
+        .empty {
+            text-align: center;
+            color: #94a3b8;
+            padding: 35px 10px;
+        }
+
+        .loading {
+            text-align: center;
+            color: #94a3b8;
+            padding: 25px;
+        }
+
+        @media (max-width: 600px) {
+            .page {
+                padding: 12px;
+            }
+
+            .add-row {
+                flex-direction: column;
+            }
+
+            .add-button {
+                height: 45px;
+            }
+
+            .contact {
+                align-items: flex-start;
+            }
+
+            .actions {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="page">
+
+    <div class="topbar">
+        <h1>👥 مخاطبین</h1>
+        <button class="back-button" id="backButton">بازگشت</button>
+    </div>
+
+    <div class="card">
+
+        <div class="add-row">
+            <input
+                id="contactIdentifier"
+                type="text"
+                placeholder="شناسه یا شماره موبایل"
+                autocomplete="off"
+            >
+
+            <button
+                class="add-button"
+                id="addContactButton"
+            >
+                افزودن
+            </button>
+        </div>
+
+        <div id="statusMessage"></div>
+
+    </div>
+
+    <div class="card">
+
+        <div class="contacts-header">
+            <h2>مخاطبین من</h2>
+            <span class="count" id="contactsCount">۰ نفر</span>
+        </div>
+
+        <div id="contactsList">
+            <div class="loading">
+                در حال دریافت مخاطبین...
+            </div>
+        </div>
+
+    </div>
+
+</div>
+
+<script>
+    const API_URL = "http://127.0.0.1:8000";
+
+    const currentUserId =
+        localStorage.getItem("videoCallUserId");
+
+    const contactIdentifier =
+        document.getElementById("contactIdentifier");
+
+    const addContactButton =
+        document.getElementById("addContactButton");
+
+    const statusMessage =
+        document.getElementById("statusMessage");
+
+    const contactsCount =
+        document.getElementById("contactsCount");
+
+    const contactsList =
+        document.getElementById("contactsList");
+
+    const backButton =
+        document.getElementById("backButton");
+
+    function isInvalidUserId(id) {
+        return (
+            !id ||
+            id === "undefined" ||
+            id === "null"
+        );
+    }
+
+    if (isInvalidUserId(currentUserId)) {
+        localStorage.removeItem("videoCallUserId");
+        window.location.href = "index.html";
+    }
+
+    function setStatus(message, type = "") {
+        statusMessage.textContent = message;
+        statusMessage.className = type;
+    }
+
+    function defaultAvatar(name = "U") {
+        const letter =
+            String(name || "U").trim().charAt(0).toUpperCase() || "U";
+
+        const svg = `
+            <svg xmlns="http://www.w3.org/2000/svg"
+                 width="200"
+                 height="200"
+                 viewBox="0 0 200 200">
+                <rect width="200" height="200" fill="#334155"/>
+                <text x="100"
+                      y="125"
+                      text-anchor="middle"
+                      font-size="90"
+                      font-family="Arial"
+                      fill="white">${letter}</text>
+            </svg>
+        `;
+
+        return "data:image/svg+xml;charset=UTF-8," +
+            encodeURIComponent(svg);
+    }
+
+    function escapeHtml(value) {
+        return String(value || "")
+            .replace(/&/g, "&amp;")
+            .replace(/</g, "&lt;")
+            .replace(/>/g, "&gt;")
+            .replace(/"/g, "&quot;")
+            .replace(/'/g, "&#039;");
+    }
+
+    async function loadContacts() {
+        try {
+            contactsList.innerHTML =
+                `<div class="loading">در حال دریافت مخاطبین...</div>`;
+
+            const response = await fetch(
+                `${API_URL}/api/contacts/${encodeURIComponent(currentUserId)}`
+            );
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(
+                    data.detail || "دریافت مخاطبین ناموفق بود"
+                );
+            }
+
+            const contacts = Array.isArray(data.contacts)
+                ? data.contacts
+                : [];
+
+            contactsCount.textContent =
+                `${contacts.length.toLocaleString("fa-IR")} نفر`;
+
+            renderContacts(contacts);
+
+        } catch (error) {
+            console.error(error);
+
+            contactsList.innerHTML = `
+                <div class="empty">
+                    دریافت مخاطبین ناموفق بود
+                </div>
+            `;
+
+            setStatus(
+                error.message || "خطا در دریافت مخاطبین",
+                "error"
+            );
+        }
+    }
+
+    function renderContacts(contacts) {
+
+        if (!contacts.length) {
+            contactsList.innerHTML = `
+                <div class="empty">
+                    هنوز مخاطبی اضافه نکرده‌اید.
+                    <br>
+                    شناسه یا شماره موبایل یک کاربر را وارد کنید.
+                </div>
+            `;
+            return;
+        }
+
+        contactsList.innerHTML = "";
+
+        contacts.forEach(contact => {
+
+            const user =
+                contact.user || contact;
+
+            const userId =
+                user.user_id || contact.contact_user_id;
+
+            const name =
+                user.display_name ||
+                user.user_id ||
+                "کاربر";
+
+            const phone =
+                user.phone || "";
+
+            const avatar =
+                user.avatar ||
+                defaultAvatar(name);
+
+            const online =
+                Boolean(
+                    contact.online ??
+                    user.online
+                );
+
+            const item =
+                document.createElement("div");
+
+            item.className = "contact";
+
+            item.innerHTML = `
+                <img
+                    class="avatar"
+                    src="${avatar}"
+                    alt=""
+                >
+
+                <div class="contact-info">
+
+                    <div class="contact-name">
+                        ${escapeHtml(name)}
+                    </div>
+
+                    <div class="contact-id">
+                        ${escapeHtml(userId)}
+                    </div>
+
+                    ${
+                        phone
+                        ? `<div class="contact-phone">
+                            ${escapeHtml(phone)}
+                           </div>`
+                        : ""
+                    }
+
+                    <div class="${online ? "online" : "offline"}">
+                        ${online ? "● آنلاین" : "● آفلاین"}
+                    </div>
+
+                </div>
+
+                <div class="actions">
+
+                    <button
+                        class="action-button audio-button"
+                        title="تماس صوتی"
+                        data-action="audio"
+                        data-user-id="${escapeHtml(userId)}"
+                    >
+                        📞
+                    </button>
+
+                    <button
+                        class="action-button video-button"
+                        title="تماس تصویری"
+                        data-action="video"
+                        data-user-id="${escapeHtml(userId)}"
+                    >
+                        🎥
+                    </button>
+
+                    <button
+                        class="action-button delete-button"
+                        title="حذف مخاطب"
+                        data-action="delete"
+                        data-user-id="${escapeHtml(userId)}"
+                    >
+                        🗑
+                    </button>
+
+                </div>
+            `;
+
+            contactsList.appendChild(item);
+        });
+    }
+
+    async function addContact() {
+
+        const identifier =
+            contactIdentifier.value.trim();
+
+        if (!identifier) {
+            setStatus(
+                "شناسه یا شماره موبایل را وارد کنید",
+                "error"
+            );
+            contactIdentifier.focus();
+            return;
+        }
+
+        addContactButton.disabled = true;
+        setStatus("در حال افزودن مخاطب...");
+
+        try {
+
+            const response = await fetch(
+                `${API_URL}/api/contacts/${encodeURIComponent(currentUserId)}`,
+                {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        identifier: identifier
+                    })
+                }
+            );
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(
+                    data.detail || "افزودن مخاطب ناموفق بود"
+                );
+            }
+
+            contactIdentifier.value = "";
+
+            setStatus(
+                "مخاطب با موفقیت اضافه شد ✅",
+                "success"
+            );
+
+            await loadContacts();
+
+        } catch (error) {
+
+            console.error(error);
+
+            setStatus(
+                error.message || "خطا در افزودن مخاطب",
+                "error"
+            );
+
+        } finally {
+            addContactButton.disabled = false;
+        }
+    }
+
+    async function deleteContact(userId) {
+
+        const confirmed =
+            confirm("این مخاطب حذف شود؟");
+
+        if (!confirmed) {
+            return;
+        }
+
+        try {
+
+            const response = await fetch(
+                `${API_URL}/api/contacts/${encodeURIComponent(currentUserId)}/${encodeURIComponent(userId)}`,
+                {
+                    method: "DELETE"
+                }
+            );
+
+            const data = await response.json();
+
+            if (!response.ok) {
+                throw new Error(
+                    data.detail || "حذف مخاطب ناموفق بود"
+                );
+            }
+
+            setStatus(
+                "مخاطب حذف شد",
+                "success"
+            );
+
+            await loadContacts();
+
+        } catch (error) {
+
+            console.error(error);
+
+            setStatus(
+                error.message || "خطا در حذف مخاطب",
+                "error"
+            );
+        }
+    }
+
+    function startCall(userId, type) {
+
+        if (
+            !userId ||
+            userId === "undefined" ||
+            userId === "null"
+        ) {
+            setStatus(
+                "شناسه کاربر نامعتبر است",
+                "error"
+            );
+            return;
+        }
+
+        localStorage.setItem(
+            "videoCallTargetUser",
+            userId
+        );
+
+        localStorage.setItem(
+            "videoCallTargetType",
+            type
+        );
+
+        window.location.href = "index.html";
+    }
+
+    contactsList.addEventListener("click", function(event) {
+
+        const button =
+            event.target.closest("button[data-action]");
+
+        if (!button) {
+            return;
+        }
+
+        const action =
+            button.dataset.action;
+
+        const userId =
+            button.dataset.userId;
+
+        if (action === "audio") {
+            startCall(userId, "audio");
+        }
+
+        if (action === "video") {
+            startCall(userId, "video");
+        }
+
+        if (action === "delete") {
+            deleteContact(userId);
+        }
+    });
+
+    addContactButton.addEventListener(
+        "click",
+        addContact
+    );
+
+    contactIdentifier.addEventListener(
+        "keydown",
+        function(event) {
+            if (event.key === "Enter") {
+                addContact();
+            }
+        }
+    );
+
+    backButton.addEventListener(
+        "click",
+        function() {
+            window.location.href = "index.html";
+        }
+    );
+
+    loadContacts();
+</script>
+
+</body>
+</html>
