@@ -1,16 +1,10 @@
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import JSONResponse
 from pydantic import BaseModel
 from pathlib import Path
 import sqlite3
 import json
-import os
 
-
-# =========================
-# APP
-# =========================
 
 app = FastAPI(
     title="VideoCallApp",
@@ -24,25 +18,15 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-
     allow_origins=[
         "https://videocallapp-web.onrender.com",
         "http://localhost:5500",
-        "http://127.0.0.1:5500",
-        "*"
+        "http://127.0.0.1:5500"
     ],
-
-    allow_credentials=True,
-
-    allow_methods=[
-        "*"
-    ],
-
-    allow_headers=[
-        "*"
-    ],
+    allow_credentials=False,
+    allow_methods=["*"],
+    allow_headers=["*"],
 )
-
 
 
 # =========================
@@ -50,30 +34,20 @@ app.add_middleware(
 # =========================
 
 BASE_DIR = Path(__file__).resolve().parent
-
 DB_FILE = BASE_DIR / "videocall.db"
 
 
-
 def get_db():
-
-    conn = sqlite3.connect(
-        DB_FILE
-    )
-
+    conn = sqlite3.connect(DB_FILE)
     conn.row_factory = sqlite3.Row
-
     return conn
-
 
 
 
 def init_db():
 
     conn = get_db()
-
     cur = conn.cursor()
-
 
     cur.execute(
         """
@@ -93,9 +67,7 @@ def init_db():
         """
     )
 
-
     conn.commit()
-
     conn.close()
 
 
@@ -118,10 +90,18 @@ class RegisterRequest(BaseModel):
 
 
 
+class ProfileUpdate(BaseModel):
+
+    display_name: str
+
+    avatar: str = ""
+
+
 
 # =========================
 # HELPERS
 # =========================
+
 
 def user_to_dict(row):
 
@@ -137,11 +117,9 @@ def user_to_dict(row):
 
         "phone": row["phone"],
 
-        "display_name":
-            row["display_name"],
+        "display_name": row["display_name"],
 
-        "avatar":
-            row["avatar"]
+        "avatar": row["avatar"] or ""
 
     }
 
@@ -159,12 +137,10 @@ def find_user(identifier):
         """
         SELECT *
         FROM users
-        WHERE user_id = ?
-        OR phone = ?
-
+        WHERE user_id=?
+        OR phone=?
         LIMIT 1
         """,
-
         (
             identifier,
             identifier
@@ -174,7 +150,6 @@ def find_user(identifier):
 
     row = cur.fetchone()
 
-
     conn.close()
 
 
@@ -182,30 +157,22 @@ def find_user(identifier):
 
 
 
-
 # =========================
 # REGISTER
 # =========================
 
-@app.post(
-    "/api/register"
-)
-async def register(
-    data: RegisterRequest
-):
+
+@app.post("/api/register")
+async def register(data: RegisterRequest):
 
 
-    exists = find_user(
-        data.user_id
-    )
-
-
-    if exists:
+    if find_user(data.user_id):
 
         raise HTTPException(
-            status_code=400,
-            detail="این شناسه قبلا ثبت شده است"
+            400,
+            "این شناسه قبلا ثبت شده است"
         )
+
 
 
     conn = get_db()
@@ -221,23 +188,18 @@ async def register(
             (
                 user_id,
                 phone,
-                display_name
+                display_name,
+                avatar
             )
 
             VALUES
-            (
-                ?,
-                ?,
-                ?
-            )
+            (?,?,?,?)
             """,
-
             (
                 data.user_id,
-
                 data.phone,
-
-                data.display_name
+                data.display_name,
+                ""
             )
         )
 
@@ -250,8 +212,8 @@ async def register(
         conn.close()
 
         raise HTTPException(
-            status_code=400,
-            detail="شماره یا شناسه قبلا استفاده شده"
+            400,
+            "شماره یا شناسه قبلا استفاده شده"
         )
 
 
@@ -259,44 +221,33 @@ async def register(
     conn.close()
 
 
-
-    user = find_user(
-        data.user_id
-    )
-
-
     return {
 
         "success": True,
 
-        "user": user
+        "user": find_user(data.user_id)
 
     }
 
 
 
-
 # =========================
-# GET USER
+# USER LOGIN
 # =========================
 
-@app.get(
-    "/api/users/{identifier}"
-)
-async def get_user(
-    identifier: str
-):
 
-    user = find_user(
-        identifier
-    )
+@app.get("/api/users/{identifier}")
+async def login(identifier: str):
+
+
+    user = find_user(identifier)
 
 
     if not user:
 
         raise HTTPException(
-            status_code=404,
-            detail="کاربر پیدا نشد"
+            404,
+            "کاربر پیدا نشد"
         )
 
 
@@ -310,16 +261,13 @@ async def get_user(
 
 
 
-
 # =========================
 # USERS LIST
 # =========================
 
-@app.get(
-    "/api/users"
-)
-async def users():
 
+@app.get("/api/users")
+async def users():
 
     conn = get_db()
 
@@ -341,53 +289,130 @@ async def users():
     conn.close()
 
 
-
     return {
 
         "success": True,
 
         "users":
+        [
+            user_to_dict(row)
+            for row in rows
+        ]
 
-            [
-                user_to_dict(row)
-                for row in rows
-            ]
+    }
+# =========================
+# PROFILE GET
+# =========================
 
+@app.get("/api/profile/{identifier}")
+async def get_profile(identifier: str):
+
+    user = find_user(identifier)
+
+    if not user:
+        raise HTTPException(
+            status_code=404,
+            detail="کاربر پیدا نشد"
+        )
+
+    return {
+        "success": True,
+        "user": user
     }
 
 
+# =========================
+# PROFILE UPDATE
+# =========================
+
+@app.put("/api/profile/{identifier}")
+async def update_profile(
+    identifier: str,
+    data: ProfileUpdate
+):
+
+    display_name = data.display_name.strip()
+    avatar = data.avatar or ""
+
+    if not display_name:
+        raise HTTPException(
+            status_code=400,
+            detail="نام نمایشی را وارد کنید"
+        )
+
+    user = find_user(identifier)
+
+    if not user:
+        raise HTTPException(
+            status_code=404,
+            detail="کاربر پیدا نشد"
+        )
+
+    conn = get_db()
+    cur = conn.cursor()
+
+    cur.execute(
+        """
+        UPDATE users
+        SET
+            display_name = ?,
+            avatar = ?
+        WHERE user_id = ?
+        """,
+        (
+            display_name,
+            avatar,
+            user["user_id"]
+        )
+    )
+
+    conn.commit()
+    conn.close()
+
+    updated_user = find_user(
+        user["user_id"]
+    )
+
+    return {
+        "success": True,
+        "user": updated_user
+    }
 
 
 # =========================
 # HEALTH
 # =========================
 
-@app.get(
-    "/health"
-)
+@app.get("/health")
 async def health():
 
+    conn = get_db()
+    cur = conn.cursor()
+
+    cur.execute(
+        "SELECT COUNT(*) AS count FROM users"
+    )
+
+    row = cur.fetchone()
+
+    conn.close()
+
     return {
-
         "success": True,
-
         "status": "online",
-
-        "service": "VideoCallApp"
-
+        "service": "VideoCallApp",
+        "users": row["count"]
     }
-# =========================
-# WEBSOCKET CALL SERVER
-# =========================
 
+
+# =========================
+# WEBSOCKET
+# =========================
 
 connections = {}
 
 
-
-@app.websocket(
-    "/ws/{user_id}"
-)
+@app.websocket("/ws/{user_id}")
 async def websocket_endpoint(
     websocket: WebSocket,
     user_id: str
@@ -395,124 +420,129 @@ async def websocket_endpoint(
 
     await websocket.accept()
 
+    old_socket = connections.get(user_id)
+
+    if old_socket:
+
+        try:
+            await old_socket.close()
+        except Exception:
+            pass
 
     connections[user_id] = websocket
-
 
     print(
         "WebSocket connected:",
         user_id
     )
 
-
     try:
 
         while True:
 
-
             message = await websocket.receive_text()
 
+            try:
 
-            data = json.loads(
-                message
+                data = json.loads(message)
+
+            except json.JSONDecodeError:
+
+                await websocket.send_json({
+                    "type": "error",
+                    "message": "پیام نامعتبر است"
+                })
+
+                continue
+
+
+            target_user_id = data.get(
+                "target_user_id"
+            )
+
+            if not target_user_id:
+                continue
+
+
+            target_user_id = str(
+                target_user_id
             )
 
 
-            target_user_id = (
-                data.get(
-                    "target_user_id"
-                )
+            target_socket = connections.get(
+                target_user_id
             )
 
 
-            if target_user_id:
+            if target_socket:
 
+                data["from_user_id"] = user_id
 
-                target_socket = (
-                    connections.get(
-                        target_user_id
-                    )
-                )
-
-
-                if target_socket:
-
-
-                    data["from_user_id"] = (
-                        user_id
-                    )
-
+                try:
 
                     await target_socket.send_json(
                         data
                     )
 
-                else:
+                except Exception:
+
+                    connections.pop(
+                        target_user_id,
+                        None
+                    )
 
                     await websocket.send_json({
-
-                        "type":
-                        "error",
-
-                        "message":
-                        "کاربر مقصد آنلاین نیست"
-
+                        "type": "error",
+                        "message": "ارتباط با کاربر مقصد قطع شد"
                     })
 
+            else:
+
+                await websocket.send_json({
+                    "type": "error",
+                    "message": "کاربر مقصد آنلاین نیست"
+                })
 
 
     except WebSocketDisconnect:
-
 
         print(
             "WebSocket disconnected:",
             user_id
         )
 
+        if connections.get(user_id) is websocket:
 
-        if (
-            user_id in connections
-        ):
-
-            del connections[user_id]
-
-
-
+            connections.pop(
+                user_id,
+                None
+            )
 
 
     except Exception as error:
-
 
         print(
             "WebSocket error:",
             error
         )
 
+        if connections.get(user_id) is websocket:
 
-        if (
-            user_id in connections
-        ):
-
-            del connections[user_id]
-
-
-
+            connections.pop(
+                user_id,
+                None
+            )
 
 
 # =========================
 # ROOT
 # =========================
 
-
 @app.get("/")
 async def root():
 
     return {
-
-        "service":
-        "VideoCallApp",
-
-        "status":
-        "running"
-
+        "service": "VideoCallApp",
+        "status": "running",
+        "version": "1.0.0"
     }
