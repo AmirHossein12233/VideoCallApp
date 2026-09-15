@@ -1,411 +1,125 @@
+```html
 <!DOCTYPE html>
 <html lang="fa" dir="rtl">
 
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<meta charset="UTF-8">
+    <title>VideoCallApp</title>
 
-<meta name="viewport"
-content="width=device-width, initial-scale=1.0">
-
-<title>
-VideoCallApp
-</title>
-
-
-<link rel="stylesheet" href="style.css">
-
-
+    <link rel="stylesheet" href="style.css">
 </head>
-
 
 <body>
 
 
-<div id="toast"></div>
+<div class="container">
 
+    <h1>
+        📹 VideoCallApp
+    </h1>
 
 
-<!-- =========================
- LOGIN PAGE
-========================= -->
+    <div class="box">
 
+        <label>
+            شناسه کاربر
+        </label>
 
-<div id="loginPage"
-class="page">
+        <input
+            id="userId"
+            placeholder="مثلا amir"
+        >
 
 
-<div class="card auth-box">
+        <label>
+            کد اتاق
+        </label>
 
+        <input
+            id="roomId"
+            placeholder="کد اتاق"
+        >
 
-<h1 class="title">
-📞 VideoCallApp
-</h1>
 
+        <div class="buttons">
 
-<p class="subtitle">
-ورود به حساب کاربری
-</p>
+            <button id="createRoom">
+                ساخت اتاق
+            </button>
 
 
+            <button id="joinRoom">
+                ورود به تماس
+            </button>
 
-<input
-id="loginIdentifier"
-class="input"
-placeholder="شناسه یا شماره موبایل"
->
+        </div>
 
 
+        <p id="status">
+            آماده
+        </p>
 
-<button
-id="loginButton"
-class="button">
 
-ورود
+    </div>
 
-</button>
 
 
+    <div class="videos">
 
-<div
-id="loginMessage"
-class="message">
-</div>
 
+        <div class="video-box">
 
-<hr>
+            <h3>
+                دوربین من
+            </h3>
 
+            <video
+                id="localVideo"
+                autoplay
+                muted
+                playsinline>
+            </video>
 
-<button
-onclick="
-document.getElementById('loginPage').classList.add('hidden');
-document.getElementById('registerPage').classList.remove('hidden');
-"
-class="button">
+        </div>
 
-ساخت حساب جدید
 
-</button>
 
+        <div class="video-box">
 
+            <h3>
+                طرف مقابل
+            </h3>
 
-</div>
+            <video
+                id="remoteVideo"
+                autoplay
+                playsinline>
+            </video>
 
-</div>
+        </div>
 
 
+    </div>
 
 
 
+    <div class="buttons call-buttons">
 
-<!-- =========================
- REGISTER PAGE
-========================= -->
+        <button id="startCall">
+            شروع تماس
+        </button>
 
 
-<div id="registerPage"
-class="page hidden">
+        <button id="endCall">
+            پایان تماس
+        </button>
 
-
-<div class="card auth-box">
-
-
-<h1 class="title">
-ثبت نام
-</h1>
-
-
-<input
-id="registerUserId"
-class="input"
-placeholder="شناسه کاربری"
->
-
-
-
-<input
-id="registerPhone"
-class="input"
-placeholder="شماره موبایل"
->
-
-
-
-<input
-id="registerName"
-class="input"
-placeholder="نام نمایشی"
->
-
-
-
-<button
-id="registerButton"
-class="button">
-
-ثبت نام
-
-</button>
-
-
-
-<div
-id="registerMessage"
-class="message">
-</div>
-
-
-
-<button
-onclick="
-document.getElementById('registerPage').classList.add('hidden');
-document.getElementById('loginPage').classList.remove('hidden');
-"
-class="button">
-
-بازگشت به ورود
-
-</button>
-
+    </div>
 
 
 </div>
-
-</div>
-
-
-
-
-
-
-<!-- =========================
- APP PAGE
-========================= -->
-
-
-<div id="appPage"
-class="page hidden">
-
-
-
-<div class="card">
-
-
-<div class="profile">
-
-
-<img
-id="myAvatar"
-class="avatar"
-src=""
->
-
-
-
-<div>
-
-
-<div
-id="myName"
-class="profile-name">
-
-کاربر
-
-</div>
-
-
-<div
-id="myId"
-class="profile-id">
-
-شناسه:
-
-</div>
-
-
-
-<div
-id="myStatus"
-class="online-status">
-
-آفلاین
-
-</div>
-
-
-</div>
-
-
-</div>
-
-
-</div>
-
-
-
-
-
-<div class="card">
-
-
-<h2>
-👥 کاربران
-</h2>
-
-
-
-<button
-id="refreshButton"
-class="button">
-
-🔄 بروزرسانی
-
-</button>
-
-
-
-<div
-id="usersList"
-class="users-list">
-
-</div>
-
-
-</div>
-/* =========================
-   VIDEO CALL AREA
-========================= */
-
-
-<div class="card">
-
-
-<h2>
-🎥 تماس
-</h2>
-
-
-<div class="video-area">
-
-
-<video
-id="remoteVideo"
-autoplay
-playsinline>
-</video>
-
-
-
-<video
-id="localVideo"
-autoplay
-playsinline
-muted>
-</video>
-
-
-
-</div>
-
-
-
-<div
-id="callStatus"
-class="status">
-
-آماده تماس
-
-</div>
-
-
-
-<div class="call-controls">
-
-
-<button
-id="hangupButton"
-class="control-button hangup-button">
-
-📞
-
-</button>
-
-
-</div>
-
-
-</div>
-
-
-
-
-
-
-
-<!-- =========================
- INCOMING CALL
-========================= -->
-
-
-<div
-id="incomingCall"
-class="incoming-call hidden">
-
-
-<div class="incoming-box">
-
-
-<h2>
-📞 تماس ورودی
-</h2>
-
-
-
-<p>
-شخصی با شما تماس گرفته است
-</p>
-
-
-
-<div class="call-controls">
-
-
-<button
-id="acceptButton"
-class="control-button accept-button">
-
-✔️
-
-</button>
-
-
-
-<button
-id="rejectButton"
-class="control-button reject-button">
-
-❌
-
-</button>
-
-
-</div>
-
-
-
-</div>
-
-
-</div>
-
-
-
-
-
-
-
-</div>
-
 
 
 
@@ -415,3 +129,4 @@ class="control-button reject-button">
 </body>
 
 </html>
+```
