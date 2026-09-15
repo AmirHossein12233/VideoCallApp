@@ -1,436 +1,1210 @@
 <!DOCTYPE html>
+
 <html lang="fa" dir="rtl">
-
 <head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<meta charset="UTF-8">
+```
+<title>VideoCallApp</title>
 
-<meta name="viewport"
-content="width=device-width, initial-scale=1.0">
+<style>
+    * {
+        box-sizing: border-box;
+    }
 
-<title>
-VideoCallApp
-</title>
+    body {
+        margin: 0;
+        font-family: Tahoma, Arial, sans-serif;
+        background: #f4f6f8;
+        color: #111;
+    }
 
-<link rel="stylesheet"
-href="style.css">
+    button,
+    input {
+        font-family: inherit;
+    }
+
+    button {
+        cursor: pointer;
+    }
+
+    .hidden {
+        display: none !important;
+    }
+
+    .page {
+        min-height: 100vh;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+    }
+
+    .auth-box {
+        width: 100%;
+        max-width: 430px;
+        background: white;
+        border-radius: 24px;
+        padding: 28px;
+        box-shadow: 0 10px 35px rgba(0, 0, 0, 0.08);
+    }
+
+    .logo {
+        width: 75px;
+        height: 75px;
+        border-radius: 22px;
+        background: #111;
+        color: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 28px;
+        font-weight: bold;
+        margin: 0 auto 18px;
+    }
+
+    h1,
+    h2,
+    h3,
+    p {
+        margin-top: 0;
+    }
+
+    .auth-box h1 {
+        text-align: center;
+        margin-bottom: 8px;
+    }
+
+    .subtitle {
+        text-align: center;
+        color: #777;
+        margin-bottom: 24px;
+    }
+
+    .input {
+        width: 100%;
+        border: 1px solid #ddd;
+        border-radius: 14px;
+        padding: 14px;
+        margin-bottom: 12px;
+        outline: none;
+        font-size: 15px;
+        background: #fafafa;
+    }
+
+    .input:focus {
+        border-color: #111;
+        background: white;
+    }
+
+    .primary-button {
+        width: 100%;
+        border: 0;
+        border-radius: 14px;
+        padding: 14px;
+        background: #111;
+        color: white;
+        font-size: 16px;
+        font-weight: bold;
+        margin-top: 5px;
+    }
+
+    .secondary-button {
+        width: 100%;
+        border: 1px solid #ddd;
+        border-radius: 14px;
+        padding: 13px;
+        background: white;
+        color: #111;
+        font-size: 15px;
+        margin-top: 10px;
+    }
+
+    .message {
+        min-height: 24px;
+        margin: 10px 0;
+        color: #d00;
+        text-align: center;
+        font-size: 14px;
+    }
+
+    /* APP */
+
+    #appPage {
+        display: block;
+        min-height: 100vh;
+        padding-bottom: 100px;
+    }
+
+    .topbar {
+        background: white;
+        padding: 15px 20px;
+        border-bottom: 1px solid #eee;
+        position: sticky;
+        top: 0;
+        z-index: 20;
+    }
+
+    .topbar-inner {
+        max-width: 1100px;
+        margin: auto;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 15px;
+    }
+
+    .brand {
+        font-weight: bold;
+        font-size: 20px;
+    }
+
+    .profile-mini {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .avatar {
+        width: 48px;
+        height: 48px;
+        border-radius: 50%;
+        object-fit: cover;
+        background: #eee;
+    }
+
+    .profile-mini-info {
+        display: flex;
+        flex-direction: column;
+        gap: 3px;
+    }
+
+    .profile-mini-info b {
+        font-size: 14px;
+    }
+
+    .profile-mini-info small {
+        color: #777;
+        font-size: 11px;
+    }
+
+    .logout-button {
+        border: 0;
+        background: #f1f1f1;
+        border-radius: 10px;
+        padding: 9px 12px;
+        font-size: 12px;
+    }
+
+    .container {
+        max-width: 1100px;
+        margin: 20px auto;
+        padding: 0 15px;
+    }
+
+    .card {
+        background: white;
+        border-radius: 20px;
+        padding: 20px;
+        margin-bottom: 18px;
+        box-shadow: 0 5px 20px rgba(0, 0, 0, 0.04);
+    }
+
+    .card-title {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 10px;
+        margin-bottom: 16px;
+    }
+
+    .card-title h2 {
+        margin: 0;
+        font-size: 18px;
+    }
+
+    .status {
+        color: #777;
+        font-size: 13px;
+    }
+
+    .search-row {
+        display: flex;
+        gap: 10px;
+    }
+
+    .search-row .input {
+        margin: 0;
+        flex: 1;
+    }
+
+    .search-button {
+        border: 0;
+        background: #111;
+        color: white;
+        border-radius: 14px;
+        padding: 0 18px;
+        font-weight: bold;
+    }
+
+    .search-result {
+        margin-top: 15px;
+        padding: 15px;
+        border-radius: 16px;
+        background: #f7f7f7;
+    }
+
+    .search-user {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+    }
+
+    .search-user-info {
+        flex: 1;
+    }
+
+    .search-user-info b {
+        display: block;
+        margin-bottom: 5px;
+    }
+
+    .search-user-info small {
+        display: block;
+        color: #777;
+        margin-top: 3px;
+    }
+
+    .call-buttons {
+        display: flex;
+        gap: 7px;
+    }
+
+    .icon-button {
+        width: 42px;
+        height: 42px;
+        border: 0;
+        border-radius: 12px;
+        background: #111;
+        color: white;
+        font-size: 18px;
+    }
+
+    .users-list {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+        gap: 12px;
+    }
+
+    .user-card {
+        border: 1px solid #eee;
+        border-radius: 16px;
+        padding: 13px;
+        display: flex;
+        align-items: center;
+        gap: 10px;
+    }
+
+    .user-card .avatar {
+        width: 45px;
+        height: 45px;
+    }
+
+    .user-info {
+        flex: 1;
+        min-width: 0;
+    }
+
+    .user-info b,
+    .user-info small {
+        display: block;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+    }
+
+    .user-info small {
+        color: #777;
+        margin-top: 4px;
+        font-size: 11px;
+    }
+
+    .audio-call,
+    .video-call {
+        border: 0;
+        width: 38px;
+        height: 38px;
+        border-radius: 11px;
+        background: #111;
+        color: white;
+        font-size: 16px;
+    }
+
+    .loading,
+    .empty {
+        width: 100%;
+        text-align: center;
+        padding: 25px;
+        color: #777;
+    }
+
+    /* CALL HISTORY */
+
+    .calls-list {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+    }
+
+    .call-item {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 13px;
+        border-radius: 15px;
+        background: #f7f7f7;
+    }
+
+    .call-item-icon {
+        width: 43px;
+        height: 43px;
+        border-radius: 12px;
+        background: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 19px;
+    }
+
+    .call-item-info {
+        flex: 1;
+    }
+
+    .call-item-info b {
+        display: block;
+        margin-bottom: 4px;
+    }
+
+    .call-item-info small {
+        color: #777;
+        font-size: 11px;
+    }
+
+    /* BOTTOM NAV */
+
+    .bottom-nav {
+        position: fixed;
+        bottom: 0;
+        right: 0;
+        left: 0;
+        background: white;
+        border-top: 1px solid #eee;
+        padding: 8px;
+        z-index: 30;
+    }
+
+    .bottom-nav-inner {
+        max-width: 600px;
+        margin: auto;
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 6px;
+    }
+
+    .nav-button {
+        border: 0;
+        background: transparent;
+        padding: 9px 5px;
+        border-radius: 12px;
+        color: #555;
+        font-size: 12px;
+    }
+
+    .nav-button:hover {
+        background: #f4f4f4;
+        color: #111;
+    }
+
+    .nav-icon {
+        display: block;
+        font-size: 19px;
+        margin-bottom: 3px;
+    }
+
+    /* CALL PANEL */
+
+    .call-panel {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.9);
+        z-index: 100;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 15px;
+    }
+
+    .call-box {
+        width: 100%;
+        max-width: 900px;
+        height: min(720px, 90vh);
+        background: #151515;
+        border-radius: 24px;
+        overflow: hidden;
+        position: relative;
+        color: white;
+    }
+
+    .remote-video {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        background: #222;
+    }
+
+    .remote-placeholder {
+        position: absolute;
+        inset: 0;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #aaa;
+        font-size: 18px;
+    }
+
+    .local-video {
+        position: absolute;
+        left: 18px;
+        bottom: 100px;
+        width: 180px;
+        height: 120px;
+        object-fit: cover;
+        border-radius: 16px;
+        background: #333;
+        border: 2px solid white;
+        z-index: 3;
+    }
+
+    .call-top {
+        position: absolute;
+        top: 15px;
+        right: 15px;
+        left: 15px;
+        z-index: 5;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+    }
+
+    .call-status {
+        background: rgba(0, 0, 0, 0.55);
+        padding: 10px 14px;
+        border-radius: 12px;
+        font-size: 13px;
+    }
+
+    .close-call {
+        width: 42px;
+        height: 42px;
+        border: 0;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.15);
+        color: white;
+        font-size: 20px;
+    }
+
+    .call-controls {
+        position: absolute;
+        bottom: 20px;
+        left: 50%;
+        transform: translateX(-50%);
+        display: flex;
+        gap: 10px;
+        z-index: 5;
+    }
+
+    .control-button {
+        width: 52px;
+        height: 52px;
+        border: 0;
+        border-radius: 50%;
+        background: rgba(255, 255, 255, 0.15);
+        color: white;
+        font-size: 21px;
+    }
+
+    .hangup {
+        background: #d40000;
+    }
+
+    /* INCOMING */
+
+    .incoming-call {
+        position: fixed;
+        inset: 0;
+        background: rgba(0, 0, 0, 0.75);
+        z-index: 120;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: 20px;
+    }
+
+    .incoming-box {
+        width: 100%;
+        max-width: 360px;
+        background: white;
+        border-radius: 24px;
+        padding: 28px;
+        text-align: center;
+    }
+
+    .incoming-avatar {
+        width: 85px;
+        height: 85px;
+        border-radius: 50%;
+        object-fit: cover;
+        margin-bottom: 15px;
+    }
+
+    .incoming-box h2 {
+        margin-bottom: 8px;
+    }
+
+    .incoming-box p {
+        color: #777;
+        margin-bottom: 22px;
+    }
+
+    .incoming-buttons {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 10px;
+    }
+
+    .accept {
+        border: 0;
+        border-radius: 13px;
+        padding: 13px;
+        background: #111;
+        color: white;
+        font-weight: bold;
+    }
+
+    .reject {
+        border: 0;
+        border-radius: 13px;
+        padding: 13px;
+        background: #eee;
+        color: #111;
+        font-weight: bold;
+    }
+
+    /* TOAST */
+
+    .toast {
+        position: fixed;
+        bottom: 90px;
+        left: 50%;
+        transform: translateX(-50%) translateY(20px);
+        background: #111;
+        color: white;
+        padding: 12px 18px;
+        border-radius: 13px;
+        opacity: 0;
+        pointer-events: none;
+        transition: 0.25s;
+        z-index: 200;
+        font-size: 13px;
+    }
+
+    .toast.show {
+        opacity: 1;
+        transform: translateX(-50%) translateY(0);
+    }
+
+    @media (max-width: 600px) {
+        .topbar-inner {
+            flex-wrap: wrap;
+        }
+
+        .brand {
+            width: 100%;
+        }
+
+        .search-row {
+            flex-direction: column;
+        }
+
+        .search-button {
+            padding: 13px;
+        }
+
+        .users-list {
+            grid-template-columns: 1fr;
+        }
+
+        .local-video {
+            width: 120px;
+            height: 90px;
+            left: 10px;
+            bottom: 95px;
+        }
+
+        .call-box {
+            height: 92vh;
+            border-radius: 18px;
+        }
+    }
+</style>
+```
 
 </head>
 
-
 <body>
 
+```
+<!-- ========================= -->
+<!-- LOGIN -->
+<!-- ========================= -->
 
-<!-- ======================
- LOGIN
-====================== -->
+<section id="loginPage" class="page">
 
-<section id="loginPage"
-class="page">
+    <div class="auth-box">
 
+        <div class="logo">
+            VC
+        </div>
 
-<div class="card">
+        <h1>VideoCallApp</h1>
 
+        <p class="subtitle">
+            ورود به حساب
+        </p>
 
-<h1>
-VideoCallApp
-</h1>
+        <input
+            id="loginIdentifier"
+            class="input"
+            type="text"
+            placeholder="شناسه یا شماره موبایل"
+            autocomplete="username"
+        >
 
+        <div
+            id="loginMessage"
+            class="message"
+        ></div>
 
-<p>
-تماس صوتی و تصویری آنلاین
-</p>
+        <button
+            id="loginButton"
+            class="primary-button"
+            type="button"
+        >
+            ورود
+        </button>
 
+        <button
+            id="showRegisterButton"
+            class="secondary-button"
+            type="button"
+        >
+            ساخت حساب جدید
+        </button>
 
-<input
-id="loginIdentifier"
-placeholder="شناسه کاربر">
-
-
-<button
-id="loginButton">
-
-ورود
-
-</button>
-
-
-<div id="loginMessage"></div>
-
-
-
-<button
-id="showRegisterButton"
-class="link">
-
-ساخت حساب جدید
-
-</button>
-
-
-</div>
-
-
-</section>
-
-
-
-
-
-<!-- ======================
- REGISTER
-====================== -->
-
-
-<section id="registerPage"
-class="page hidden">
-
-
-<div class="card">
-
-
-<h1>
-ساخت حساب
-</h1>
-
-
-
-<input
-id="registerUserId"
-placeholder="شناسه">
-
-
-<input
-id="registerPhone"
-placeholder="شماره موبایل">
-
-
-
-<input
-id="registerName"
-placeholder="نام نمایشی">
-
-
-
-<button
-id="registerButton">
-
-ثبت نام
-
-</button>
-
-
-
-<div id="registerMessage"></div>
-
-
-
-<button
-id="showLoginButton"
-class="link">
-
-بازگشت
-
-</button>
-
-
-</div>
-
+    </div>
 
 </section>
 
 
-
-
-
-
-
-<!-- ======================
- APP
-====================== -->
-
-
-<section id="appPage"
-class="hidden">
-
-
-
-<header class="topbar">
-
-
-<div class="profile">
-
-
-<img
-id="myAvatar"
-class="avatar">
-
-
-<div>
-
-<b id="myName">
-کاربر
-</b>
-
-
-<p id="myId">
-شناسه:
-</p>
-
-
-
-<span id="myStatus">
-آفلاین
-</span>
-
-
-</div>
-
-
-</div>
-
-
-
-<button
-id="logoutButton">
-
-خروج
-
-</button>
-
-
-
-</header>
-
-
-
-
-
-
-
-<nav>
-
-
-<button
-id="refreshButton">
-
-🔄 کاربران
-
-</button>
-
-
-</nav>
-
-
-
-
-
-
-
-<main>
-
-
-
-<div id="onlineBox">
-
-در حال اتصال...
-
-</div>
-
-
-
-
-
-<section class="panel">
-
-
-<h2>
-کاربران
-</h2>
-
-
-
-<div id="usersList">
-
-
-<div>
-در حال دریافت کاربران...
-</div>
-
-
-</div>
-
-
-
-</section>
-
-
-
-
-
-
-
+<!-- ========================= -->
+<!-- REGISTER -->
+<!-- ========================= -->
 
 <section
-id="callPanel"
-class="panel hidden">
+    id="registerPage"
+    class="page hidden"
+>
 
+    <div class="auth-box">
 
-<h2>
-تماس
-</h2>
+        <div class="logo">
+            VC
+        </div>
 
+        <h1>ساخت حساب</h1>
 
+        <p class="subtitle">
+            اطلاعات حساب خود را وارد کنید
+        </p>
 
-<p id="callStatus">
+        <input
+            id="registerUserId"
+            class="input"
+            type="text"
+            placeholder="شناسه"
+            autocomplete="username"
+        >
 
-در حال اتصال...
+        <input
+            id="registerPhone"
+            class="input"
+            type="tel"
+            placeholder="شماره موبایل"
+            autocomplete="tel"
+        >
 
-</p>
+        <input
+            id="registerName"
+            class="input"
+            type="text"
+            placeholder="نام نمایشی"
+            autocomplete="name"
+        >
 
+        <div
+            id="registerMessage"
+            class="message"
+        ></div>
 
+        <button
+            id="registerButton"
+            class="primary-button"
+            type="button"
+        >
+            ثبت نام
+        </button>
 
-<div class="videos">
+        <button
+            id="showLoginButton"
+            class="secondary-button"
+            type="button"
+        >
+            بازگشت به ورود
+        </button>
 
-
-
-<video
-id="remoteVideo"
-autoplay
-playsinline>
-</video>
-
-
-
-
-<video
-id="localVideo"
-autoplay
-muted
-playsinline>
-</video>
-
-
-
-</div>
-
-
-
-
-
-<button
-id="microphoneButton">
-
-🎤 میکروفون
-
-</button>
-
-
-
-<button
-id="cameraButton">
-
-📷 دوربین
-
-</button>
-
-
-
-<button
-id="hangupButton">
-
-قطع تماس
-
-</button>
-
-
-
-<button
-id="closeCallButton">
-
-بستن
-
-</button>
-
-
+    </div>
 
 </section>
 
 
+<!-- ========================= -->
+<!-- APP -->
+<!-- ========================= -->
 
-</main>
-<!-- ======================
- INCOMING CALL
-====================== -->
+<section
+    id="appPage"
+    class="hidden"
+>
 
+    <!-- TOP BAR -->
 
-<div id="incomingCall"
-class="modal hidden">
+    <header class="topbar">
 
+        <div class="topbar-inner">
 
-<div class="modal-box">
+            <div class="brand">
+                VideoCallApp
+            </div>
 
+            <div class="profile-mini">
 
-<h2>
-📞 تماس ورودی
-</h2>
+                <img
+                    id="myAvatar"
+                    class="avatar"
+                    src=""
+                    alt="avatar"
+                >
 
+                <div class="profile-mini-info">
 
-<p>
-کاربر با شما تماس گرفته است.
-</p>
+                    <b id="myName">
+                        کاربر
+                    </b>
 
+                    <small id="myId">
+                        شناسه: -
+                    </small>
 
+                    <small id="myStatus">
+                        ⚪ آفلاین
+                    </small>
 
-<button
-id="acceptButton">
+                </div>
 
-✅ پاسخ
+                <button
+                    id="logoutButton"
+                    class="logout-button"
+                    type="button"
+                >
+                    خروج
+                </button>
 
-</button>
+            </div>
 
+        </div>
 
-
-<button
-id="rejectButton">
-
-❌ رد تماس
-
-</button>
-
-
-
-</div>
-
-
-</div>
-
-
-
-
-
-<!-- ======================
- TOAST
-====================== -->
-
-
-<div id="toast">
-
-</div>
+    </header>
 
 
+    <!-- CONTENT -->
+
+    <main class="container">
+
+        <!-- ONLINE -->
+
+        <section
+            id="onlineBox"
+            class="card"
+        >
+
+            <div class="card-title">
+
+                <h2>
+                    کاربران
+                </h2>
+
+                <button
+                    id="refreshButton"
+                    class="secondary-button"
+                    type="button"
+                    style="width:auto;margin:0;padding:8px 12px;"
+                >
+                    🔄 کاربران
+                </button>
+
+            </div>
+
+            <div
+                id="usersList"
+                class="users-list"
+            ></div>
+
+        </section>
 
 
+        <!-- SEARCH -->
+
+        <section class="card">
+
+            <div class="card-title">
+
+                <h2>
+                    پیدا کردن کاربر
+                </h2>
+
+            </div>
+
+            <div class="search-row">
+
+                <input
+                    id="searchInput"
+                    class="input"
+                    type="text"
+                    placeholder="شناسه یا شماره موبایل"
+                >
+
+                <button
+                    id="searchButton"
+                    class="search-button"
+                    type="button"
+                >
+                    جستجو
+                </button>
+
+            </div>
+
+            <div
+                id="searchResult"
+                class="search-result hidden"
+            >
+
+                <div class="search-user">
+
+                    <img
+                        id="searchAvatar"
+                        class="avatar"
+                        src=""
+                        alt="avatar"
+                    >
+
+                    <div class="search-user-info">
+
+                        <b id="searchName">
+                            -
+                        </b>
+
+                        <small id="searchId">
+                            شناسه: -
+                        </small>
+
+                        <small id="searchPhone">
+                            موبایل: -
+                        </small>
+
+                    </div>
+
+                    <div class="call-buttons">
+
+                        <button
+                            id="audioCallButton"
+                            class="icon-button"
+                            type="button"
+                            title="تماس صوتی"
+                        >
+                            📞
+                        </button>
+
+                        <button
+                            id="videoCallButton"
+                            class="icon-button"
+                            type="button"
+                            title="تماس تصویری"
+                        >
+                            🎥
+                        </button>
+
+                    </div>
+
+                </div>
+
+            </div>
+
+        </section>
+
+
+        <!-- CALL HISTORY -->
+
+        <section class="card">
+
+            <div class="card-title">
+
+                <h2>
+                    تماس‌ها
+                </h2>
+
+                <span class="status">
+                    تاریخچه تماس‌ها
+                </span>
+
+            </div>
+
+            <div
+                id="callsList"
+                class="calls-list"
+            >
+
+                <div class="empty">
+                    هنوز تماسی ثبت نشده است
+                </div>
+
+            </div>
+
+        </section>
+
+    </main>
+
+
+    <!-- BOTTOM NAV -->
+
+    <nav class="bottom-nav">
+
+        <div class="bottom-nav-inner">
+
+            <button
+                id="homeButton"
+                class="nav-button"
+                type="button"
+            >
+                <span class="nav-icon">🏠</span>
+                خانه
+            </button>
+
+            <button
+                id="contactsButton"
+                class="nav-button"
+                type="button"
+            >
+                <span class="nav-icon">👥</span>
+                مخاطبین
+            </button>
+
+            <button
+                id="profileButton"
+                class="nav-button"
+                type="button"
+            >
+                <span class="nav-icon">👤</span>
+                پروفایل
+            </button>
+
+            <button
+                id="settingsButton"
+                class="nav-button"
+                type="button"
+            >
+                <span class="nav-icon">⚙️</span>
+                تنظیمات
+            </button>
+
+        </div>
+
+    </nav>
 
 </section>
 
 
+<!-- ========================= -->
+<!-- CALL PANEL -->
+<!-- ========================= -->
+
+<div
+    id="callPanel"
+    class="call-panel hidden"
+>
+
+    <div class="call-box">
+
+        <video
+            id="remoteVideo"
+            class="remote-video"
+            autoplay
+            playsinline
+        ></video>
+
+        <div
+            id="remotePlaceholder"
+            class="remote-placeholder"
+        >
+            در انتظار تصویر طرف مقابل...
+        </div>
+
+        <video
+            id="localVideo"
+            class="local-video"
+            autoplay
+            muted
+            playsinline
+        ></video>
+
+        <div class="call-top">
+
+            <div
+                id="callStatus"
+                class="call-status"
+            >
+                در حال تماس...
+            </div>
+
+            <button
+                id="closeCallButton"
+                class="close-call"
+                type="button"
+            >
+                ✕
+            </button>
+
+        </div>
+
+        <div class="call-controls">
+
+            <button
+                id="microphoneButton"
+                class="control-button"
+                type="button"
+                title="میکروفون"
+            >
+                🎙️
+            </button>
+
+            <button
+                id="cameraButton"
+                class="control-button"
+                type="button"
+                title="دوربین"
+            >
+                📹
+            </button>
+
+            <button
+                id="hangupButton"
+                class="control-button hangup"
+                type="button"
+                title="قطع تماس"
+            >
+                📞
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
 
 
+<!-- ========================= -->
+<!-- INCOMING CALL -->
+<!-- ========================= -->
+
+<div
+    id="incomingCall"
+    class="incoming-call hidden"
+>
+
+    <div class="incoming-box">
+
+        <img
+            id="incomingAvatar"
+            class="incoming-avatar"
+            src=""
+            alt="avatar"
+        >
+
+        <h2>
+            تماس ورودی
+        </h2>
+
+        <p id="incomingName">
+            کاربر
+        </p>
+
+        <div class="incoming-buttons">
+
+            <button
+                id="acceptButton"
+                class="accept"
+                type="button"
+            >
+                پاسخ دادن
+            </button>
+
+            <button
+                id="rejectButton"
+                class="reject"
+                type="button"
+            >
+                رد کردن
+            </button>
+
+        </div>
+
+    </div>
+
+</div>
+
+
+<!-- TOAST -->
+
+<div
+    id="toast"
+    class="toast"
+></div>
+
+
+<!-- JAVASCRIPT -->
 
 <script src="app.js"></script>
-
+```
 
 </body>
-
 </html>
