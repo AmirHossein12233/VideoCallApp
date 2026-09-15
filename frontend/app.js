@@ -1,437 +1,365 @@
 const API_URL =
     "https://videocallapp-api.onrender.com";
 
+
 let currentUser = null;
+
 let socket = null;
 
 let peerConnection = null;
+
 let localStream = null;
+
 let remoteStream = null;
 
 let currentCallUser = null;
+
 let currentCallType = "video";
+
 let incomingOffer = null;
+
 
 
 /* =========================
    HELPERS
 ========================= */
 
+
 function $(id) {
     return document.getElementById(id);
 }
 
+
 function getUserId() {
+
     return localStorage.getItem(
         "videoCallUserId"
     );
 }
 
+
+
 function avatar(name) {
 
     const letter =
         String(name || "U")
-            .trim()
-            .charAt(0)
-            .toUpperCase() || "U";
+        .trim()
+        .charAt(0)
+        .toUpperCase();
+
 
     const svg = `
-        <svg xmlns="http://www.w3.org/2000/svg"
-             width="100"
-             height="100">
 
-            <rect
-                width="100"
-                height="100"
-                rx="50"
-                fill="#7c3aed"
-            />
+    <svg xmlns="http://www.w3.org/2000/svg"
+    width="100"
+    height="100">
 
-            <text
-                x="50"
-                y="62"
-                text-anchor="middle"
-                font-size="42"
-                font-family="Arial"
-                fill="white"
-            >
-                ${letter}
-            </text>
+    <rect width="100"
+    height="100"
+    rx="50"
+    fill="black"/>
 
-        </svg>
+    <text x="50"
+    y="60"
+    text-anchor="middle"
+    font-size="45"
+    font-family="Arial"
+    fill="white">
+
+    ${letter}
+
+    </text>
+
+    </svg>
+
     `;
+
 
     return (
         "data:image/svg+xml;charset=UTF-8," +
         encodeURIComponent(svg)
     );
+
 }
 
-function escapeHtml(value) {
+
+
+function escapeHtml(value){
 
     return String(value ?? "")
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll('"', "&quot;")
-        .replaceAll("'", "&#039;");
+    .replaceAll("&","&amp;")
+    .replaceAll("<","&lt;")
+    .replaceAll(">","&gt;")
+    .replaceAll('"',"&quot;")
+    .replaceAll("'","&#039;");
+
 }
 
-function toast(message) {
 
-    const box = $("toast");
 
-    if (!box) return;
+function toast(message){
 
-    box.textContent = message;
+    const box =
+        $("toast");
 
-    box.classList.add("show");
+    if(!box)
+        return;
 
-    clearTimeout(
-        window.__toastTimer
+
+    box.textContent =
+        message;
+
+
+    box.classList.add(
+        "show"
     );
 
-    window.__toastTimer =
-        setTimeout(() => {
 
-            box.classList.remove(
-                "show"
-            );
+    setTimeout(()=>{
 
-        }, 3000);
+        box.classList.remove(
+            "show"
+        );
+
+    },3000);
+
 }
+
+
+
 
 
 /* =========================
-   PAGE
+ PAGE
 ========================= */
 
-function showLogin() {
+
+function showLogin(){
 
     $("loginPage")
-        .classList
-        .remove("hidden");
+    .classList
+    .remove("hidden");
+
 
     $("registerPage")
-        .classList
-        .add("hidden");
+    .classList
+    .add("hidden");
+
 
     $("appPage")
-        .classList
-        .add("hidden");
+    .classList
+    .add("hidden");
+
 }
 
-function showRegister() {
+
+
+function showRegister(){
 
     $("loginPage")
-        .classList
-        .add("hidden");
+    .classList
+    .add("hidden");
+
 
     $("registerPage")
-        .classList
-        .remove("hidden");
+    .classList
+    .remove("hidden");
+
 
     $("appPage")
-        .classList
-        .add("hidden");
+    .classList
+    .add("hidden");
+
 }
 
-function showApp() {
+
+
+function showApp(){
 
     $("loginPage")
-        .classList
-        .add("hidden");
+    .classList
+    .add("hidden");
+
 
     $("registerPage")
-        .classList
-        .add("hidden");
+    .classList
+    .add("hidden");
+
 
     $("appPage")
-        .classList
-        .remove("hidden");
+    .classList
+    .remove("hidden");
+
 }
+
+
+
 
 
 /* =========================
-   API
+ API
 ========================= */
+
 
 async function api(
     path,
-    options = {}
-) {
+    options={}
+){
 
     const response =
         await fetch(
             API_URL + path,
             {
+
                 ...options,
 
-                headers: {
+
+                headers:{
+
                     "Content-Type":
-                        "application/json",
+                    "application/json",
 
                     ...(options.headers || {})
+
                 }
+
             }
         );
 
-    let data = null;
 
-    try {
+    let data={};
+
+
+    try{
+
         data =
-            await response.json();
-    } catch {
-        data = null;
+        await response.json();
+
+    }
+    catch{
+
+        data={};
+
     }
 
-    if (!response.ok) {
+
+
+    if(!response.ok){
 
         throw new Error(
-            data?.detail ||
-            "خطا در ارتباط با سرور"
+            data.detail ||
+            "خطا در سرور"
         );
+
     }
 
+
     return data;
+
 }
 
 
+
+
+
 /* =========================
-   PROFILE
+ PROFILE
 ========================= */
 
-function updateProfile() {
 
-    if (!currentUser) return;
+function updateProfile(){
+
+    if(!currentUser)
+        return;
+
 
     const name =
         currentUser.display_name ||
-        currentUser.name ||
-        currentUser.user_id ||
-        "کاربر";
+        currentUser.user_id;
 
-    const id =
-        currentUser.user_id ||
-        currentUser.id ||
-        "";
 
     $("myName").textContent =
         name;
 
+
     $("myId").textContent =
-        "شناسه: " + id;
+        "شناسه: " +
+        currentUser.user_id;
+
 
     $("myAvatar").src =
         currentUser.avatar ||
         avatar(name);
+
 }
 
 
-/* =========================
-   LOGIN
-========================= */
 
-async function login() {
-
-    const identifier =
-        $("loginIdentifier")
-            .value
-            .trim();
-
-    $("loginMessage")
-        .textContent = "";
-
-    if (!identifier) {
-
-        $("loginMessage")
-            .textContent =
-            "شناسه یا شماره موبایل را وارد کنید.";
-
-        return;
-    }
-
-    const button =
-        $("loginButton");
-
-    button.disabled = true;
-
-    button.textContent =
-        "در حال ورود...";
-
-    try {
-
-        const data =
-            await api(
-                "/api/users/" +
-                encodeURIComponent(
-                    identifier
-                )
-            );
-
-        currentUser =
-            data.user ||
-            data;
-
-        const userId =
-            currentUser.user_id ||
-            currentUser.id;
-
-        if (!userId) {
-
-            throw new Error(
-                "شناسه کاربر دریافت نشد."
-            );
-        }
-
-        localStorage.setItem(
-            "videoCallUserId",
-            userId
-        );
-
-        /*
-         * نکته مهم:
-         * اول صفحه اصلی را نشان می‌دهیم.
-         * هیچ WebSocket یا API دیگری
-         * اجازه ندارد جلوی نمایش صفحه را بگیرد.
-         */
-
-        showApp();
-
-        updateProfile();
-
-        $("onlineBox")
-            .textContent =
-            "🟢 ورود موفق؛ در حال اتصال به تماس آنلاین...";
-
-        /*
-         * اتصال‌ها بعد از نمایش صفحه
-         * انجام می‌شوند.
-         */
-
-        connectWebSocket();
-
-        loadUsers();
-
-        toast("ورود موفق بود");
-
-    } catch (error) {
-
-        console.error(
-            "Login:",
-            error
-        );
-
-        $("loginMessage")
-            .textContent =
-            error.message ||
-            "ورود ناموفق بود.";
-
-    } finally {
-
-        button.disabled =
-            false;
-
-        button.textContent =
-            "ورود";
-    }
-}
 
 
 /* =========================
-   REGISTER
+ REGISTER
 ========================= */
 
-async function register() {
 
-    const userId =
+async function register(){
+
+
+    const user_id =
         $("registerUserId")
-            .value
-            .trim();
+        .value
+        .trim();
+
 
     const phone =
         $("registerPhone")
-            .value
-            .trim();
+        .value
+        .trim();
 
-    const name =
+
+    const display_name =
         $("registerName")
-            .value
-            .trim();
+        .value
+        .trim();
 
-    $("registerMessage")
-        .textContent = "";
 
-    if (!userId) {
 
-        $("registerMessage")
-            .textContent =
-            "شناسه را وارد کنید.";
+    try{
 
-        return;
-    }
-
-    if (!phone) {
-
-        $("registerMessage")
-            .textContent =
-            "شماره موبایل را وارد کنید.";
-
-        return;
-    }
-
-    if (!name) {
-
-        $("registerMessage")
-            .textContent =
-            "نام نمایشی را وارد کنید.";
-
-        return;
-    }
-
-    const button =
-        $("registerButton");
-
-    button.disabled = true;
-
-    button.textContent =
-        "در حال ثبت‌نام...";
-
-    try {
 
         const data =
-            await api(
-                "/api/register",
-                {
-                    method: "POST",
+        await api(
+            "/api/register",
+            {
 
-                    body:
-                        JSON.stringify({
-                            user_id:
-                                userId,
+                method:"POST",
 
-                            phone:
-                                phone,
+                body:JSON.stringify({
 
-                            display_name:
-                                name
-                        })
-                }
-            );
+                    user_id,
+
+                    phone,
+
+                    display_name
+
+                })
+
+            }
+        );
+
+
 
         currentUser =
-            data.user ||
-            data;
+            data.user;
 
-        const savedId =
-            currentUser.user_id ||
-            currentUser.id ||
-            userId;
+
 
         localStorage.setItem(
             "videoCallUserId",
-            savedId
+            currentUser.user_id
         );
+
+
 
         showApp();
 
@@ -441,324 +369,229 @@ async function register() {
 
         loadUsers();
 
+
         toast(
-            "ثبت‌نام موفق بود"
+            "ثبت نام موفق"
         );
 
-    } catch (error) {
 
-        console.error(
-            "Register:",
-            error
-        );
+    }
+    catch(e){
 
         $("registerMessage")
-            .textContent =
-            error.message ||
-            "ثبت‌نام ناموفق بود.";
+        .textContent =
+        e.message;
 
-    } finally {
-
-        button.disabled =
-            false;
-
-        button.textContent =
-            "ثبت‌نام";
     }
+
 }
 
 
-/* =========================
-   USERS
-========================= */
 
-async function loadUsers() {
 
-    const list =
-        $("usersList");
-
-    if (!list) return;
-
-    list.innerHTML = `
-        <div class="empty">
-            در حال دریافت کاربران...
-        </div>
-    `;
-
-    try {
-
-        const data =
-            await api(
-                "/api/users"
-            );
-
-        let users =
-            Array.isArray(data)
-                ? data
-                : (
-                    data.users ||
-                    data.items ||
-                    []
-                );
-
-        const myId =
-            getUserId();
-
-        users =
-            users.filter(user => {
-
-                const id =
-                    user.user_id ||
-                    user.id;
-
-                return String(id) !==
-                    String(myId);
-            });
-
-        if (!users.length) {
-
-            list.innerHTML = `
-                <div class="empty">
-                    هنوز کاربر دیگری وجود ندارد.
-                </div>
-            `;
-
-            return;
-        }
-
-        list.innerHTML = "";
-
-        users.forEach(user => {
-
-            const id =
-                user.user_id ||
-                user.id ||
-                "";
-
-            const name =
-                user.display_name ||
-                user.name ||
-                id;
-
-            const phone =
-                user.phone ||
-                "";
-
-            const image =
-                user.avatar ||
-                avatar(name);
-
-            const card =
-                document.createElement(
-                    "div"
-                );
-
-            card.className =
-                "user-card";
-
-            card.innerHTML = `
-
-                <img
-                    class="user-avatar"
-                    src="${image}"
-                    alt=""
-                >
-
-                <div class="user-info">
-
-                    <div class="user-name">
-                        ${escapeHtml(name)}
-                    </div>
-
-                    <div class="user-id">
-                        شناسه:
-                        ${escapeHtml(id)}
-                    </div>
-
-                    ${
-                        phone
-                            ? `
-                            <div class="user-phone">
-                                ${escapeHtml(phone)}
-                            </div>
-                            `
-                            : ""
-                    }
-
-                    <div class="user-status">
-                        🟢 آماده تماس
-                    </div>
-
-                </div>
-
-                <div class="user-actions">
-
-                    <button class="audio">
-                        📞
-                    </button>
-
-                    <button class="video">
-                        🎥
-                    </button>
-
-                </div>
-            `;
-
-            card.querySelector(
-                ".audio"
-            ).onclick =
-                () => startCall(
-                    id,
-                    "audio"
-                );
-
-            card.querySelector(
-                ".video"
-            ).onclick =
-                () => startCall(
-                    id,
-                    "video"
-                );
-
-            list.appendChild(
-                card
-            );
-        });
-
-    } catch (error) {
-
-        console.error(
-            "Users:",
-            error
-        );
-
-        list.innerHTML = `
-            <div class="empty">
-                اتصال برقرار است، اما
-                دریافت کاربران ناموفق بود.
-            </div>
-        `;
-    }
-}
 
 
 /* =========================
-   SEARCH
+ LOGIN
 ========================= */
 
-async function searchUser() {
+
+async function login(){
+
 
     const identifier =
-        $("searchInput")
-            .value
-            .trim();
+        $("loginIdentifier")
+        .value
+        .trim();
 
-    if (!identifier) {
 
-        toast(
-            "شناسه یا شماره موبایل را وارد کنید."
-        );
 
-        return;
-    }
+    try{
 
-    try {
 
         const data =
-            await api(
-                "/api/users/" +
-                encodeURIComponent(
-                    identifier
-                )
+        await api(
+            "/api/users/" +
+            encodeURIComponent(
+                identifier
+            )
+        );
+
+
+        currentUser =
+            data.user;
+
+
+
+        localStorage.setItem(
+            "videoCallUserId",
+            currentUser.user_id
+        );
+
+
+        showApp();
+
+
+        updateProfile();
+
+
+        connectWebSocket();
+
+
+        loadUsers();
+
+
+        toast(
+            "ورود موفق"
+        );
+
+
+    }
+    catch(e){
+
+        $("loginMessage")
+        .textContent =
+        e.message;
+
+    }
+
+}
+
+
+
+
+
+/* =========================
+ USERS
+========================= */
+
+
+async function loadUsers(){
+
+
+    const box =
+        $("usersList");
+
+
+    if(!box)
+        return;
+
+
+
+    try{
+
+
+        const data =
+        await api(
+            "/api/users"
+        );
+
+
+
+        box.innerHTML="";
+
+
+
+        data.users.forEach(user=>{
+
+
+            if(
+                user.user_id ===
+                getUserId()
+            )
+            return;
+
+
+
+            const div =
+            document.createElement(
+                "div"
             );
 
-        const user =
-            data.user ||
-            data;
 
-        const id =
-            user.user_id ||
-            user.id ||
-            "";
+            div.className =
+            "user-card";
 
-        const name =
-            user.display_name ||
-            user.name ||
-            id;
 
-        $("searchAvatar").src =
-            user.avatar ||
-            avatar(name);
 
-        $("searchName")
-            .textContent =
-            name;
+            div.innerHTML=`
 
-        $("searchId")
-            .textContent =
-            "شناسه: " + id;
+            <img class="avatar"
+            src="${user.avatar || avatar(user.display_name)}">
 
-        $("searchPhone")
-            .textContent =
-            user.phone
-                ? "موبایل: " +
-                  user.phone
-                : "";
 
-        $("searchResult")
-            .classList
-            .remove("hidden");
+            <div>
 
-        $("audioCallButton")
-            .onclick =
-            () => startCall(
-                id,
+            <b>${escapeHtml(user.display_name)}</b>
+
+            <p>
+            ${escapeHtml(user.user_id)}
+            </p>
+
+            </div>
+
+
+            <button class="call-button">
+            📞
+            </button>
+
+            <button class="call-button">
+            🎥
+            </button>
+
+            `;
+
+
+
+            div.children[2].onclick =
+            ()=>startCall(
+                user.user_id,
                 "audio"
             );
 
-        $("videoCallButton")
-            .onclick =
-            () => startCall(
-                id,
+
+
+            div.children[3].onclick =
+            ()=>startCall(
+                user.user_id,
                 "video"
             );
 
-    } catch {
 
-        $("searchResult")
-            .classList
-            .add("hidden");
 
-        toast(
-            "کاربر پیدا نشد."
-        );
+            box.appendChild(
+                div
+            );
+
+
+        });
+
+
+
     }
+    catch(e){
+
+        console.log(e);
+
+    }
+
+
 }
-
-
+ 
 /* =========================
    WEBSOCKET
 ========================= */
 
-function connectWebSocket() {
+
+function connectWebSocket(){
 
     const userId =
         getUserId();
 
-    if (!userId) return;
 
-    if (
-        socket &&
-        (
-            socket.readyState ===
-            WebSocket.OPEN ||
-
-            socket.readyState ===
-            WebSocket.CONNECTING
-        )
-    ) {
+    if(!userId)
         return;
-    }
+
 
     const url =
         "wss://videocallapp-api.onrender.com/ws/" +
@@ -766,953 +599,830 @@ function connectWebSocket() {
             userId
         );
 
-    console.log(
-        "Connecting WebSocket:",
-        url
-    );
 
-    try {
-
-        socket =
-            new WebSocket(url);
-
-        socket.onopen =
-            () => {
-
-                console.log(
-                    "WebSocket connected"
-                );
-
-                $("myStatus")
-                    .textContent =
-                    "🟢 آنلاین";
-
-                $("onlineBox")
-                    .textContent =
-                    "🟢 اتصال آنلاین برقرار شد";
-            };
+    socket =
+        new WebSocket(url);
 
 
-        socket.onmessage =
-            async event => {
 
-                try {
+    socket.onopen = ()=>{
 
-                    const data =
-                        JSON.parse(
-                            event.data
-                        );
-
-                    await handleSignal(
-                        data
-                    );
-
-                } catch (error) {
-
-                    console.error(
-                        "WebSocket message:",
-                        error
-                    );
-                }
-            };
-
-
-        socket.onerror =
-            error => {
-
-                console.error(
-                    "WebSocket error:",
-                    error
-                );
-            };
-
-
-        socket.onclose =
-            () => {
-
-                console.log(
-                    "WebSocket disconnected"
-                );
-
-                $("myStatus")
-                    .textContent =
-                    "🟡 اتصال مجدد...";
-
-                /*
-                 * صفحه دست نخورده باقی می‌ماند.
-                 */
-
-                setTimeout(
-                    () => {
-
-                        if (
-                            getUserId()
-                        ) {
-                            connectWebSocket();
-                        }
-
-                    },
-                    3000
-                );
-            };
-
-    } catch (error) {
-
-        console.error(
-            error
+        console.log(
+            "WebSocket connected"
         );
-    }
+
+
+        if($("myStatus"))
+            $("myStatus")
+            .textContent =
+            "🟢 آنلاین";
+
+    };
+
+
+
+    socket.onmessage =
+    async(event)=>{
+
+        const data =
+            JSON.parse(
+                event.data
+            );
+
+
+        await handleSignal(
+            data
+        );
+
+    };
+
+
+
+    socket.onclose = ()=>{
+
+        setTimeout(()=>{
+
+            if(
+                getUserId()
+            )
+                connectWebSocket();
+
+
+        },3000);
+
+    };
+
 }
 
 
-function sendSignal(data) {
 
-    if (
+
+
+function sendSignal(data){
+
+    if(
         !socket ||
         socket.readyState !==
         WebSocket.OPEN
-    ) {
+    ){
 
         toast(
-            "ارتباط تماس آماده نیست."
+            "اتصال تماس آماده نیست"
         );
 
         return false;
     }
 
+
     socket.send(
         JSON.stringify(data)
     );
 
+
     return true;
+
 }
+
+
+
 
 
 /* =========================
    WEBRTC
 ========================= */
 
-function createPeerConnection() {
+
+function createPeerConnection(){
+
 
     peerConnection =
-        new RTCPeerConnection({
+    new RTCPeerConnection({
 
-            iceServers: [
+        iceServers:[
 
-                {
-                    urls:
-                        "stun:stun.l.google.com:19302"
-                },
+            {
+                urls:
+                "stun:stun.l.google.com:19302"
+            }
 
-                {
-                    urls:
-                        "stun:stun1.l.google.com:19302"
-                }
+        ]
 
-            ]
-        });
+    });
+
 
 
     peerConnection.onicecandidate =
-        event => {
+    event=>{
 
-            if (
-                event.candidate &&
-                currentCallUser
-            ) {
 
-                sendSignal({
+        if(
+            event.candidate &&
+            currentCallUser
+        ){
 
-                    type:
-                        "ice-candidate",
+            sendSignal({
 
-                    to:
-                        currentCallUser,
+                type:
+                "ice-candidate",
 
-                    from:
-                        getUserId(),
 
-                    candidate:
-                        event.candidate
+                target_user_id:
+                currentCallUser,
 
-                });
-            }
-        };
+
+                candidate:
+                event.candidate
+
+            });
+
+        }
+
+    };
+
+
 
 
     peerConnection.ontrack =
-        event => {
-
-            if (!remoteStream) {
-
-                remoteStream =
-                    new MediaStream();
-            }
-
-            event.streams[0]
-                .getTracks()
-                .forEach(track => {
-
-                    remoteStream.addTrack(
-                        track
-                    );
-                });
-
-            $("remoteVideo")
-                .srcObject =
-                remoteStream;
-
-            $("remotePlaceholder")
-                .classList
-                .add("hidden");
-        };
+    event=>{
 
 
-    peerConnection.onconnectionstatechange =
-        () => {
+        if(!remoteStream){
 
-            if (!peerConnection)
-                return;
+            remoteStream =
+            new MediaStream();
 
-            const state =
-                peerConnection
-                    .connectionState;
+        }
 
-            if (
-                state ===
-                "connected"
-            ) {
 
-                $("callStatus")
-                    .textContent =
-                    "🟢 متصل";
-            }
+        event.streams[0]
+        .getTracks()
+        .forEach(track=>{
 
-            if (
-                state ===
-                "connecting"
-            ) {
 
-                $("callStatus")
-                    .textContent =
-                    "در حال اتصال...";
-            }
-        };
+            remoteStream.addTrack(
+                track
+            );
+
+
+        });
+
+
+
+        $("remoteVideo")
+        .srcObject =
+        remoteStream;
+
+
+    };
+
 }
 
 
+
+
+
+
+
 /* =========================
-   START CALL
+ START CALL
 ========================= */
+
 
 async function startCall(
     userId,
     type
-) {
+){
 
-    if (
-        String(userId) ===
-        String(getUserId())
-    ) {
-
-        toast(
-            "نمی‌توانید با خودتان تماس بگیرید."
-        );
-
-        return;
-    }
 
     currentCallUser =
         userId;
 
+
     currentCallType =
         type;
 
+
+
     $("callPanel")
-        .classList
-        .remove("hidden");
+    .classList
+    .remove("hidden");
 
-    $("callStatus")
-        .textContent =
-        "در حال دسترسی به دوربین و میکروفون...";
 
-    try {
 
-        const constraints =
-            type === "audio"
-                ? {
-                    audio: true,
-                    video: false
-                }
-                : {
-                    audio: true,
-                    video: true
-                };
+    try{
+
 
         localStream =
-            await navigator
-                .mediaDevices
-                .getUserMedia(
-                    constraints
-                );
+        await navigator.mediaDevices
+        .getUserMedia({
+
+            audio:true,
+
+            video:
+            type === "video"
+
+        });
+
+
 
         $("localVideo")
-            .srcObject =
-            localStream;
+        .srcObject =
+        localStream;
+
+
 
         createPeerConnection();
 
-        localStream
-            .getTracks()
-            .forEach(track => {
 
-                peerConnection.addTrack(
-                    track,
-                    localStream
-                );
-            });
+
+        localStream
+        .getTracks()
+        .forEach(track=>{
+
+            peerConnection
+            .addTrack(
+                track,
+                localStream
+            );
+
+        });
+
+
 
         const offer =
-            await peerConnection
-                .createOffer();
+        await peerConnection
+        .createOffer();
+
+
 
         await peerConnection
-            .setLocalDescription(
-                offer
-            );
+        .setLocalDescription(
+            offer
+        );
+
+
 
         sendSignal({
 
             type:
-                "offer",
+            "offer",
 
-            to:
-                userId,
 
-            from:
-                getUserId(),
+            target_user_id:
+            userId,
+
 
             call_type:
-                type,
+            type,
+
 
             offer:
-                offer
+            offer
 
         });
 
+
+
         $("callStatus")
-            .textContent =
-            "در حال تماس...";
+        .textContent =
+        "در حال تماس...";
 
-    } catch (error) {
 
-        console.error(
-            "Call:",
-            error
-        );
+
+    }
+    catch(e){
+
+        console.log(e);
+
 
         toast(
-            "دسترسی به دوربین یا میکروفون ممکن نشد."
+            "دوربین یا میکروفون اجازه داده نشد"
         );
 
+
         cleanupCall();
+
     }
+
+
 }
 
 
+
+
+
+
+
 /* =========================
-   SIGNAL
+ HANDLE SIGNAL
 ========================= */
 
-async function handleSignal(
-    data
-) {
 
-    if (
+async function handleSignal(data){
+
+
+
+    if(
         data.type ===
         "offer"
-    ) {
+    ){
+
 
         incomingOffer =
-            data.offer;
+        data.offer;
+
 
         currentCallUser =
-            data.from;
+        data.from_user_id;
+
+
 
         currentCallType =
-            data.call_type ||
-            "video";
+        data.call_type ||
+        "video";
 
-        $("incomingName")
-            .textContent =
-            "کاربر " +
-            currentCallUser +
-            " با شما تماس گرفته است.";
+
 
         $("incomingCall")
-            .classList
-            .remove("hidden");
+        .classList
+        .remove("hidden");
+
 
         return;
+
     }
 
 
-    if (
+
+
+
+    if(
         data.type ===
         "answer"
-    ) {
+    ){
 
-        if (!peerConnection)
-            return;
 
         await peerConnection
-            .setRemoteDescription(
-                new RTCSessionDescription(
-                    data.answer
-                )
-            );
+        .setRemoteDescription(
+
+            new RTCSessionDescription(
+                data.answer
+            )
+
+        );
+
 
         return;
+
     }
 
 
-    if (
+
+
+
+    if(
         data.type ===
         "ice-candidate"
-    ) {
+    ){
 
-        if (
-            peerConnection &&
-            data.candidate
-        ) {
 
-            try {
+        if(
+            data.candidate &&
+            peerConnection
+        ){
 
-                await peerConnection
-                    .addIceCandidate(
-                        new RTCIceCandidate(
-                            data.candidate
-                        )
-                    );
+            await peerConnection
+            .addIceCandidate(
 
-            } catch (error) {
+                new RTCIceCandidate(
+                    data.candidate
+                )
 
-                console.error(
-                    error
-                );
-            }
+            );
+
         }
 
+
         return;
+
     }
 
 
-    if (
-        data.type ===
-        "call-rejected"
-    ) {
-
-        toast(
-            "تماس رد شد."
-        );
-
-        cleanupCall();
-
-        return;
-    }
 
 
-    if (
+
+    if(
         data.type ===
         "hangup"
-    ) {
-
-        toast(
-            "تماس پایان یافت."
-        );
+    ){
 
         cleanupCall();
+
     }
+
+
 }
 
 
+
+
+
+
+
 /* =========================
-   INCOMING
+ ACCEPT CALL
 ========================= */
 
-async function acceptCall() {
+
+async function acceptCall(){
+
 
     $("incomingCall")
-        .classList
-        .add("hidden");
+    .classList
+    .add("hidden");
+
+
 
     $("callPanel")
-        .classList
-        .remove("hidden");
+    .classList
+    .remove("hidden");
 
-    try {
 
-        const constraints =
-            currentCallType === "audio"
-                ? {
-                    audio: true,
-                    video: false
-                }
-                : {
-                    audio: true,
-                    video: true
-                };
 
-        localStream =
-            await navigator
-                .mediaDevices
-                .getUserMedia(
-                    constraints
-                );
+    localStream =
+    await navigator.mediaDevices
+    .getUserMedia({
 
-        $("localVideo")
-            .srcObject =
-            localStream;
+        audio:true,
 
-        createPeerConnection();
+        video:
+        currentCallType === "video"
 
-        localStream
-            .getTracks()
-            .forEach(track => {
+    });
 
-                peerConnection.addTrack(
-                    track,
-                    localStream
-                );
-            });
 
-        await peerConnection
-            .setRemoteDescription(
-                new RTCSessionDescription(
-                    incomingOffer
-                )
-            );
-
-        const answer =
-            await peerConnection
-                .createAnswer();
-
-        await peerConnection
-            .setLocalDescription(
-                answer
-            );
-
-        sendSignal({
-
-            type:
-                "answer",
-
-            to:
-                currentCallUser,
-
-            from:
-                getUserId(),
-
-            answer:
-                answer
-        });
-
-        $("callStatus")
-            .textContent =
-            "در حال اتصال...";
-
-    } catch (error) {
-
-        console.error(
-            error
-        );
-
-        toast(
-            "پاسخ به تماس ناموفق بود."
-        );
-
-        cleanupCall();
-    }
-}
-
-
-function rejectCall() {
-
-    $("incomingCall")
-        .classList
-        .add("hidden");
-
-    if (currentCallUser) {
-
-        sendSignal({
-
-            type:
-                "call-rejected",
-
-            to:
-                currentCallUser,
-
-            from:
-                getUserId()
-
-        });
-    }
-
-    incomingOffer =
-        null;
-
-    currentCallUser =
-        null;
-}
-
-
-/* =========================
-   CONTROLS
-========================= */
-
-function toggleMicrophone() {
-
-    if (!localStream) {
-
-        toast(
-            "تماسی برقرار نیست."
-        );
-
-        return;
-    }
-
-    const tracks =
-        localStream
-            .getAudioTracks();
-
-    if (!tracks.length) {
-
-        toast(
-            "میکروفون فعال نیست."
-        );
-
-        return;
-    }
-
-    tracks.forEach(
-        track => {
-
-            track.enabled =
-                !track.enabled;
-
-        }
-    );
-
-    toast(
-        tracks[0].enabled
-            ? "میکروفون روشن شد"
-            : "میکروفون خاموش شد"
-    );
-}
-
-
-function toggleCamera() {
-
-    if (!localStream) {
-
-        toast(
-            "تماسی برقرار نیست."
-        );
-
-        return;
-    }
-
-    const tracks =
-        localStream
-            .getVideoTracks();
-
-    if (!tracks.length) {
-
-        toast(
-            "دوربین فعال نیست."
-        );
-
-        return;
-    }
-
-    tracks.forEach(
-        track => {
-
-            track.enabled =
-                !track.enabled;
-
-        }
-    );
-
-    toast(
-        tracks[0].enabled
-            ? "دوربین روشن شد"
-            : "دوربین خاموش شد"
-    );
-}
-
-
-function hangup() {
-
-    if (currentCallUser) {
-
-        sendSignal({
-
-            type:
-                "hangup",
-
-            to:
-                currentCallUser,
-
-            from:
-                getUserId()
-
-        });
-    }
-
-    cleanupCall();
-
-    toast(
-        "تماس پایان یافت."
-    );
-}
-
-
-function cleanupCall() {
-
-    if (peerConnection) {
-
-        try {
-            peerConnection.close();
-        } catch {}
-
-        peerConnection =
-            null;
-    }
-
-    if (localStream) {
-
-        localStream
-            .getTracks()
-            .forEach(
-                track => {
-
-                    try {
-                        track.stop();
-                    } catch {}
-
-                }
-            );
-
-        localStream =
-            null;
-    }
-
-    remoteStream =
-        null;
 
     $("localVideo")
-        .srcObject =
-        null;
+    .srcObject =
+    localStream;
 
-    $("remoteVideo")
-        .srcObject =
-        null;
 
-    $("remotePlaceholder")
-        .classList
-        .remove("hidden");
 
-    $("callPanel")
-        .classList
-        .add("hidden");
+    createPeerConnection();
 
-    currentCallUser =
-        null;
 
-    incomingOffer =
-        null;
+
+    localStream
+    .getTracks()
+    .forEach(track=>{
+
+
+        peerConnection
+        .addTrack(
+            track,
+            localStream
+        );
+
+
+    });
+
+
+
+    await peerConnection
+    .setRemoteDescription(
+
+        new RTCSessionDescription(
+            incomingOffer
+        )
+
+    );
+
+
+
+    const answer =
+    await peerConnection
+    .createAnswer();
+
+
+
+    await peerConnection
+    .setLocalDescription(
+        answer
+    );
+
+
+
+    sendSignal({
+
+        type:
+        "answer",
+
+
+        target_user_id:
+        currentCallUser,
+
+
+        answer:
+        answer
+
+    });
+
+
 }
 
 
+
+
+
+
+
+function rejectCall(){
+
+
+    sendSignal({
+
+        type:
+        "call-rejected",
+
+
+        target_user_id:
+        currentCallUser
+
+    });
+
+
+
+    $("incomingCall")
+    .classList
+    .add("hidden");
+
+}
+
+
+
+
+
+
+
 /* =========================
-   LOGOUT
+ CONTROLS
 ========================= */
 
-function logout() {
+
+function toggleMicrophone(){
+
+
+    if(!localStream)
+        return;
+
+
+
+    localStream
+    .getAudioTracks()
+    .forEach(track=>{
+
+        track.enabled =
+        !track.enabled;
+
+    });
+
+
+}
+
+
+
+
+
+function toggleCamera(){
+
+
+    if(!localStream)
+        return;
+
+
+
+    localStream
+    .getVideoTracks()
+    .forEach(track=>{
+
+        track.enabled =
+        !track.enabled;
+
+    });
+
+
+}
+
+
+
+
+
+
+function hangup(){
+
+
+    if(currentCallUser){
+
+
+        sendSignal({
+
+            type:
+            "hangup",
+
+
+            target_user_id:
+            currentCallUser
+
+        });
+
+
+    }
+
+
 
     cleanupCall();
 
-    if (socket) {
 
-        try {
-            socket.close();
-        } catch {}
+}
 
-        socket =
-            null;
-    }
 
-    localStorage.removeItem(
-        "videoCallUserId"
-    );
 
-    currentUser =
+
+
+
+function cleanupCall(){
+
+
+    if(peerConnection){
+
+        peerConnection.close();
+
+        peerConnection =
         null;
 
-    showLogin();
+    }
+
+
+
+    if(localStream){
+
+        localStream
+        .getTracks()
+        .forEach(
+            t=>t.stop()
+        );
+
+
+        localStream =
+        null;
+
+    }
+
+
+
+    $("localVideo")
+    .srcObject =
+    null;
+
+
+    $("remoteVideo")
+    .srcObject =
+    null;
+
+
+
+    $("callPanel")
+    .classList
+    .add("hidden");
+
+
 }
 
 
+
+
+
+
+
 /* =========================
-   EVENTS
+ EVENTS
 ========================= */
 
-function setupEvents() {
 
-    $("loginButton").onclick =
-        login;
+function setupEvents(){
 
-    $("registerButton").onclick =
-        register;
 
-    $("showRegisterButton").onclick =
-        showRegister;
+    $("loginButton")
+    .onclick =
+    login;
 
-    $("showLoginButton").onclick =
-        showLogin;
 
-    $("searchButton").onclick =
-        searchUser;
+    $("registerButton")
+    .onclick =
+    register;
 
-    $("refreshButton").onclick =
-        loadUsers;
 
-    $("microphoneButton").onclick =
-        toggleMicrophone;
+    $("showRegisterButton")
+    .onclick =
+    showRegister;
 
-    $("cameraButton").onclick =
-        toggleCamera;
 
-    $("hangupButton").onclick =
-        hangup;
+    $("showLoginButton")
+    .onclick =
+    showLogin;
 
-    $("closeCallButton").onclick =
-        hangup;
 
-    $("acceptButton").onclick =
-        acceptCall;
+    $("refreshButton")
+    .onclick =
+    loadUsers;
 
-    $("rejectButton").onclick =
-        rejectCall;
 
-    $("logoutButton").onclick =
-        logout;
+    $("acceptButton")
+    .onclick =
+    acceptCall;
 
-    $("homeButton").onclick =
-        () => window.scrollTo({
-            top: 0,
-            behavior: "smooth"
-        });
 
-    $("contactsButton").onclick =
-        () => {
-            location.href =
-                "contacts.html";
-        };
+    $("rejectButton")
+    .onclick =
+    rejectCall;
 
-    $("profileButton").onclick =
-        () => {
-            location.href =
-                "profile.html";
-        };
 
-    $("settingsButton").onclick =
-        () => {
-            location.href =
-                "settings.html";
-        };
+    $("hangupButton")
+    .onclick =
+    hangup;
+
+
+    $("closeCallButton")
+    .onclick =
+    hangup;
+
+
+    $("microphoneButton")
+    .onclick =
+    toggleMicrophone;
+
+
+    $("cameraButton")
+    .onclick =
+    toggleCamera;
+
+
+    $("logoutButton")
+    .onclick =
+    ()=>{
+
+        localStorage.clear();
+
+        location.reload();
+
+    };
+
+
 }
 
 
+
+
+
+
 /* =========================
-   START
+ START
 ========================= */
 
-async function start() {
+
+function start(){
+
 
     setupEvents();
 
-    const savedId =
-        getUserId();
 
-    if (!savedId) {
+    const id =
+    getUserId();
+
+
+
+    if(id){
+
+        showApp();
+
+        connectWebSocket();
+
+        loadUsers();
+
+    }
+
+    else{
 
         showLogin();
 
-        return;
     }
 
-    /*
-     * اول صفحه را نشان می‌دهیم.
-     * بنابراین هیچ درخواست شبکه‌ای
-     * نمی‌تواند صفحه را خالی کند.
-     */
 
-    showApp();
-
-    $("onlineBox")
-        .textContent =
-        "🟡 در حال اتصال به حساب...";
-
-    try {
-
-        const data =
-            await api(
-                "/api/users/" +
-                encodeURIComponent(
-                    savedId
-                )
-            );
-
-        currentUser =
-            data.user ||
-            data;
-
-        updateProfile();
-
-    } catch (error) {
-
-        console.error(
-            "Profile:",
-            error
-        );
-
-        /*
-         * حتی اگر API موقتاً مشکل داشت،
-         * صفحه تماس آنلاین باقی می‌ماند.
-         */
-
-        $("myName")
-            .textContent =
-            "کاربر";
-
-        $("myId")
-            .textContent =
-            "شناسه: " + savedId;
-    }
-
-    /*
-     * این‌ها مستقل از نمایش صفحه هستند.
-     */
-
-    connectWebSocket();
-
-    loadUsers();
 }
 
 
+
 document.addEventListener(
-    "DOMContentLoaded",
-    start
+"DOMContentLoaded",
+start
 );
