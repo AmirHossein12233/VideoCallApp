@@ -7,14 +7,16 @@ from fastapi import (
 )
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
-from pathlib import Path
 from typing import Optional
-import sqlite3
+import os
 import logging
 import secrets
 import hashlib
 import hmac
 import uuid
+
+import psycopg
+from psycopg.rows import dict_row
 
 
 # =========================================================
@@ -22,6 +24,7 @@ import uuid
 # =========================================================
 
 logging.basicConfig(level=logging.INFO)
+
 logger = logging.getLogger("VideoCallApp")
 
 
@@ -31,7 +34,7 @@ logger = logging.getLogger("VideoCallApp")
 
 app = FastAPI(
     title="VideoCallApp",
-    version="6.0.0",
+    version="8.0.0",
 )
 
 
@@ -56,106 +59,145 @@ app.add_middleware(
 # DATABASE
 # =========================================================
 
-BASE_DIR = Path(__file__).resolve().parent
-DB_FILE = BASE_DIR / "videocall.db"
+DATABASE_URL = os.getenv("DATABASE_URL")
+
+if not DATABASE_URL:
+    raise RuntimeError(
+        "DATABASE_URL environment variable is not set"
+    )
+
+
+# بعضی سرویس‌ها هنوز postgres:// می‌دهند
+if DATABASE_URL.startswith("postgres://"):
+    DATABASE_URL = DATABASE_URL.replace(
+        "postgres://",
+        "postgresql://",
+        1,
+    )
 
 
 def get_db():
-    conn = sqlite3.connect(DB_FILE)
-    conn.row_factory = sqlite3.Row
-    return conn
-
-
-def column_exists(cursor, table_name, column_name):
-    cursor.execute(f"PRAGMA table_info({table_name})")
-    columns = cursor.fetchall()
-
-    return any(
-        row["name"] == column_name
-        for row in columns
+    return psycopg.connect(
+        DATABASE_URL,
+        row_factory=dict_row,
     )
 
+
+# =========================================================
+# DATABASE INITIALIZATION / MIGRATION
+# =========================================================
 
 def init_db():
-    conn = get_db()
-    cur = conn.cursor()
+    with get_db() as conn:
+        with conn.cursor() as cur:
 
-    # -------------------------
-    # USERS
-    # -------------------------
+            # -------------------------------------------------
+            # USERS
+            # -------------------------------------------------
 
-    cur.execute(
-        """
-        CREATE TABLE IF NOT EXISTS users (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            user_id TEXT UNIQUE NOT NULL,
-            phone TEXT UNIQUE NOT NULL,
-            display_name TEXT NOT NULL,
-            avatar TEXT DEFAULT '',
-            password_hash TEXT DEFAULT '',
-            password_salt TEXT DEFAULT ''
-        )
-        """
-    )
+            cur.execute(
+                """
+                CREATE TABLE IF NOT EXISTS users (
+                    id BIGSERIAL PRIMARY KEY,
+                    user_id TEXT UNIQUE NOT NULL,
+                    display_name TEXT NOT NULL,
+                    avatar TEXT DEFAULT '',
+                    password_hash TEXT DEFAULT '',
+                    password_salt TEXT DEFAULT ''
+                )
+                """
+            )
 
-    # Migration برای دیتابیس‌های قبلی
-    if not column_exists(
-        cur,
-        "users",
-        "password_hash",
-    ):
-        cur.execute(
-            """
-            ALTER TABLE users
-            ADD COLUMN password_hash TEXT DEFAULT ''
-            """
-        )
+            # اگر دیتابیس قدیمی ستون phone داشته باشد:
+            cur.execute(
+                """
+                ALTER TABLE users
+                DROP COLUMN IF EXISTS phone
+                """
+            )
 
-    if not column_exists(
-        cur,
-        "users",
-        "password_salt",
-    ):
-        cur.execute(
-            """
-            ALTER TABLE users
-            ADD COLUMN password_salt TEXT DEFAULT ''
-            """
-        )
+            # اطمینان از وجود ستون‌های لازم
+            cur.execute(
+                """
+                ALTER TABLE users
+                ADD COLUMN IF NOT EXISTS avatar TEXT DEFAULT ''
+                """
+            )
 
-    # -------------------------
-    # MESSAGES
-    # -------------------------
+            cur.execute(
+                """
+                ALTER TABLE users
+                ADD COLUMN IF NOT EXISTS password_hash TEXT DEFAULT ''
+                """
+            )
 
-    cur.execute(
-        """
-        CREATE TABLE IF NOT EXISTS messages (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            sender TEXT NOT NULL,
-            receiver TEXT NOT NULL,
-            message TEXT NOT NULL,
-            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-        )
-        """
-    )
+            cur.execute(
+                """
+                ALTER TABLE users
+                ADD COLUMN IF NOT EXISTS password_salt TEXT DEFAULT ''
+                """
+            )
 
-    # -------------------------
-    # SESSIONS
-    # -------------------------
+            # -------------------------------------------------
+            # MESSAGES
+            # -------------------------------------------------
 
-    cur.execute(
-        """
-        CREATE TABLE IF NOT EXISTS sessions (
-            id INTEGER PRIMARY KEY AUTOINCREMENT,
-            token TEXT UNIQUE NOT NULL,
-            user_id TEXT NOT NULL,
-            created_at DATETIME DEFAULT CURRENT_TIMESTAMP
-        )
-        """
-    )
+            cur.execute(
+                """
+                CREATE TABLE IF NOT EXISTS messages (
+                    id BIGSERIAL PRIMARY KEY,
+                    sender TEXT NOT NULL,
+                    receiver TEXT NOT NULL,
+                    message TEXT NOT NULL,
+                    created_at TIMESTAMPTZ DEFAULT NOW()
+                )
+                """
+            )
 
-    conn.commit()
-    conn.close()
+            # -------------------------------------------------
+            # SESSIONS
+            # -------------------------------------------------
+
+            cur.execute(
+                """
+                CREATE TABLE IF NOT EXISTS sessions (
+                    id BIGSERIAL PRIMARY KEY,
+                    token TEXT UNIQUE NOT NULL,
+                    user_id TEXT NOT NULL,
+                    created_at TIMESTAMPTZ DEFAULT NOW()
+                )
+                """
+            )
+
+            # -------------------------------------------------
+            # INDEXES
+            # -------------------------------------------------
+
+            cur.execute(
+                """
+                CREATE INDEX IF NOT EXISTS
+                idx_messages_sender_receiver
+                ON messages(sender, receiver)
+                """
+            )
+
+            cur.execute(
+                """
+                CREATE INDEX IF NOT EXISTS
+                idx_sessions_token
+                ON sessions(token)
+                """
+            )
+
+            cur.execute(
+                """
+                CREATE INDEX IF NOT EXISTS
+                idx_users_user_id
+                ON users(user_id)
+                """
+            )
+
+        conn.commit()
 
 
 init_db()
@@ -167,7 +209,6 @@ init_db()
 
 class RegisterRequest(BaseModel):
     user_id: str
-    phone: str
     display_name: str
     password: str
 
@@ -199,11 +240,9 @@ def hash_password(
     if salt is None:
         salt = secrets.token_bytes(16)
 
-    password_bytes = password.encode("utf-8")
-
     digest = hashlib.pbkdf2_hmac(
         "sha256",
-        password_bytes,
+        password.encode("utf-8"),
         salt,
         210_000,
     )
@@ -249,7 +288,6 @@ def user_to_dict(row):
     return {
         "id": row["id"],
         "user_id": row["user_id"],
-        "phone": row["phone"],
         "display_name": row["display_name"],
         "avatar": row["avatar"] or "",
         "online": row["user_id"] in online_users,
@@ -259,26 +297,26 @@ def user_to_dict(row):
 def find_user(identifier: str):
     identifier = identifier.strip()
 
-    conn = get_db()
-    cur = conn.cursor()
+    with get_db() as conn:
+        with conn.cursor() as cur:
 
-    cur.execute(
-        """
-        SELECT *
-        FROM users
-        WHERE user_id = ?
-           OR phone = ?
-        LIMIT 1
-        """,
-        (
-            identifier,
-            identifier,
-        ),
-    )
+            cur.execute(
+                """
+                SELECT
+                    id,
+                    user_id,
+                    display_name,
+                    avatar,
+                    password_hash,
+                    password_salt
+                FROM users
+                WHERE user_id = %s
+                LIMIT 1
+                """,
+                (identifier,),
+            )
 
-    row = cur.fetchone()
-
-    conn.close()
+            row = cur.fetchone()
 
     return user_to_dict(row)
 
@@ -286,54 +324,55 @@ def find_user(identifier: str):
 def get_user_row(identifier: str):
     identifier = identifier.strip()
 
-    conn = get_db()
-    cur = conn.cursor()
+    with get_db() as conn:
+        with conn.cursor() as cur:
 
-    cur.execute(
-        """
-        SELECT *
-        FROM users
-        WHERE user_id = ?
-           OR phone = ?
-        LIMIT 1
-        """,
-        (
-            identifier,
-            identifier,
-        ),
-    )
+            cur.execute(
+                """
+                SELECT
+                    id,
+                    user_id,
+                    display_name,
+                    avatar,
+                    password_hash,
+                    password_salt
+                FROM users
+                WHERE user_id = %s
+                LIMIT 1
+                """,
+                (identifier,),
+            )
 
-    row = cur.fetchone()
-
-    conn.close()
+            row = cur.fetchone()
 
     return row
 
 
 # =========================================================
-# SESSION
+# SESSION HELPERS
 # =========================================================
 
 def create_session(user_id: str):
     token = secrets.token_urlsafe(48)
 
-    conn = get_db()
-    cur = conn.cursor()
+    with get_db() as conn:
+        with conn.cursor() as cur:
 
-    cur.execute(
-        """
-        INSERT INTO sessions
-        (token, user_id)
-        VALUES (?, ?)
-        """,
-        (
-            token,
-            user_id,
-        ),
-    )
+            cur.execute(
+                """
+                INSERT INTO sessions (
+                    token,
+                    user_id
+                )
+                VALUES (%s, %s)
+                """,
+                (
+                    token,
+                    user_id,
+                ),
+            )
 
-    conn.commit()
-    conn.close()
+        conn.commit()
 
     return token
 
@@ -344,24 +383,28 @@ def get_user_from_token(
     if not token:
         return None
 
-    conn = get_db()
-    cur = conn.cursor()
+    with get_db() as conn:
+        with conn.cursor() as cur:
 
-    cur.execute(
-        """
-        SELECT users.*
-        FROM sessions
-        INNER JOIN users
-            ON users.user_id = sessions.user_id
-        WHERE sessions.token = ?
-        LIMIT 1
-        """,
-        (token,),
-    )
+            cur.execute(
+                """
+                SELECT
+                    users.id,
+                    users.user_id,
+                    users.display_name,
+                    users.avatar,
+                    users.password_hash,
+                    users.password_salt
+                FROM sessions
+                INNER JOIN users
+                    ON users.user_id = sessions.user_id
+                WHERE sessions.token = %s
+                LIMIT 1
+                """,
+                (token,),
+            )
 
-    row = cur.fetchone()
-
-    conn.close()
+            row = cur.fetchone()
 
     return user_to_dict(row)
 
@@ -405,7 +448,8 @@ async def root():
     return {
         "success": True,
         "service": "VideoCallApp",
-        "version": "6.0.0",
+        "version": "8.0.0",
+        "database": "PostgreSQL",
         "status": "running",
     }
 
@@ -416,26 +460,43 @@ async def root():
 
 @app.get("/health")
 async def health():
-    conn = get_db()
-    cur = conn.cursor()
+    try:
 
-    cur.execute(
-        "SELECT COUNT(*) FROM users"
-    )
+        with get_db() as conn:
+            with conn.cursor() as cur:
 
-    users_count = cur.fetchone()[0]
+                cur.execute(
+                    """
+                    SELECT COUNT(*) AS count
+                    FROM users
+                    """
+                )
 
-    conn.close()
+                row = cur.fetchone()
 
-    return {
-        "success": True,
-        "service": "VideoCallApp",
-        "version": "6.0.0",
-        "status": "online",
-        "users": users_count,
-        "online_users": len(online_users),
-        "rooms": len(rooms),
-    }
+                users_count = row["count"]
+
+        return {
+            "success": True,
+            "status": "online",
+            "service": "VideoCallApp",
+            "version": "8.0.0",
+            "database": "PostgreSQL",
+            "users": users_count,
+            "online_users": len(online_users),
+            "rooms": len(rooms),
+        }
+
+    except Exception as error:
+
+        logger.error(
+            f"HEALTH ERROR: {error}"
+        )
+
+        raise HTTPException(
+            status_code=500,
+            detail="Database connection failed",
+        )
 
 
 # =========================================================
@@ -447,9 +508,12 @@ async def register(
     data: RegisterRequest,
 ):
     user_id = data.user_id.strip()
-    phone = data.phone.strip()
     display_name = data.display_name.strip()
     password = data.password
+
+    # -------------------------
+    # VALIDATION
+    # -------------------------
 
     if not user_id:
         raise HTTPException(
@@ -457,10 +521,16 @@ async def register(
             detail="شناسه کاربری الزامی است",
         )
 
-    if not phone:
+    if len(user_id) < 3:
         raise HTTPException(
             status_code=400,
-            detail="شماره تلفن الزامی است",
+            detail="شناسه کاربری باید حداقل ۳ کاراکتر باشد",
+        )
+
+    if len(user_id) > 40:
+        raise HTTPException(
+            status_code=400,
+            detail="شناسه کاربری خیلی طولانی است",
         )
 
     if not display_name:
@@ -475,63 +545,79 @@ async def register(
             detail="رمز عبور باید حداقل ۶ کاراکتر باشد",
         )
 
+    # فقط حروف، عدد، _ و -
+    allowed_characters = (
+        "abcdefghijklmnopqrstuvwxyz"
+        "ABCDEFGHIJKLMNOPQRSTUVWXYZ"
+        "0123456789_-"
+    )
+
+    if any(
+        char not in allowed_characters
+        for char in user_id
+    ):
+        raise HTTPException(
+            status_code=400,
+            detail="شناسه فقط می‌تواند شامل حروف انگلیسی، عدد، _ و - باشد",
+        )
+
+    # -------------------------
+    # DUPLICATE CHECK
+    # -------------------------
+
     if find_user(user_id):
         raise HTTPException(
             status_code=400,
             detail="این شناسه کاربری قبلاً ثبت شده است",
         )
 
+    # -------------------------
+    # PASSWORD
+    # -------------------------
+
     salt, password_hash = hash_password(
         password
     )
 
-    conn = get_db()
-    cur = conn.cursor()
+    # -------------------------
+    # INSERT
+    # -------------------------
 
     try:
-        cur.execute(
-            """
-            INSERT INTO users (
-                user_id,
-                phone,
-                display_name,
-                password_hash,
-                password_salt
-            )
-            VALUES (?, ?, ?, ?, ?)
-            """,
-            (
-                user_id,
-                phone,
-                display_name,
-                password_hash,
-                salt,
-            ),
-        )
 
-        conn.commit()
+        with get_db() as conn:
+            with conn.cursor() as cur:
 
-    except sqlite3.IntegrityError as error:
+                cur.execute(
+                    """
+                    INSERT INTO users (
+                        user_id,
+                        display_name,
+                        password_hash,
+                        password_salt
+                    )
+                    VALUES (%s, %s, %s, %s)
+                    """,
+                    (
+                        user_id,
+                        display_name,
+                        password_hash,
+                        salt,
+                    ),
+                )
 
-        logger.error(
-            f"REGISTER ERROR: {error}"
-        )
+            conn.commit()
 
-        text = str(error).lower()
-
-        if "phone" in text:
-            raise HTTPException(
-                status_code=400,
-                detail="این شماره تلفن قبلاً ثبت شده است",
-            )
+    except psycopg.errors.UniqueViolation:
 
         raise HTTPException(
             status_code=400,
-            detail="شناسه یا شماره تلفن قبلاً استفاده شده است",
+            detail="این شناسه قبلاً ثبت شده است",
         )
 
-    finally:
-        conn.close()
+    # -------------------------
+    # CREATE SESSION
+    # -------------------------
 
     token = create_session(
         user_id
@@ -541,7 +627,9 @@ async def register(
         "success": True,
         "message": "ثبت نام موفق بود",
         "token": token,
-        "user": find_user(user_id),
+        "user": find_user(
+            user_id
+        ),
     }
 
 
@@ -558,7 +646,7 @@ async def login(
     if not identifier:
         raise HTTPException(
             status_code=400,
-            detail="شناسه یا شماره تلفن را وارد کنید",
+            detail="شناسه کاربری را وارد کنید",
         )
 
     if not data.password:
@@ -585,13 +673,10 @@ async def login(
         row["password_salt"] or ""
     )
 
-    if (
-        not stored_hash
-        or not stored_salt
-    ):
+    if not stored_hash or not stored_salt:
         raise HTTPException(
             status_code=401,
-            detail="این حساب رمز عبور ندارد؛ یک حساب جدید بسازید",
+            detail="این حساب رمز عبور ندارد؛ لطفاً حساب جدید بسازید",
         )
 
     if not verify_password(
@@ -619,7 +704,7 @@ async def login(
 
 
 # =========================================================
-# ME
+# CURRENT USER
 # =========================================================
 
 @app.get("/api/me")
@@ -664,19 +749,18 @@ async def logout(
 
     if token:
 
-        conn = get_db()
-        cur = conn.cursor()
+        with get_db() as conn:
+            with conn.cursor() as cur:
 
-        cur.execute(
-            """
-            DELETE FROM sessions
-            WHERE token = ?
-            """,
-            (token,),
-        )
+                cur.execute(
+                    """
+                    DELETE FROM sessions
+                    WHERE token = %s
+                    """,
+                    (token,),
+                )
 
-        conn.commit()
-        conn.close()
+            conn.commit()
 
     return {
         "success": True,
@@ -685,7 +769,7 @@ async def logout(
 
 
 # =========================================================
-# USER BY ID / PHONE
+# GET USER
 # =========================================================
 
 @app.get("/api/users/{identifier}")
@@ -715,20 +799,24 @@ async def get_user(
 @app.get("/api/users")
 async def users():
 
-    conn = get_db()
-    cur = conn.cursor()
+    with get_db() as conn:
+        with conn.cursor() as cur:
 
-    cur.execute(
-        """
-        SELECT *
-        FROM users
-        ORDER BY id DESC
-        """
-    )
+            cur.execute(
+                """
+                SELECT
+                    id,
+                    user_id,
+                    display_name,
+                    avatar,
+                    password_hash,
+                    password_salt
+                FROM users
+                ORDER BY id DESC
+                """
+            )
 
-    rows = cur.fetchall()
-
-    conn.close()
+            rows = cur.fetchall()
 
     return {
         "success": True,
@@ -790,25 +878,25 @@ async def update_profile(
             detail="نام نمایشی نمی‌تواند خالی باشد",
         )
 
-    conn = get_db()
-    cur = conn.cursor()
+    with get_db() as conn:
+        with conn.cursor() as cur:
 
-    cur.execute(
-        """
-        UPDATE users
-        SET display_name = ?,
-            avatar = ?
-        WHERE user_id = ?
-        """,
-        (
-            display_name,
-            avatar,
-            user_id,
-        ),
-    )
+            cur.execute(
+                """
+                UPDATE users
+                SET
+                    display_name = %s,
+                    avatar = %s
+                WHERE user_id = %s
+                """,
+                (
+                    display_name,
+                    avatar,
+                    user_id,
+                ),
+            )
 
-    conn.commit()
-    conn.close()
+        conn.commit()
 
     return {
         "success": True,
@@ -820,31 +908,33 @@ async def update_profile(
 
 
 # =========================================================
-# ONLINE USER SOCKETS
+# ONLINE USER WEBSOCKET
 # =========================================================
 
 online_users: dict[str, WebSocket] = {}
 
 
-@app.websocket("/ws/user/{user_id}")
+@app.websocket(
+    "/ws/user/{user_id}"
+)
 async def user_socket(
     websocket: WebSocket,
     user_id: str,
 ):
-
     await websocket.accept()
 
     user_id = user_id.strip()
 
-    # -----------------------------------------
-    # TOKEN FROM QUERY STRING
-    # -----------------------------------------
+    # -------------------------
+    # TOKEN
+    # -------------------------
 
     token = websocket.query_params.get(
         "token"
     )
 
     if not token:
+
         await websocket.send_json({
             "type": "auth_error",
             "message": "توکن ورود ارسال نشده است",
@@ -856,11 +946,15 @@ async def user_socket(
 
         return
 
+    # -------------------------
+    # AUTHENTICATE
+    # -------------------------
 
     authenticated_user = (
-        get_user_from_token(token)
+        get_user_from_token(
+            token
+        )
     )
-
 
     if not authenticated_user:
 
@@ -875,10 +969,9 @@ async def user_socket(
 
         return
 
-
-    # -----------------------------------------
+    # -------------------------
     # CHECK USER ID
-    # -----------------------------------------
+    # -------------------------
 
     if (
         authenticated_user["user_id"]
@@ -896,10 +989,9 @@ async def user_socket(
 
         return
 
-
-    # -----------------------------------------
-    # CLOSE PREVIOUS CONNECTION
-    # -----------------------------------------
+    # -------------------------
+    # PREVIOUS SOCKET
+    # -------------------------
 
     previous_socket = online_users.get(
         user_id
@@ -915,13 +1007,15 @@ async def user_socket(
         except Exception:
             pass
 
-
     online_users[user_id] = websocket
 
     logger.info(
-        f"AUTHENTICATED ONLINE: {user_id}"
+        f"ONLINE: {user_id}"
     )
 
+    # -------------------------
+    # LOOP
+    # -------------------------
 
     try:
 
@@ -933,15 +1027,13 @@ async def user_socket(
 
             if not isinstance(
                 data,
-                dict,
+                dict
             ):
                 continue
-
 
             target = data.get(
                 "target"
             )
-
 
             if not target:
 
@@ -952,18 +1044,13 @@ async def user_socket(
 
                 continue
 
-
             target = str(
                 target
             ).strip()
 
-
-            target_socket = (
-                online_users.get(
-                    target
-                )
+            target_socket = online_users.get(
+                target
             )
-
 
             if not target_socket:
 
@@ -975,13 +1062,11 @@ async def user_socket(
 
                 continue
 
-
             outgoing = dict(
                 data
             )
 
             outgoing["from"] = user_id
-
 
             try:
 
@@ -992,11 +1077,8 @@ async def user_socket(
             except Exception as error:
 
                 logger.error(
-                    f"FORWARD ERROR "
-                    f"{user_id} -> {target}: "
-                    f"{error}"
+                    f"FORWARD ERROR: {error}"
                 )
-
 
     except WebSocketDisconnect:
 
@@ -1004,23 +1086,19 @@ async def user_socket(
             f"OFFLINE: {user_id}"
         )
 
-
     except Exception as error:
 
         logger.error(
-            f"WEBSOCKET ERROR "
-            f"({user_id}): {error}"
+            f"WEBSOCKET ERROR: {error}"
         )
-
 
     finally:
 
-        current = online_users.get(
+        current_socket = online_users.get(
             user_id
         )
 
-        if current is websocket:
-
+        if current_socket is websocket:
             online_users.pop(
                 user_id,
                 None
@@ -1042,22 +1120,18 @@ async def save_message(
         authorization
     )
 
-
-    if (
-        current_user["user_id"]
-        != data.sender
-    ):
-
-        raise HTTPException(
-            status_code=403,
-            detail="فرستنده معتبر نیست",
-        )
-
-
     sender = data.sender.strip()
     receiver = data.receiver.strip()
     message = data.message.strip()
 
+    if (
+        current_user["user_id"]
+        != sender
+    ):
+        raise HTTPException(
+            status_code=403,
+            detail="فرستنده معتبر نیست",
+        )
 
     if not receiver:
         raise HTTPException(
@@ -1065,54 +1139,45 @@ async def save_message(
             detail="گیرنده الزامی است",
         )
 
-
     if not message:
         raise HTTPException(
             status_code=400,
             detail="پیام نمی‌تواند خالی باشد",
         )
 
-
     if len(message) > 5000:
-
         raise HTTPException(
             status_code=400,
             detail="پیام خیلی طولانی است",
         )
 
+    with get_db() as conn:
+        with conn.cursor() as cur:
 
-    conn = get_db()
-    cur = conn.cursor()
+            cur.execute(
+                """
+                INSERT INTO messages (
+                    sender,
+                    receiver,
+                    message
+                )
+                VALUES (%s, %s, %s)
+                RETURNING id
+                """,
+                (
+                    sender,
+                    receiver,
+                    message,
+                ),
+            )
 
+            row = cur.fetchone()
 
-    cur.execute(
-        """
-        INSERT INTO messages
-        (
-            sender,
-            receiver,
-            message
-        )
-        VALUES (?, ?, ?)
-        """,
-        (
-            sender,
-            receiver,
-            message,
-        ),
-    )
-
-
-    message_id = cur.lastrowid
-
-
-    conn.commit()
-    conn.close()
-
+        conn.commit()
 
     return {
         "success": True,
-        "message_id": message_id,
+        "message_id": row["id"],
     }
 
 
@@ -1130,57 +1195,52 @@ async def get_messages(
         authorization
     )
 
-
-    if current_user["user_id"] not in [
+    if current_user["user_id"] not in (
         user1,
         user2,
-    ]:
-
+    ):
         raise HTTPException(
             status_code=403,
             detail="اجازه مشاهده این گفتگو را ندارید",
         )
 
+    with get_db() as conn:
+        with conn.cursor() as cur:
 
-    conn = get_db()
-    cur = conn.cursor()
+            cur.execute(
+                """
+                SELECT
+                    id,
+                    sender,
+                    receiver,
+                    message,
+                    created_at
+                FROM messages
+                WHERE
+                    (
+                        sender = %s
+                        AND receiver = %s
+                    )
+                    OR
+                    (
+                        sender = %s
+                        AND receiver = %s
+                    )
+                ORDER BY id ASC
+                """,
+                (
+                    user1,
+                    user2,
+                    user2,
+                    user1,
+                ),
+            )
 
-
-    cur.execute(
-        """
-        SELECT
-            id,
-            sender,
-            receiver,
-            message,
-            created_at
-        FROM messages
-        WHERE
-            (sender = ? AND receiver = ?)
-            OR
-            (sender = ? AND receiver = ?)
-        ORDER BY id ASC
-        """,
-        (
-            user1,
-            user2,
-            user2,
-            user1,
-        ),
-    )
-
-
-    rows = cur.fetchall()
-
-    conn.close()
-
+            rows = cur.fetchall()
 
     return {
         "success": True,
-        "messages": [
-            dict(row)
-            for row in rows
-        ],
+        "messages": rows,
     }
 
 
@@ -1195,15 +1255,21 @@ rooms: dict[
 
 
 @app.post("/api/create-room")
-async def create_room():
+async def create_room(
+    authorization: Optional[str] = Header(
+        default=None
+    ),
+):
+    # ساخت اتاق فقط برای کاربر واردشده
+    require_auth(
+        authorization
+    )
 
     room_id = str(
         uuid.uuid4()
     )[:8]
 
-
     rooms[room_id] = {}
-
 
     return {
         "success": True,
@@ -1219,22 +1285,18 @@ async def room_socket(
     room_id: str,
     user_id: str,
 ):
-
     await websocket.accept()
-
 
     room_id = room_id.strip()
     user_id = user_id.strip()
 
-
-    # -----------------------------------------
-    # ROOM TOKEN
-    # -----------------------------------------
+    # -------------------------
+    # TOKEN
+    # -------------------------
 
     token = websocket.query_params.get(
         "token"
     )
-
 
     if not token:
 
@@ -1249,11 +1311,15 @@ async def room_socket(
 
         return
 
+    # -------------------------
+    # AUTHENTICATE
+    # -------------------------
 
     authenticated_user = (
-        get_user_from_token(token)
+        get_user_from_token(
+            token
+        )
     )
-
 
     if not authenticated_user:
 
@@ -1267,7 +1333,6 @@ async def room_socket(
         )
 
         return
-
 
     if (
         authenticated_user["user_id"]
@@ -1285,81 +1350,79 @@ async def room_socket(
 
         return
 
-
-    # -----------------------------------------
-    # CREATE ROOM IF MISSING
-    # -----------------------------------------
+    # -------------------------
+    # ROOM
+    # -------------------------
 
     if room_id not in rooms:
         rooms[room_id] = {}
 
+    # اگر همان کاربر دوباره آمد،
+    # اتصال قبلی را حذف کن
+    old_socket = rooms[room_id].get(
+        user_id
+    )
 
-    # -----------------------------------------
-    # SAVE SOCKET
-    # -----------------------------------------
+    if old_socket and old_socket is not websocket:
+        try:
+            await old_socket.close()
+        except Exception:
+            pass
+
+    # کاربران فعلی
+    existing_users = [
+        existing_user
+        for existing_user in rooms[room_id]
+        if existing_user != user_id
+    ]
 
     rooms[room_id][user_id] = websocket
-
 
     logger.info(
         f"ROOM JOIN: "
         f"{user_id} -> {room_id}"
     )
 
-
-    # -----------------------------------------
-    # NOTIFY MEMBERS
-    # -----------------------------------------
-
-    existing_users = [
-        existing_user
-        for existing_user
-        in rooms[room_id]
-        if existing_user != user_id
-    ]
-
+    # -------------------------
+    # NOTIFY EXISTING USERS
+    # -------------------------
 
     for existing_user in existing_users:
 
-        existing_socket = (
-            rooms[room_id]
-            .get(existing_user)
+        existing_socket = rooms[
+            room_id
+        ].get(
+            existing_user
         )
-
 
         if existing_socket:
 
             try:
 
                 await existing_socket.send_json({
-
-                    "type":
-                        "user_joined",
-
-                    "user":
-                        user_id,
-
+                    "type": "user_joined",
+                    "user": user_id,
                 })
 
             except Exception:
                 pass
 
+    # ارسال لیست فعلی به کاربر جدید
+    for existing_user in existing_users:
 
         try:
 
             await websocket.send_json({
-
-                "type":
-                    "user_joined",
-
-                "user":
-                    existing_user,
-
+                "type": "user_joined",
+                "user": existing_user,
             })
 
         except Exception:
             pass
 
+    # -------------------------
+    # MESSAGE LOOP
+    # -------------------------
 
     try:
 
@@ -1369,34 +1432,28 @@ async def room_socket(
                 await websocket.receive_json()
             )
 
-
             if not isinstance(
                 data,
-                dict,
+                dict
             ):
                 continue
-
 
             target = data.get(
                 "target"
             )
 
-
+            # ارسال مستقیم
             if target:
 
                 target = str(
                     target
                 ).strip()
 
-
                 target_socket = (
-                    rooms[
-                        room_id
-                    ].get(
+                    rooms[room_id].get(
                         target
                     )
                 )
-
 
                 if target_socket:
 
@@ -1408,42 +1465,34 @@ async def room_socket(
                         user_id
                     )
 
+                    try:
 
-                    await target_socket.send_json(
-                        outgoing
-                    )
+                        await target_socket.send_json(
+                            outgoing
+                        )
 
+                    except Exception:
+                        pass
 
                 else:
 
                     await websocket.send_json({
-
-                        "type":
-                            "error",
-
-                        "message":
-                            "کاربر موردنظر در اتاق نیست",
-
+                        "type": "error",
+                        "message": "کاربر موردنظر در اتاق نیست",
                     })
 
-
+            # ارسال به همه اعضای دیگر
             else:
 
                 for (
                     other_user,
-                    other_socket
+                    other_socket,
                 ) in list(
-                    rooms[
-                        room_id
-                    ].items()
+                    rooms[room_id].items()
                 ):
 
-                    if (
-                        other_user
-                        == user_id
-                    ):
+                    if other_user == user_id:
                         continue
-
 
                     outgoing = dict(
                         data
@@ -1452,7 +1501,6 @@ async def room_socket(
                     outgoing["from"] = (
                         user_id
                     )
-
 
                     try:
 
@@ -1463,7 +1511,6 @@ async def room_socket(
                     except Exception:
                         pass
 
-
     except WebSocketDisconnect:
 
         logger.info(
@@ -1471,13 +1518,11 @@ async def room_socket(
             f"{user_id} -> {room_id}"
         )
 
-
     except Exception as error:
 
         logger.error(
-            f"ROOM ERROR: {error}"
+            f"ROOM SOCKET ERROR: {error}"
         )
-
 
     finally:
 
@@ -1485,25 +1530,23 @@ async def room_socket(
             room_id
         )
 
-
         if room:
 
-            current = room.get(
+            current_socket = room.get(
                 user_id
             )
 
-
-            if current is websocket:
+            if current_socket is websocket:
 
                 room.pop(
                     user_id,
                     None
                 )
 
-
+            # خبر خروج
             for (
                 other_user,
-                other_socket
+                other_socket,
             ) in list(
                 room.items()
             ):
@@ -1511,19 +1554,14 @@ async def room_socket(
                 try:
 
                     await other_socket.send_json({
-
-                        "type":
-                            "user_left",
-
-                        "user":
-                            user_id,
-
+                        "type": "user_left",
+                        "user": user_id,
                     })
 
                 except Exception:
                     pass
 
-
+            # حذف اتاق خالی
             if not room:
 
                 rooms.pop(

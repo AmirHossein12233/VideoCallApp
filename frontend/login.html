@@ -26,87 +26,69 @@
         </p>
 
 
-        <!-- LOGIN -->
+        <h3>
+            ورود
+        </h3>
 
-        <div>
+        <input
+            id="loginIdentifier"
+            class="input"
+            type="text"
+            placeholder="شناسه کاربری">
 
-            <h3>
-                ورود
-            </h3>
+        <input
+            id="loginPassword"
+            class="input"
+            type="password"
+            placeholder="رمز عبور">
 
-            <input
-                id="loginIdentifier"
-                class="input"
-                type="text"
-                placeholder="شناسه کاربری یا شماره تلفن">
+        <button
+            id="loginButton"
+            class="button">
 
-            <input
-                id="loginPassword"
-                class="input"
-                type="password"
-                placeholder="رمز عبور">
+            ورود
 
-            <button
-                id="loginButton"
-                class="button">
-
-                ورود
-
-            </button>
-
-        </div>
+        </button>
 
 
-        <hr style="margin: 25px 0;">
+        <hr style="margin:25px 0;">
 
 
-        <!-- REGISTER -->
+        <h3>
+            ساخت حساب
+        </h3>
 
-        <div>
+        <input
+            id="registerUserId"
+            class="input"
+            type="text"
+            placeholder="شناسه کاربری">
 
-            <h3>
-                ساخت حساب
-            </h3>
+        <input
+            id="registerName"
+            class="input"
+            type="text"
+            placeholder="نام نمایشی">
 
-            <input
-                id="registerUserId"
-                class="input"
-                type="text"
-                placeholder="شناسه کاربری">
+        <input
+            id="registerPassword"
+            class="input"
+            type="password"
+            placeholder="رمز عبور">
 
-            <input
-                id="registerPhone"
-                class="input"
-                type="text"
-                placeholder="شماره تلفن">
+        <input
+            id="registerPassword2"
+            class="input"
+            type="password"
+            placeholder="تکرار رمز عبور">
 
-            <input
-                id="registerName"
-                class="input"
-                type="text"
-                placeholder="نام نمایشی">
+        <button
+            id="registerButton"
+            class="button">
 
-            <input
-                id="registerPassword"
-                class="input"
-                type="password"
-                placeholder="رمز عبور حداقل ۶ کاراکتر">
+            ثبت نام
 
-            <input
-                id="registerPassword2"
-                class="input"
-                type="password"
-                placeholder="تکرار رمز عبور">
-
-            <button
-                id="registerButton"
-                class="button">
-
-                ثبت نام
-
-            </button>
-
-        </div>
+        </button>
 
 
         <p
@@ -140,13 +122,12 @@ function showMessage(
         success
             ? "#16a34a"
             : "#dc2626";
-
 }
 
 
-// =================================================
+// =========================
 // LOGIN
-// =================================================
+// =========================
 
 document
 .getElementById("loginButton")
@@ -228,11 +209,9 @@ document
 
 
         setTimeout(() => {
-
-            location.href =
-                "index.html";
-
+            location.href = "index.html";
         }, 500);
+
 
     } catch (error) {
 
@@ -243,13 +222,12 @@ document
         );
 
     }
-
 };
 
 
-// =================================================
+// =========================
 // REGISTER
-// =================================================
+// =========================
 
 document
 .getElementById("registerButton")
@@ -258,12 +236,6 @@ document
     const user_id =
         document
         .getElementById("registerUserId")
-        .value
-        .trim();
-
-    const phone =
-        document
-        .getElementById("registerPhone")
         .value
         .trim();
 
@@ -286,7 +258,6 @@ document
 
     if (
         !user_id ||
-        !phone ||
         !display_name ||
         !password
     ) {
@@ -334,7 +305,6 @@ document
 
                     body: JSON.stringify({
                         user_id,
-                        phone,
                         display_name,
                         password
                     })
@@ -375,11 +345,9 @@ document
 
 
         setTimeout(() => {
-
-            location.href =
-                "index.html";
-
+            location.href = "index.html";
         }, 500);
+
 
     } catch (error) {
 
@@ -390,7 +358,6 @@ document
         );
 
     }
-
 };
 
 </script>
