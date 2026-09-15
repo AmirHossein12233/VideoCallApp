@@ -1,15 +1,31 @@
-const WS_URL = "ws://127.0.0.1:8000";
+const API_URL = "https://videocallapp-api.onrender.com";
+const WS_URL = "wss://videocallapp-api.onrender.com";
 
+const authToken = localStorage.getItem("auth_token");
 const userId = localStorage.getItem("user_id");
 
-let targetUser = localStorage.getItem("call_target");
+
+// =========================================================
+// AUTH
+// =========================================================
+
+if (!authToken || !userId) {
+    location.href = "login.html";
+}
+
+
+// =========================================================
+// STATE
+// =========================================================
 
 let socket = null;
 let peer = null;
 let localStream = null;
 
+let targetUser =
+    localStorage.getItem("call_target");
+
 let incomingOffer = null;
-let pendingIncomingCall = false;
 
 let micEnabled = true;
 let cameraEnabled = true;
@@ -18,9 +34,9 @@ let timerInterval = null;
 let callSeconds = 0;
 
 
-// =========================
+// =========================================================
 // ELEMENTS
-// =========================
+// =========================================================
 
 const localVideo =
     document.getElementById("localVideo");
@@ -62,18 +78,9 @@ const ringtone =
     document.getElementById("ringtone");
 
 
-// =========================
-// LOGIN CHECK
-// =========================
-
-if (!userId) {
-    location.href = "login.html";
-}
-
-
-// =========================
+// =========================================================
 // STATUS
-// =========================
+// =========================================================
 
 function setStatus(text) {
 
@@ -84,9 +91,9 @@ function setStatus(text) {
 }
 
 
-// =========================
+// =========================================================
 // RINGTONE
-// =========================
+// =========================================================
 
 function startRingtone() {
 
@@ -101,11 +108,9 @@ function startRingtone() {
     if (promise) {
 
         promise.catch(() => {
-
             console.log(
-                "مرورگر پخش خودکار زنگ را مسدود کرد."
+                "پخش خودکار زنگ توسط مرورگر مسدود شد."
             );
-
         });
 
     }
@@ -120,53 +125,13 @@ function stopRingtone() {
     }
 
     ringtone.pause();
-
     ringtone.currentTime = 0;
 }
 
 
-// =========================
-// INCOMING CALL UI
-// =========================
-
-function showIncomingCall(from, offer) {
-
-    targetUser = from;
-
-    incomingOffer = offer;
-
-    pendingIncomingCall = true;
-
-
-    if (incomingUser) {
-        incomingUser.innerText = from;
-    }
-
-
-    if (incomingCall) {
-        incomingCall.classList.remove("hidden");
-    }
-
-
-    setStatus("تماس ورودی");
-
-    startRingtone();
-}
-
-
-function hideIncomingCall() {
-
-    if (incomingCall) {
-        incomingCall.classList.add("hidden");
-    }
-
-    stopRingtone();
-}
-
-
-// =========================
+// =========================================================
 // WEBSOCKET
-// =========================
+// =========================================================
 
 function connectSocket() {
 
@@ -183,18 +148,13 @@ function connectSocket() {
     socket.onopen = () => {
 
         console.log(
-            "Call WebSocket connected"
+            "WebSocket connected"
         );
 
-        setStatus("اتصال به سرور برقرار شد");
+        setStatus(
+            "اتصال به سرور برقرار شد"
+        );
 
-
-        /*
-         * اگر تماس ورودی از index.html آمده
-         * و اطلاعات offer در localStorage ذخیره شده،
-         * UI تماس ورودی را نشان می‌دهیم.
-         */
-        restorePendingIncomingCall();
     };
 
 
@@ -204,7 +164,9 @@ function connectSocket() {
 
         try {
 
-            data = JSON.parse(event.data);
+            data = JSON.parse(
+                event.data
+            );
 
         } catch (error) {
 
@@ -218,31 +180,62 @@ function connectSocket() {
 
 
         console.log(
-            "CALL SOCKET:",
+            "CALL WS:",
             data
         );
 
 
-        // =========================
+        // =================================================
         // INCOMING CALL
-        // =========================
+        // =================================================
 
-        if (data.type === "call_request") {
+        if (
+            data.type ===
+            "call_request"
+        ) {
 
-            showIncomingCall(
-                data.from,
-                data.offer
+            targetUser =
+                data.from;
+
+            incomingOffer =
+                data.offer;
+
+
+            if (incomingUser) {
+
+                incomingUser.innerText =
+                    data.from;
+
+            }
+
+
+            if (incomingCall) {
+
+                incomingCall
+                    .classList
+                    .remove("hidden");
+
+            }
+
+
+            startRingtone();
+
+            setStatus(
+                "تماس ورودی"
             );
 
             return;
         }
 
 
-        // =========================
+        // =================================================
         // ANSWER
-        // =========================
+        // =================================================
 
-        if (data.type === "answer") {
+        if (
+            data.type ===
+            "answer"
+        ) {
 
             if (!peer) {
                 return;
@@ -258,14 +251,14 @@ function connectSocket() {
                 );
 
 
-                setStatus("در حال اتصال...");
-
-                startTimer();
+                setStatus(
+                    "تماس در حال اتصال..."
+                );
 
             } catch (error) {
 
                 console.error(
-                    "Set answer error:",
+                    "Answer error:",
                     error
                 );
 
@@ -279,13 +272,19 @@ function connectSocket() {
         }
 
 
-        // =========================
-        // ICE CANDIDATE
-        // =========================
+        // =================================================
+        // ICE
+        // =================================================
 
-        if (data.type === "ice") {
+        if (
+            data.type ===
+            "ice"
+        ) {
 
-            if (!peer || !data.candidate) {
+            if (
+                !peer ||
+                !data.candidate
+            ) {
                 return;
             }
 
@@ -301,7 +300,7 @@ function connectSocket() {
             } catch (error) {
 
                 console.error(
-                    "ICE candidate error:",
+                    "ICE error:",
                     error
                 );
 
@@ -311,27 +310,33 @@ function connectSocket() {
         }
 
 
-        // =========================
-        // CALL REJECTED
-        // =========================
+        // =================================================
+        // REJECT
+        // =================================================
 
-        if (data.type === "call_reject") {
+        if (
+            data.type ===
+            "call_reject"
+        ) {
 
-            hideIncomingCall();
+            stopRingtone();
 
             setStatus(
-                "تماس توسط طرف مقابل رد شد"
+                "طرف مقابل تماس را رد کرد"
             );
 
             return;
         }
 
 
-        // =========================
-        // CALL ENDED
-        // =========================
+        // =================================================
+        // END
+        // =================================================
 
-        if (data.type === "call_end") {
+        if (
+            data.type ===
+            "call_end"
+        ) {
 
             endCall(false);
 
@@ -343,11 +348,14 @@ function connectSocket() {
         }
 
 
-        // =========================
-        // USER OFFLINE
-        // =========================
+        // =================================================
+        // ERROR
+        // =================================================
 
-        if (data.type === "error") {
+        if (
+            data.type ===
+            "error"
+        ) {
 
             setStatus(
                 data.message ||
@@ -379,93 +387,25 @@ function connectSocket() {
             "WebSocket closed"
         );
 
+        setStatus(
+            "اتصال به سرور قطع شد"
+        );
+
     };
 
 }
 
 
-// =========================
-// RESTORE PENDING CALL
-// =========================
-
-function restorePendingIncomingCall() {
-
-    const raw =
-        localStorage.getItem("pending_call");
-
-
-    if (!raw) {
-        return;
-    }
-
-
-    try {
-
-        const pending =
-            JSON.parse(raw);
-
-
-        if (
-            pending &&
-            pending.from &&
-            pending.offer
-        ) {
-
-            targetUser =
-                pending.from;
-
-            incomingOffer =
-                pending.offer;
-
-            pendingIncomingCall = true;
-
-
-            if (incomingUser) {
-                incomingUser.innerText =
-                    pending.from;
-            }
-
-
-            if (incomingCall) {
-                incomingCall.classList.remove(
-                    "hidden"
-                );
-            }
-
-
-            setStatus(
-                "تماس ورودی"
-            );
-
-        }
-
-
-    } catch (error) {
-
-        console.error(
-            "Pending call parse error:",
-            error
-        );
-
-    }
-
-
-    localStorage.removeItem(
-        "pending_call"
-    );
-
-}
-
-
-// =========================
+// =========================================================
 // SEND SIGNAL
-// =========================
+// =========================================================
 
 function sendSignal(data) {
 
     if (
         socket &&
-        socket.readyState === WebSocket.OPEN
+        socket.readyState ===
+        WebSocket.OPEN
     ) {
 
         socket.send(
@@ -475,18 +415,13 @@ function sendSignal(data) {
         return true;
     }
 
-
-    console.warn(
-        "WebSocket is not connected"
-    );
-
     return false;
 }
 
 
-// =========================
+// =========================================================
 // MEDIA
-// =========================
+// =========================================================
 
 async function startMedia() {
 
@@ -503,11 +438,8 @@ async function startMedia() {
         localStream =
             await navigator.mediaDevices
                 .getUserMedia({
-
                     video: true,
-
                     audio: true
-
                 });
 
 
@@ -523,37 +455,13 @@ async function startMedia() {
     } catch (error) {
 
         console.error(
-            "getUserMedia error:",
+            "Media error:",
             error
         );
 
-
-        if (
-            error.name ===
-            "NotAllowedError"
-        ) {
-
-            setStatus(
-                "دسترسی دوربین و میکروفن رد شد"
-            );
-
-        } else if (
-            error.name ===
-            "NotFoundError"
-        ) {
-
-            setStatus(
-                "دوربین یا میکروفن پیدا نشد"
-            );
-
-        } else {
-
-            setStatus(
-                "دسترسی دوربین و میکروفن ناموفق بود"
-            );
-
-        }
-
+        setStatus(
+            "دسترسی دوربین یا میکروفن ناموفق بود"
+        );
 
         throw error;
     }
@@ -561,9 +469,9 @@ async function startMedia() {
 }
 
 
-// =========================
+// =========================================================
 // CREATE PEER
-// =========================
+// =========================================================
 
 function createPeer() {
 
@@ -597,41 +505,36 @@ function createPeer() {
         });
 
 
-    if (localStream) {
+    localStream
+        .getTracks()
+        .forEach(track => {
 
-        localStream
-            .getTracks()
-            .forEach(track => {
-
-                peer.addTrack(
-                    track,
-                    localStream
-                );
-
-            });
-
-    }
-
-
-    peer.ontrack =
-        (event) => {
-
-            if (
-                event.streams &&
-                event.streams[0]
-            ) {
-
-                remoteVideo.srcObject =
-                    event.streams[0];
-
-            }
-
-
-            setStatus(
-                "تصویر طرف مقابل دریافت شد"
+            peer.addTrack(
+                track,
+                localStream
             );
 
-        };
+        });
+
+
+    peer.ontrack = (event) => {
+
+        if (
+            event.streams &&
+            event.streams[0]
+        ) {
+
+            remoteVideo.srcObject =
+                event.streams[0];
+
+        }
+
+
+        setStatus(
+            "تصویر طرف مقابل دریافت شد"
+        );
+
+    };
 
 
     peer.onicecandidate =
@@ -644,9 +547,11 @@ function createPeer() {
 
                 sendSignal({
 
-                    type: "ice",
+                    type:
+                        "ice",
 
-                    target: targetUser,
+                    target:
+                        targetUser,
 
                     candidate:
                         event.candidate
@@ -674,18 +579,6 @@ function createPeer() {
 
             if (
                 peer.connectionState ===
-                "connecting"
-            ) {
-
-                setStatus(
-                    "در حال برقراری تماس..."
-                );
-
-            }
-
-
-            if (
-                peer.connectionState ===
                 "connected"
             ) {
 
@@ -694,6 +587,18 @@ function createPeer() {
                 );
 
                 startTimer();
+
+            }
+
+
+            if (
+                peer.connectionState ===
+                "connecting"
+            ) {
+
+                setStatus(
+                    "در حال برقراری تماس..."
+                );
 
             }
 
@@ -724,29 +629,13 @@ function createPeer() {
         };
 
 
-    peer.oniceconnectionstatechange =
-        () => {
-
-            if (!peer) {
-                return;
-            }
-
-
-            console.log(
-                "ICE:",
-                peer.iceConnectionState
-            );
-
-        };
-
-
     return peer;
 }
 
 
-// =========================
+// =========================================================
 // START OUTGOING CALL
-// =========================
+// =========================================================
 
 async function startCall() {
 
@@ -760,18 +649,7 @@ async function startCall() {
     }
 
 
-    /*
-     * اگر offer ورودی داریم،
-     * این تماس خروجی نیست.
-     */
-    if (incomingOffer) {
-        return;
-    }
-
-
     try {
-
-        hideIncomingCall();
 
         await startMedia();
 
@@ -811,7 +689,7 @@ async function startCall() {
         if (!sent) {
 
             setStatus(
-                "ارسال درخواست تماس ممکن نشد"
+                "ارسال تماس ناموفق بود"
             );
 
             return;
@@ -839,28 +717,35 @@ async function startCall() {
 }
 
 
-// =========================
-// ACCEPT INCOMING CALL
-// =========================
+// =========================================================
+// ACCEPT
+// =========================================================
 
 async function acceptIncomingCall() {
 
     if (
-        !incomingOffer ||
-        !targetUser
+        !targetUser ||
+        !incomingOffer
     ) {
 
         setStatus(
-            "اطلاعات تماس ناقص است"
+            "اطلاعات تماس کامل نیست"
         );
 
         return;
     }
 
 
-    hideIncomingCall();
+    stopRingtone();
 
-    pendingIncomingCall = false;
+
+    if (incomingCall) {
+
+        incomingCall
+            .classList
+            .add("hidden");
+
+    }
 
 
     try {
@@ -892,29 +777,18 @@ async function acceptIncomingCall() {
         );
 
 
-        const sent =
-            sendSignal({
+        sendSignal({
 
-                type:
-                    "answer",
+            type:
+                "answer",
 
-                target:
-                    targetUser,
+            target:
+                targetUser,
 
-                answer:
-                    answer
+            answer:
+                answer
 
-            });
-
-
-        if (!sent) {
-
-            setStatus(
-                "ارسال پاسخ تماس ناموفق بود"
-            );
-
-            return;
-        }
+        });
 
 
         incomingOffer = null;
@@ -932,7 +806,7 @@ async function acceptIncomingCall() {
     } catch (error) {
 
         console.error(
-            "Accept call error:",
+            "Accept error:",
             error
         );
 
@@ -945,9 +819,9 @@ async function acceptIncomingCall() {
 }
 
 
-// =========================
-// REJECT INCOMING CALL
-// =========================
+// =========================================================
+// REJECT
+// =========================================================
 
 function rejectIncomingCall() {
 
@@ -966,17 +840,19 @@ function rejectIncomingCall() {
     }
 
 
-    hideIncomingCall();
+    stopRingtone();
+
+
+    if (incomingCall) {
+
+        incomingCall
+            .classList
+            .add("hidden");
+
+    }
 
 
     incomingOffer = null;
-
-    pendingIncomingCall = false;
-
-
-    localStorage.removeItem(
-        "pending_call"
-    );
 
 
     setStatus(
@@ -986,85 +862,83 @@ function rejectIncomingCall() {
 }
 
 
-// =========================
-// MICROPHONE
-// =========================
+// =========================================================
+// MIC
+// =========================================================
 
 if (toggleMicButton) {
 
-    toggleMicButton.onclick =
-        () => {
+    toggleMicButton.onclick = () => {
 
-            if (!localStream) {
-                return;
-            }
-
-
-            micEnabled =
-                !micEnabled;
+        if (!localStream) {
+            return;
+        }
 
 
-            localStream
-                .getAudioTracks()
-                .forEach(track => {
-
-                    track.enabled =
-                        micEnabled;
-
-                });
+        micEnabled =
+            !micEnabled;
 
 
-            toggleMicButton.innerText =
-                micEnabled
-                    ? "🎤"
-                    : "🔇";
+        localStream
+            .getAudioTracks()
+            .forEach(track => {
 
-        };
+                track.enabled =
+                    micEnabled;
+
+            });
+
+
+        toggleMicButton.innerText =
+            micEnabled
+                ? "🎤"
+                : "🔇";
+
+    };
 
 }
 
 
-// =========================
+// =========================================================
 // CAMERA
-// =========================
+// =========================================================
 
 if (toggleCameraButton) {
 
-    toggleCameraButton.onclick =
-        () => {
+    toggleCameraButton.onclick = () => {
 
-            if (!localStream) {
-                return;
-            }
-
-
-            cameraEnabled =
-                !cameraEnabled;
+        if (!localStream) {
+            return;
+        }
 
 
-            localStream
-                .getVideoTracks()
-                .forEach(track => {
-
-                    track.enabled =
-                        cameraEnabled;
-
-                });
+        cameraEnabled =
+            !cameraEnabled;
 
 
-            toggleCameraButton.innerText =
-                cameraEnabled
-                    ? "📷"
-                    : "🚫";
+        localStream
+            .getVideoTracks()
+            .forEach(track => {
 
-        };
+                track.enabled =
+                    cameraEnabled;
+
+            });
+
+
+        toggleCameraButton.innerText =
+            cameraEnabled
+                ? "📷"
+                : "🚫";
+
+    };
 
 }
 
 
-// =========================
+// =========================================================
 // FULLSCREEN
-// =========================
+// =========================================================
 
 if (fullscreenButton) {
 
@@ -1110,9 +984,9 @@ if (fullscreenButton) {
 }
 
 
-// =========================
+// =========================================================
 // TIMER
-// =========================
+// =========================================================
 
 function startTimer() {
 
@@ -1161,27 +1035,16 @@ function stopTimer() {
 
     }
 
-
-    callSeconds = 0;
-
-
-    if (callTimer) {
-        callTimer.innerText =
-            "00:00";
-    }
-
 }
 
 
-// =========================
+// =========================================================
 // END CALL
-// =========================
+// =========================================================
 
 function endCall(sendMessage = true) {
 
     stopRingtone();
-
-    hideIncomingCall();
 
     stopTimer();
 
@@ -1205,10 +1068,6 @@ function endCall(sendMessage = true) {
 
 
     if (peer) {
-
-        peer.ontrack = null;
-
-        peer.onicecandidate = null;
 
         peer.close();
 
@@ -1242,9 +1101,15 @@ function endCall(sendMessage = true) {
     }
 
 
-    incomingOffer = null;
+    if (callTimer) {
+        callTimer.innerText =
+            "00:00";
+    }
 
-    pendingIncomingCall = false;
+
+    setStatus(
+        "تماس پایان یافت"
+    );
 
 
     localStorage.removeItem(
@@ -1255,17 +1120,12 @@ function endCall(sendMessage = true) {
         "pending_call"
     );
 
-
-    setStatus(
-        "تماس پایان یافت"
-    );
-
 }
 
 
-// =========================
+// =========================================================
 // END BUTTON
-// =========================
+// =========================================================
 
 if (endCallButton) {
 
@@ -1279,9 +1139,9 @@ if (endCallButton) {
 }
 
 
-// =========================
+// =========================================================
 // ACCEPT BUTTON
-// =========================
+// =========================================================
 
 if (acceptCallButton) {
 
@@ -1295,9 +1155,9 @@ if (acceptCallButton) {
 }
 
 
-// =========================
+// =========================================================
 // REJECT BUTTON
-// =========================
+// =========================================================
 
 if (rejectCallButton) {
 
@@ -1311,61 +1171,107 @@ if (rejectCallButton) {
 }
 
 
-// =========================
-// BACK BUTTON
-// =========================
+// =========================================================
+// PENDING INCOMING CALL
+// =========================================================
 
-window.addEventListener(
-    "beforeunload",
-    () => {
+function restorePendingCall() {
 
-        stopRingtone();
-        stopTimer();
+    const raw =
+        localStorage.getItem(
+            "pending_call"
+        );
 
 
-        if (localStream) {
+    if (!raw) {
+        return false;
+    }
 
-            localStream
-                .getTracks()
-                .forEach(track => {
 
-                    track.stop();
+    try {
 
-                });
+        const pending =
+            JSON.parse(raw);
 
+
+        if (
+            pending &&
+            pending.from &&
+            pending.offer
+        ) {
+
+            targetUser =
+                pending.from;
+
+            incomingOffer =
+                pending.offer;
+
+
+            if (incomingUser) {
+
+                incomingUser.innerText =
+                    pending.from;
+
+            }
+
+
+            if (incomingCall) {
+
+                incomingCall
+                    .classList
+                    .remove("hidden");
+
+            }
+
+
+            localStorage.removeItem(
+                "pending_call"
+            );
+
+
+            setStatus(
+                "تماس ورودی"
+            );
+
+
+            return true;
         }
 
+    } catch (error) {
+
+        console.error(
+            "Pending call error:",
+            error
+        );
+
     }
-);
 
 
-// =========================
+    return false;
+}
+
+
+// =========================================================
 // INITIALIZE
-// =========================
+// =========================================================
 
 connectSocket();
 
 
-// =========================
-// OUTGOING / INCOMING START
-// =========================
-
-setTimeout(() => {
-
-    /*
-     * اگر تماس ورودی از index.html آمده،
-     * نباید startCall اجرا شود.
-     */
-
-    if (incomingOffer) {
-        return;
-    }
+const hasPendingCall =
+    restorePendingCall();
 
 
-    if (targetUser) {
+if (
+    targetUser &&
+    !hasPendingCall &&
+    !incomingOffer
+) {
+
+    setTimeout(() => {
 
         startCall();
 
-    }
+    }, 1200);
 
-}, 1000);
+}
