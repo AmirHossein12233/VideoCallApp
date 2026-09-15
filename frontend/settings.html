@@ -19,7 +19,7 @@
 <div class="page">
 
 
-<div class="topbar">
+<div class="card">
 
 <button id="backButton">
 ← بازگشت
@@ -30,7 +30,6 @@
 ⚙️ تنظیمات
 </h1>
 
-
 </div>
 
 
@@ -39,63 +38,77 @@
 
 
 <h2>
-حساب کاربری
+👤 پروفایل
 </h2>
 
 
-<div class="profile-box">
+<div class="profile">
 
 
 <img
-id="avatar"
-class="profile-avatar"
+id="profileAvatar"
+class="avatar"
 src=""
+>
+
+
+<div>
+
+<b id="profileName">
+در حال دریافت...
+</b>
+
+
+<p id="profileId">
+</p>
+
+
+<p id="profilePhone">
+</p>
+
+
+</div>
+
+
+</div>
+
+
+<br>
+
+
+<input
+id="nameInput"
+class="input"
+placeholder="نام جدید"
 >
 
 
 <input
 id="avatarInput"
-placeholder="لینک عکس پروفایل"
-/>
+class="input"
+placeholder="لینک تصویر"
+>
 
 
 
-<input
-id="displayName"
-placeholder="نام نمایشی"
-/>
+<button
+id="saveButton"
+class="button">
 
+💾 ذخیره
 
-<div class="info">
-
-شناسه:
-<span id="userId">
--
-</span>
-
-</div>
-
-
-
-<div class="info">
-
-شماره:
-<span id="phone">
--
-</span>
-
-</div>
-
-
-<button id="saveProfile">
-💾 ذخیره پروفایل
 </button>
 
 
+
+<div id="message"
+class="message">
+
 </div>
 
 
 </div>
+
 
 
 
@@ -108,32 +121,36 @@ placeholder="نام نمایشی"
 </h2>
 
 
-<button id="testMic">
+<button
+id="micButton"
+class="button">
+
 بررسی میکروفون
+
 </button>
 
 
-<button id="testCamera">
+<br><br>
+
+
+<button
+id="cameraButton"
+class="button">
+
 بررسی دوربین
+
 </button>
 
 
-
-<p id="deviceResult">
--
-</p>
+<p id="deviceResult"></p>
 
 
 </div>
-
-
-
-
 <div class="card">
 
 
 <h2>
-اعلان‌ها
+🔔 اعلان‌ها
 </h2>
 
 
@@ -141,11 +158,11 @@ placeholder="نام نمایشی"
 
 <input
 type="checkbox"
-id="notifications"
+id="notificationToggle"
 checked
 >
 
- اعلان تماس
+ فعال بودن اعلان تماس
 
 </label>
 
@@ -155,13 +172,39 @@ checked
 
 
 
+
+<div class="card">
+
+
+<h2>
+📱 برنامه
+</h2>
+
+
+<p>
+نام:
+VideoCallApp
+</p>
+
+
+<p>
+نسخه:
+1.0.0
+</p>
+
+
+</div>
+
+
+
+
+
 <div class="card">
 
 
 <button
-id="logout"
-class="danger"
->
+id="logoutButton"
+class="button">
 
 🚪 خروج از حساب
 
@@ -170,10 +213,6 @@ class="danger"
 
 </div>
 
-
-
-
-<p id="message"></p>
 
 
 
@@ -200,16 +239,42 @@ localStorage.getItem(
 
 if(!userId){
 
-window.location.href =
+location.href =
 "index.html";
 
 }
 
 
 
-const avatar =
+
+
+const profileName =
 document.getElementById(
-"avatar"
+"profileName"
+);
+
+
+const profileId =
+document.getElementById(
+"profileId"
+);
+
+
+const profilePhone =
+document.getElementById(
+"profilePhone"
+);
+
+
+const profileAvatar =
+document.getElementById(
+"profileAvatar"
+);
+
+
+const nameInput =
+document.getElementById(
+"nameInput"
 );
 
 
@@ -217,28 +282,6 @@ const avatarInput =
 document.getElementById(
 "avatarInput"
 );
-
-
-
-const displayName =
-document.getElementById(
-"displayName"
-);
-
-
-
-const phone =
-document.getElementById(
-"phone"
-);
-
-
-
-const userIdBox =
-document.getElementById(
-"userId"
-);
-
 
 
 const message =
@@ -249,16 +292,17 @@ document.getElementById(
 
 
 
+function defaultAvatar(name){
 
-function showMessage(text){
+return (
 
-message.textContent=text;
+"https://ui-avatars.com/api/?name="
 
-setTimeout(()=>{
++
 
-message.textContent="";
+encodeURIComponent(name)
 
-},3000);
+);
 
 }
 
@@ -266,13 +310,16 @@ message.textContent="";
 
 
 
-function defaultAvatar(name){
+function showMessage(text){
 
-return (
-"https://ui-avatars.com/api/?name="
-+
-encodeURIComponent(name)
-);
+message.textContent=text;
+
+
+setTimeout(()=>{
+
+message.textContent="";
+
+},3000);
 
 }
 
@@ -306,26 +353,31 @@ data.user;
 
 
 
-displayName.value =
-user.display_name || "";
+profileName.textContent =
+user.display_name;
 
 
 
-phone.textContent =
-user.phone || "-";
+profileId.textContent =
+"شناسه: " + user.user_id;
 
 
 
-userIdBox.textContent =
-user.user_id;
+profilePhone.textContent =
+"شماره: " + user.phone;
 
 
 
-avatar.src =
+profileAvatar.src =
 user.avatar ||
 defaultAvatar(
 user.display_name
 );
+
+
+
+nameInput.value =
+user.display_name;
 
 
 
@@ -338,19 +390,14 @@ user.avatar || "";
 
 catch(e){
 
-
 showMessage(
 "خطا در دریافت اطلاعات"
 );
 
-
 }
 
 
-
 }
-
-
 
 
 
@@ -359,11 +406,9 @@ showMessage(
 async function saveProfile(){
 
 
-
 try{
 
 
-const res =
 await fetch(
 
 `${API_URL}/api/profile/${encodeURIComponent(userId)}`,
@@ -383,15 +428,14 @@ headers:{
 body:JSON.stringify({
 
 display_name:
-displayName.value.trim(),
+nameInput.value,
 
 
 avatar:
-avatarInput.value.trim()
+avatarInput.value
 
 
 })
-
 
 }
 
@@ -399,41 +443,28 @@ avatarInput.value.trim()
 
 
 
-const data =
-await res.json();
-
-
-
-avatar.src =
-data.user.avatar ||
-defaultAvatar(
-data.user.display_name
-);
-
-
-
 showMessage(
-"پروفایل ذخیره شد ✅"
+"ذخیره شد ✅"
 );
 
+
+
+loadProfile();
 
 
 }
 
 catch(e){
 
-
 showMessage(
 "خطا در ذخیره"
 );
 
-
 }
 
 
 
 }
-
 
 
 
@@ -445,7 +476,7 @@ async function testMic(){
 try{
 
 
-const stream =
+let stream =
 await navigator.mediaDevices.getUserMedia({
 
 audio:true
@@ -460,7 +491,10 @@ t=>t.stop()
 
 
 
-deviceResult.textContent =
+document.getElementById(
+"deviceResult"
+)
+.textContent =
 "✅ میکروفون فعال است";
 
 
@@ -469,8 +503,11 @@ deviceResult.textContent =
 catch{
 
 
-deviceResult.textContent =
-"❌ دسترسی میکروفون رد شد";
+document.getElementById(
+"deviceResult"
+)
+.textContent =
+"❌ دسترسی رد شد";
 
 
 }
@@ -489,7 +526,7 @@ async function testCamera(){
 try{
 
 
-const stream =
+let stream =
 await navigator.mediaDevices.getUserMedia({
 
 video:true
@@ -504,7 +541,10 @@ t=>t.stop()
 
 
 
-deviceResult.textContent =
+document.getElementById(
+"deviceResult"
+)
+.textContent =
 "✅ دوربین فعال است";
 
 
@@ -513,15 +553,17 @@ deviceResult.textContent =
 catch{
 
 
-deviceResult.textContent =
-"❌ دسترسی دوربین رد شد";
+document.getElementById(
+"deviceResult"
+)
+.textContent =
+"❌ دسترسی رد شد";
 
 
 }
 
 
 }
-
 
 
 
@@ -530,16 +572,17 @@ deviceResult.textContent =
 
 document
 .getElementById(
-"saveProfile"
+"saveButton"
 )
 .onclick =
 saveProfile;
 
 
 
+
 document
 .getElementById(
-"testMic"
+"micButton"
 )
 .onclick =
 testMic;
@@ -548,10 +591,12 @@ testMic;
 
 document
 .getElementById(
-"testCamera"
+"cameraButton"
 )
 .onclick =
 testCamera;
+
+
 
 
 
@@ -569,9 +614,10 @@ location.href="index.html";
 
 
 
+
 document
 .getElementById(
-"logout"
+"logoutButton"
 )
 .onclick =
 ()=>{
@@ -582,6 +628,29 @@ localStorage.clear();
 
 location.href =
 "index.html";
+
+
+};
+
+
+
+
+
+document
+.getElementById(
+"notificationToggle"
+)
+.onchange =
+(e)=>{
+
+
+localStorage.setItem(
+
+"videoCallNotifications",
+
+e.target.checked
+
+);
 
 
 };
