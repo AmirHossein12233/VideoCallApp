@@ -1,24 +1,31 @@
-const API_URL = "https://videocallapp-api.onrender.com";
+const API_URL =
+    "https://videocallapp-api.onrender.com";
 
 let currentUser = null;
+
 let socket = null;
 
 let peerConnection = null;
+
 let localStream = null;
+
 let remoteStream = null;
 
 let currentCallUser = null;
+
 let currentCallType = "video";
+
 let incomingOffer = null;
 
 
-/* =========================
+/* =====================================================
    HELPERS
-========================= */
+===================================================== */
 
 function $(id) {
     return document.getElementById(id);
 }
+
 
 function getUserId() {
     return localStorage.getItem(
@@ -26,7 +33,9 @@ function getUserId() {
     );
 }
 
+
 function escapeHtml(value) {
+
     return String(value ?? "")
         .replaceAll("&", "&amp;")
         .replaceAll("<", "&lt;")
@@ -35,13 +44,14 @@ function escapeHtml(value) {
         .replaceAll("'", "&#039;");
 }
 
-function avatar(name) {
+
+function createAvatar(name) {
 
     const letter =
         String(name || "U")
             .trim()
             .charAt(0)
-            .toUpperCase();
+            .toUpperCase() || "U";
 
     const svg = `
         <svg xmlns="http://www.w3.org/2000/svg"
@@ -63,7 +73,7 @@ function avatar(name) {
                 font-family="Arial"
                 fill="white"
             >
-                ${letter}
+                ${escapeHtml(letter)}
             </text>
 
         </svg>
@@ -75,21 +85,23 @@ function avatar(name) {
     );
 }
 
+
 function toast(message) {
 
     const element = $("toast");
 
     if (!element) return;
 
-    element.textContent = message;
+    element.textContent =
+        message;
 
     element.classList.add("show");
 
     clearTimeout(
-        window.toastTimer
+        window.__toastTimer
     );
 
-    window.toastTimer =
+    window.__toastTimer =
         setTimeout(() => {
 
             element.classList.remove(
@@ -100,9 +112,9 @@ function toast(message) {
 }
 
 
-/* =========================
+/* =====================================================
    API
-========================= */
+===================================================== */
 
 async function api(
     path,
@@ -127,9 +139,12 @@ async function api(
     let data = null;
 
     try {
+
         data =
             await response.json();
+
     } catch {
+
         data = null;
     }
 
@@ -146,9 +161,9 @@ async function api(
 }
 
 
-/* =========================
-   PAGES
-========================= */
+/* =====================================================
+   PAGE
+===================================================== */
 
 function showLogin() {
 
@@ -165,6 +180,7 @@ function showLogin() {
         .add("hidden");
 }
 
+
 function showRegister() {
 
     $("loginPage")
@@ -179,6 +195,7 @@ function showRegister() {
         .classList
         .add("hidden");
 }
+
 
 function showApp() {
 
@@ -196,9 +213,9 @@ function showApp() {
 }
 
 
-/* =========================
+/* =====================================================
    LOGIN
-========================= */
+===================================================== */
 
 async function login() {
 
@@ -207,22 +224,24 @@ async function login() {
             .value
             .trim();
 
-    const message =
-        $("loginMessage");
-
-    message.textContent = "";
+    $("loginMessage")
+        .textContent = "";
 
     if (!identifier) {
 
-        message.textContent =
+        $("loginMessage")
+            .textContent =
             "شناسه یا شماره موبایل را وارد کنید.";
 
         return;
     }
 
-    $("loginButton").disabled = true;
+    const button =
+        $("loginButton");
 
-    $("loginButton").textContent =
+    button.disabled = true;
+
+    button.textContent =
         "در حال ورود...";
 
     try {
@@ -243,49 +262,61 @@ async function login() {
             currentUser.user_id ||
             currentUser.id;
 
+        if (!userId) {
+
+            throw new Error(
+                "شناسه کاربر دریافت نشد."
+            );
+        }
+
         localStorage.setItem(
             "videoCallUserId",
             userId
         );
 
         /*
-         * مهم:
-         * قبل از دریافت کاربران
-         * صفحه اصلی را نمایش می‌دهیم.
+         * صفحه تماس آنلاین
+         * بلافاصله نمایش داده می‌شود.
          */
 
         showApp();
 
         updateMyProfile();
 
-        await loadUsers();
-
         connectWebSocket();
 
-        toast("ورود موفق بود");
+        await loadUsers();
+
+        toast(
+            "ورود موفق بود"
+        );
 
     } catch (error) {
 
-        console.error(error);
+        console.error(
+            "Login error:",
+            error
+        );
 
-        message.textContent =
+        $("loginMessage")
+            .textContent =
             error.message ||
             "ورود ناموفق بود.";
 
     } finally {
 
-        $("loginButton").disabled =
+        button.disabled =
             false;
 
-        $("loginButton").textContent =
+        button.textContent =
             "ورود";
     }
 }
 
 
-/* =========================
+/* =====================================================
    REGISTER
-========================= */
+===================================================== */
 
 async function register() {
 
@@ -304,14 +335,13 @@ async function register() {
             .value
             .trim();
 
-    const message =
-        $("registerMessage");
-
-    message.textContent = "";
+    $("registerMessage")
+        .textContent = "";
 
     if (!userId) {
 
-        message.textContent =
+        $("registerMessage")
+            .textContent =
             "شناسه را وارد کنید.";
 
         return;
@@ -319,7 +349,8 @@ async function register() {
 
     if (!phone) {
 
-        message.textContent =
+        $("registerMessage")
+            .textContent =
             "شماره موبایل را وارد کنید.";
 
         return;
@@ -327,16 +358,19 @@ async function register() {
 
     if (!name) {
 
-        message.textContent =
+        $("registerMessage")
+            .textContent =
             "نام نمایشی را وارد کنید.";
 
         return;
     }
 
-    $("registerButton").disabled =
-        true;
+    const button =
+        $("registerButton");
 
-    $("registerButton").textContent =
+    button.disabled = true;
+
+    button.textContent =
         "در حال ثبت‌نام...";
 
     try {
@@ -347,11 +381,17 @@ async function register() {
                 {
                     method: "POST",
 
-                    body: JSON.stringify({
-                        user_id: userId,
-                        phone: phone,
-                        display_name: name
-                    })
+                    body:
+                        JSON.stringify({
+                            user_id:
+                                userId,
+
+                            phone:
+                                phone,
+
+                            display_name:
+                                name
+                        })
                 }
             );
 
@@ -373,36 +413,40 @@ async function register() {
 
         updateMyProfile();
 
-        await loadUsers();
-
         connectWebSocket();
 
+        await loadUsers();
+
         toast(
-            "ثبت‌نام با موفقیت انجام شد"
+            "ثبت‌نام موفق بود"
         );
 
     } catch (error) {
 
-        console.error(error);
+        console.error(
+            "Register error:",
+            error
+        );
 
-        message.textContent =
+        $("registerMessage")
+            .textContent =
             error.message ||
             "ثبت‌نام ناموفق بود.";
 
     } finally {
 
-        $("registerButton").disabled =
+        button.disabled =
             false;
 
-        $("registerButton").textContent =
+        button.textContent =
             "ثبت‌نام";
     }
 }
 
 
-/* =========================
+/* =====================================================
    PROFILE
-========================= */
+===================================================== */
 
 function updateMyProfile() {
 
@@ -414,29 +458,29 @@ function updateMyProfile() {
         currentUser.user_id ||
         "کاربر";
 
-    const id =
+    const userId =
         currentUser.user_id ||
         currentUser.id ||
         "";
 
-    const image =
-        currentUser.avatar ||
-        avatar(name);
-
-    $("myName").textContent =
+    $("myName")
+        .textContent =
         name;
 
-    $("myId").textContent =
-        "شناسه: " + id;
+    $("myId")
+        .textContent =
+        "شناسه: " + userId;
 
-    $("myAvatar").src =
-        image;
+    $("myAvatar")
+        .src =
+        currentUser.avatar ||
+        createAvatar(name);
 }
 
 
-/* =========================
+/* =====================================================
    USERS
-========================= */
+===================================================== */
 
 async function loadUsers() {
 
@@ -452,7 +496,9 @@ async function loadUsers() {
     try {
 
         const data =
-            await api("/api/users");
+            await api(
+                "/api/users"
+            );
 
         let users =
             Array.isArray(data)
@@ -490,114 +536,115 @@ async function loadUsers() {
 
         list.innerHTML = "";
 
-        users.forEach(
-            user => {
+        users.forEach(user => {
 
-                const id =
-                    user.user_id ||
-                    user.id ||
-                    "";
+            const id =
+                user.user_id ||
+                user.id ||
+                "";
 
-                const name =
-                    user.display_name ||
-                    user.name ||
-                    id;
+            const name =
+                user.display_name ||
+                user.name ||
+                id;
 
-                const phone =
-                    user.phone ||
-                    "";
+            const phone =
+                user.phone ||
+                "";
 
-                const image =
-                    user.avatar ||
-                    avatar(name);
+            const image =
+                user.avatar ||
+                createAvatar(name);
 
-                const item =
-                    document.createElement(
-                        "div"
-                    );
-
-                item.className =
-                    "user-card";
-
-                item.innerHTML = `
-                    <img
-                        class="user-avatar"
-                        src="${image}"
-                        alt=""
-                    >
-
-                    <div class="user-info">
-
-                        <div class="user-name">
-                            ${escapeHtml(name)}
-                        </div>
-
-                        <div class="user-id">
-                            شناسه: ${escapeHtml(id)}
-                        </div>
-
-                        ${
-                            phone
-                                ? `
-                                <div class="user-phone">
-                                    ${escapeHtml(phone)}
-                                </div>
-                                `
-                                : ""
-                        }
-
-                        <div class="user-status">
-                            🟢 آماده تماس
-                        </div>
-
-                    </div>
-
-                    <div class="user-actions">
-
-                        <button
-                            class="audio-button"
-                        >
-                            📞
-                        </button>
-
-                        <button
-                            class="video-button"
-                        >
-                            🎥
-                        </button>
-
-                    </div>
-                `;
-
-                item
-                    .querySelector(
-                        ".audio-button"
-                    )
-                    .onclick =
-                    () => startCall(
-                        id,
-                        "audio"
-                    );
-
-                item
-                    .querySelector(
-                        ".video-button"
-                    )
-                    .onclick =
-                    () => startCall(
-                        id,
-                        "video"
-                    );
-
-                list.appendChild(
-                    item
+            const card =
+                document.createElement(
+                    "div"
                 );
-            }
-        );
+
+            card.className =
+                "user-card";
+
+            card.innerHTML = `
+
+                <img
+                    class="user-avatar"
+                    src="${image}"
+                    alt=""
+                >
+
+                <div class="user-info">
+
+                    <div class="user-name">
+                        ${escapeHtml(name)}
+                    </div>
+
+                    <div class="user-id">
+                        شناسه:
+                        ${escapeHtml(id)}
+                    </div>
+
+                    ${
+                        phone
+                            ? `
+                            <div class="user-phone">
+                                ${escapeHtml(phone)}
+                            </div>
+                            `
+                            : ""
+                    }
+
+                    <div class="user-status">
+                        🟢 آماده تماس
+                    </div>
+
+                </div>
+
+                <div class="user-actions">
+
+                    <button
+                        class="audio-button"
+                        title="تماس صوتی"
+                    >
+                        📞
+                    </button>
+
+                    <button
+                        class="video-button"
+                        title="تماس تصویری"
+                    >
+                        🎥
+                    </button>
+
+                </div>
+            `;
+
+            card.querySelector(
+                ".audio-button"
+            ).onclick =
+                () => startCall(
+                    id,
+                    "audio"
+                );
+
+            card.querySelector(
+                ".video-button"
+            ).onclick =
+                () => startCall(
+                    id,
+                    "video"
+                );
+
+            list.appendChild(
+                card
+            );
+        });
 
     } catch (error) {
 
-        console.error(error);
+        console.error(
+            "Users error:",
+            error
+        );
 
         list.innerHTML = `
             <div class="loading">
@@ -608,9 +655,9 @@ async function loadUsers() {
 }
 
 
-/* =========================
+/* =====================================================
    SEARCH
-========================= */
+===================================================== */
 
 async function searchUser() {
 
@@ -652,42 +699,50 @@ async function searchUser() {
             user.name ||
             id;
 
-        const phone =
-            user.phone ||
-            "";
-
-        $("searchAvatar").src =
+        $("searchAvatar")
+            .src =
             user.avatar ||
-            avatar(name);
+            createAvatar(name);
 
-        $("searchName").textContent =
+        $("searchName")
+            .textContent =
             name;
 
-        $("searchId").textContent =
+        $("searchId")
+            .textContent =
             "شناسه: " + id;
 
-        $("searchPhone").textContent =
-            phone
-                ? "موبایل: " + phone
+        $("searchPhone")
+            .textContent =
+            user.phone
+                ? "موبایل: " +
+                  user.phone
                 : "";
 
         $("searchResult")
             .classList
             .remove("hidden");
 
-        $("audioCallButton").onclick =
+        $("audioCallButton")
+            .onclick =
             () => startCall(
                 id,
                 "audio"
             );
 
-        $("videoCallButton").onclick =
+        $("videoCallButton")
+            .onclick =
             () => startCall(
                 id,
                 "video"
             );
 
     } catch (error) {
+
+        console.error(
+            "Search error:",
+            error
+        );
 
         $("searchResult")
             .classList
@@ -700,9 +755,9 @@ async function searchUser() {
 }
 
 
-/* =========================
+/* =====================================================
    WEBSOCKET
-========================= */
+===================================================== */
 
 function connectWebSocket() {
 
@@ -719,7 +774,7 @@ function connectWebSocket() {
         return;
     }
 
-    const ws =
+    const wsUrl =
         "wss://videocallapp-api.onrender.com/ws/" +
         encodeURIComponent(
             userId
@@ -728,13 +783,17 @@ function connectWebSocket() {
     try {
 
         socket =
-            new WebSocket(ws);
+            new WebSocket(
+                wsUrl
+            );
 
-        socket.onopen = () => {
+        socket.onopen =
+            () => {
 
-            $("myStatus").textContent =
-                "🟢 آنلاین";
-        };
+                $("myStatus")
+                    .textContent =
+                    "🟢 آنلاین";
+            };
 
         socket.onmessage =
             async event => {
@@ -753,42 +812,52 @@ function connectWebSocket() {
                 } catch (error) {
 
                     console.error(
+                        "Signal error:",
                         error
                     );
                 }
             };
 
-        socket.onclose = () => {
-
-            $("myStatus").textContent =
-                "⚪ آفلاین";
-
-            setTimeout(
-                () => {
-
-                    if (getUserId()) {
-                        connectWebSocket();
-                    }
-
-                },
-                3000
-            );
-        };
-
         socket.onerror =
             error => {
 
                 console.error(
-                    "WebSocket:",
+                    "WebSocket error:",
                     error
                 );
             };
 
+        socket.onclose =
+            () => {
+
+                $("myStatus")
+                    .textContent =
+                    "⚪ آفلاین";
+
+                if (
+                    getUserId()
+                ) {
+
+                    setTimeout(
+                        () => {
+
+                            connectWebSocket();
+
+                        },
+                        3000
+                    );
+                }
+            };
+
     } catch (error) {
 
-        console.error(error);
+        console.error(
+            "WebSocket error:",
+            error
+        );
     }
 }
+
 
 function sendSignal(data) {
 
@@ -799,7 +868,7 @@ function sendSignal(data) {
     ) {
 
         toast(
-            "ارتباط تماس با سرور برقرار نیست."
+            "ارتباط با سرور تماس برقرار نیست."
         );
 
         return false;
@@ -813,9 +882,9 @@ function sendSignal(data) {
 }
 
 
-/* =========================
-   CALL
-========================= */
+/* =====================================================
+   START CALL
+===================================================== */
 
 async function startCall(
     userId,
@@ -840,14 +909,15 @@ async function startCall(
     currentCallType =
         type;
 
+    $("callPanel")
+        .classList
+        .remove("hidden");
+
+    $("callStatus")
+        .textContent =
+        "در حال دسترسی به دستگاه...";
+
     try {
-
-        $("callPanel")
-            .classList
-            .remove("hidden");
-
-        $("callStatus").textContent =
-            "در حال دسترسی به دوربین و میکروفون...";
 
         const constraints =
             type === "audio"
@@ -867,7 +937,8 @@ async function startCall(
                     constraints
                 );
 
-        $("localVideo").srcObject =
+        $("localVideo")
+            .srcObject =
             localStream;
 
         createPeerConnection();
@@ -892,23 +963,32 @@ async function startCall(
             );
 
         sendSignal({
+
             type: "offer",
 
-            to: userId,
+            to:
+                userId,
 
-            from: getUserId(),
+            from:
+                getUserId(),
 
-            call_type: type,
+            call_type:
+                type,
 
-            offer: offer
+            offer:
+                offer
         });
 
-        $("callStatus").textContent =
+        $("callStatus")
+            .textContent =
             "در حال تماس...";
 
     } catch (error) {
 
-        console.error(error);
+        console.error(
+            "Start call error:",
+            error
+        );
 
         toast(
             "دسترسی به دوربین یا میکروفون ممکن نشد."
@@ -919,25 +999,31 @@ async function startCall(
 }
 
 
-/* =========================
-   PEER
-========================= */
+/* =====================================================
+   PEER CONNECTION
+===================================================== */
 
 function createPeerConnection() {
 
     peerConnection =
         new RTCPeerConnection({
+
             iceServers: [
+
                 {
                     urls:
                         "stun:stun.l.google.com:19302"
                 },
+
                 {
                     urls:
                         "stun:stun1.l.google.com:19302"
                 }
+
             ]
+
         });
+
 
     peerConnection.onicecandidate =
         event => {
@@ -948,6 +1034,7 @@ function createPeerConnection() {
             ) {
 
                 sendSignal({
+
                     type:
                         "ice-candidate",
 
@@ -959,14 +1046,17 @@ function createPeerConnection() {
 
                     candidate:
                         event.candidate
+
                 });
             }
         };
+
 
     peerConnection.ontrack =
         event => {
 
             if (!remoteStream) {
+
                 remoteStream =
                     new MediaStream();
             }
@@ -989,47 +1079,72 @@ function createPeerConnection() {
                 .add("hidden");
         };
 
+
     peerConnection.onconnectionstatechange =
         () => {
+
+            if (!peerConnection)
+                return;
 
             const state =
                 peerConnection
                     .connectionState;
 
-            if (state === "connected") {
+            if (
+                state ===
+                "connected"
+            ) {
 
                 $("callStatus")
                     .textContent =
                     "🟢 متصل";
             }
 
-            if (state === "connecting") {
+            else if (
+                state ===
+                "connecting"
+            ) {
 
                 $("callStatus")
                     .textContent =
                     "در حال اتصال...";
             }
 
-            if (
-                state === "disconnected" ||
-                state === "failed"
+            else if (
+                state ===
+                "disconnected"
             ) {
 
                 $("callStatus")
                     .textContent =
                     "اتصال قطع شد";
             }
+
+            else if (
+                state ===
+                "failed"
+            ) {
+
+                $("callStatus")
+                    .textContent =
+                    "اتصال ناموفق بود";
+            }
         };
 }
 
 
-/* =========================
-   SIGNALS
-========================= */
+/* =====================================================
+   SIGNAL HANDLER
+===================================================== */
 
-async function handleSignal(data) {
+async function handleSignal(
+    data
+) {
 
-    if (data.type === "offer") {
+    if (
+        data.type ===
+        "offer"
+    ) {
 
         await receiveOffer(
             data
@@ -1038,21 +1153,27 @@ async function handleSignal(data) {
         return;
     }
 
-    if (data.type === "answer") {
 
-        if (!peerConnection) {
+    if (
+        data.type ===
+        "answer"
+    ) {
+
+        if (!peerConnection)
             return;
-        }
 
         await peerConnection
             .setRemoteDescription(
+
                 new RTCSessionDescription(
                     data.answer
                 )
+
             );
 
         return;
     }
+
 
     if (
         data.type ===
@@ -1068,9 +1189,11 @@ async function handleSignal(data) {
 
                 await peerConnection
                     .addIceCandidate(
+
                         new RTCIceCandidate(
                             data.candidate
                         )
+
                     );
 
             } catch (error) {
@@ -1083,6 +1206,7 @@ async function handleSignal(data) {
 
         return;
     }
+
 
     if (
         data.type ===
@@ -1098,6 +1222,7 @@ async function handleSignal(data) {
         return;
     }
 
+
     if (
         data.type ===
         "hangup"
@@ -1108,15 +1233,19 @@ async function handleSignal(data) {
         );
 
         cleanupCall();
+
+        return;
     }
 }
 
 
-/* =========================
+/* =====================================================
    INCOMING CALL
-========================= */
+===================================================== */
 
-async function receiveOffer(data) {
+async function receiveOffer(
+    data
+) {
 
     incomingOffer =
         data.offer;
@@ -1139,11 +1268,20 @@ async function receiveOffer(data) {
         .remove("hidden");
 }
 
+
 async function acceptCall() {
 
     $("incomingCall")
         .classList
         .add("hidden");
+
+    $("callPanel")
+        .classList
+        .remove("hidden");
+
+    $("callStatus")
+        .textContent =
+        "در حال پاسخ به تماس...";
 
     try {
 
@@ -1165,10 +1303,6 @@ async function acceptCall() {
                     constraints
                 );
 
-        $("callPanel")
-            .classList
-            .remove("hidden");
-
         $("localVideo")
             .srcObject =
             localStream;
@@ -1187,9 +1321,11 @@ async function acceptCall() {
 
         await peerConnection
             .setRemoteDescription(
+
                 new RTCSessionDescription(
                     incomingOffer
                 )
+
             );
 
         const answer =
@@ -1202,6 +1338,7 @@ async function acceptCall() {
             );
 
         sendSignal({
+
             type: "answer",
 
             to:
@@ -1220,7 +1357,10 @@ async function acceptCall() {
 
     } catch (error) {
 
-        console.error(error);
+        console.error(
+            "Accept call error:",
+            error
+        );
 
         toast(
             "پاسخ به تماس ناموفق بود."
@@ -1230,46 +1370,69 @@ async function acceptCall() {
     }
 }
 
+
 function rejectCall() {
 
     $("incomingCall")
         .classList
         .add("hidden");
 
-    sendSignal({
-        type:
-            "call-rejected",
+    if (currentCallUser) {
 
-        to:
-            currentCallUser,
+        sendSignal({
 
-        from:
-            getUserId()
-    });
+            type:
+                "call-rejected",
+
+            to:
+                currentCallUser,
+
+            from:
+                getUserId()
+
+        });
+    }
 
     incomingOffer = null;
+
     currentCallUser = null;
 }
 
 
-/* =========================
-   CONTROLS
-========================= */
+/* =====================================================
+   MICROPHONE
+===================================================== */
 
 function toggleMicrophone() {
 
-    if (!localStream) return;
+    if (!localStream) {
+
+        toast(
+            "تماسی برقرار نیست."
+        );
+
+        return;
+    }
 
     const tracks =
         localStream
             .getAudioTracks();
 
-    if (!tracks.length) return;
+    if (!tracks.length) {
+
+        toast(
+            "این تماس میکروفون ندارد."
+        );
+
+        return;
+    }
 
     tracks.forEach(
         track => {
+
             track.enabled =
                 !track.enabled;
+
         }
     );
 
@@ -1280,20 +1443,41 @@ function toggleMicrophone() {
     );
 }
 
+
+/* =====================================================
+   CAMERA
+===================================================== */
+
 function toggleCamera() {
 
-    if (!localStream) return;
+    if (!localStream) {
+
+        toast(
+            "تماسی برقرار نیست."
+        );
+
+        return;
+    }
 
     const tracks =
         localStream
             .getVideoTracks();
 
-    if (!tracks.length) return;
+    if (!tracks.length) {
+
+        toast(
+            "این تماس تصویری نیست."
+        );
+
+        return;
+    }
 
     tracks.forEach(
         track => {
+
             track.enabled =
                 !track.enabled;
+
         }
     );
 
@@ -1304,11 +1488,17 @@ function toggleCamera() {
     );
 }
 
+
+/* =====================================================
+   HANGUP
+===================================================== */
+
 function hangup() {
 
     if (currentCallUser) {
 
         sendSignal({
+
             type: "hangup",
 
             to:
@@ -1326,53 +1516,89 @@ function hangup() {
     );
 }
 
+
 function cleanupCall() {
 
     if (peerConnection) {
 
-        peerConnection.close();
+        try {
 
-        peerConnection = null;
+            peerConnection.close();
+
+        } catch {}
+
+        peerConnection =
+            null;
     }
+
 
     if (localStream) {
 
         localStream
             .getTracks()
             .forEach(
-                track =>
-                    track.stop()
+                track => {
+
+                    try {
+                        track.stop();
+                    } catch {}
+
+                }
             );
 
-        localStream = null;
+        localStream =
+            null;
     }
 
-    remoteStream = null;
 
-    $("localVideo").srcObject =
+    remoteStream =
         null;
 
-    $("remoteVideo").srcObject =
-        null;
+
+    if ($("localVideo")) {
+
+        $("localVideo")
+            .srcObject =
+            null;
+    }
+
+
+    if ($("remoteVideo")) {
+
+        $("remoteVideo")
+            .srcObject =
+            null;
+    }
+
 
     $("remotePlaceholder")
         .classList
         .remove("hidden");
 
+
     $("callPanel")
         .classList
         .add("hidden");
 
-    currentCallUser = null;
-    incomingOffer = null;
+
+    currentCallUser =
+        null;
+
+    incomingOffer =
+        null;
+
+    currentCallType =
+        "video";
 }
 
 
-/* =========================
+/* =====================================================
    LOGOUT
-========================= */
+===================================================== */
 
 function logout() {
+
+    cleanupCall();
 
     if (socket) {
 
@@ -1380,16 +1606,16 @@ function logout() {
             socket.close();
         } catch {}
 
-        socket = null;
+        socket =
+            null;
     }
-
-    cleanupCall();
 
     localStorage.removeItem(
         "videoCallUserId"
     );
 
-    currentUser = null;
+    currentUser =
+        null;
 
     showLogin();
 
@@ -1399,73 +1625,184 @@ function logout() {
 }
 
 
-/* =========================
+/* =====================================================
    EVENTS
-========================= */
+===================================================== */
 
 function setupEvents() {
 
-    $("loginButton").onclick =
-        login;
+    $("loginButton")
+        .addEventListener(
+            "click",
+            login
+        );
 
-    $("registerButton").onclick =
-        register;
 
-    $("showRegisterButton").onclick =
-        showRegister;
+    $("registerButton")
+        .addEventListener(
+            "click",
+            register
+        );
 
-    $("showLoginButton").onclick =
-        showLogin;
 
-    $("searchButton").onclick =
-        searchUser;
+    $("showRegisterButton")
+        .addEventListener(
+            "click",
+            showRegister
+        );
 
-    $("refreshButton").onclick =
-        loadUsers;
 
-    $("microphoneButton").onclick =
-        toggleMicrophone;
+    $("showLoginButton")
+        .addEventListener(
+            "click",
+            showLogin
+        );
 
-    $("cameraButton").onclick =
-        toggleCamera;
 
-    $("hangupButton").onclick =
-        hangup;
+    $("searchButton")
+        .addEventListener(
+            "click",
+            searchUser
+        );
 
-    $("acceptButton").onclick =
-        acceptCall;
 
-    $("rejectButton").onclick =
-        rejectCall;
+    $("refreshButton")
+        .addEventListener(
+            "click",
+            loadUsers
+        );
 
-    $("logoutButton").onclick =
-        logout;
 
-    $("contactsButton").onclick =
-        () => {
-            location.href =
-                "contacts.html";
-        };
+    $("microphoneButton")
+        .addEventListener(
+            "click",
+            toggleMicrophone
+        );
 
-    $("profileButton").onclick =
-        () => {
-            location.href =
-                "profile.html";
-        };
 
-    $("settingsButton").onclick =
-        () => {
-            location.href =
-                "settings.html";
-        };
+    $("cameraButton")
+        .addEventListener(
+            "click",
+            toggleCamera
+        );
+
+
+    $("hangupButton")
+        .addEventListener(
+            "click",
+            hangup
+        );
+
+
+    $("closeCallButton")
+        .addEventListener(
+            "click",
+            hangup
+        );
+
+
+    $("acceptButton")
+        .addEventListener(
+            "click",
+            acceptCall
+        );
+
+
+    $("rejectButton")
+        .addEventListener(
+            "click",
+            rejectCall
+        );
+
+
+    $("logoutButton")
+        .addEventListener(
+            "click",
+            logout
+        );
+
+
+    $("homeButton")
+        .addEventListener(
+            "click",
+            () => {
+                window.scrollTo({
+                    top: 0,
+                    behavior: "smooth"
+                });
+            }
+        );
+
+
+    $("contactsButton")
+        .addEventListener(
+            "click",
+            () => {
+                location.href =
+                    "contacts.html";
+            }
+        );
+
+
+    $("profileButton")
+        .addEventListener(
+            "click",
+            () => {
+                location.href =
+                    "profile.html";
+            }
+        );
+
+
+    $("settingsButton")
+        .addEventListener(
+            "click",
+            () => {
+                location.href =
+                    "settings.html";
+            }
+        );
+
+
+    $("loginIdentifier")
+        .addEventListener(
+            "keydown",
+            event => {
+
+                if (
+                    event.key ===
+                    "Enter"
+                ) {
+                    login();
+                }
+
+            }
+        );
+
+
+    $("searchInput")
+        .addEventListener(
+            "keydown",
+            event => {
+
+                if (
+                    event.key ===
+                    "Enter"
+                ) {
+                    searchUser();
+                }
+
+            }
+        );
+
 }
 
 
-/* =========================
-   START
-========================= */
+/* =====================================================
+   AUTO LOGIN
+===================================================== */
 
-async function start() {
+async function startApp() {
 
     setupEvents();
 
@@ -1497,13 +1834,16 @@ async function start() {
 
         updateMyProfile();
 
-        await loadUsers();
-
         connectWebSocket();
+
+        await loadUsers();
 
     } catch (error) {
 
-        console.error(error);
+        console.error(
+            "Auto login error:",
+            error
+        );
 
         localStorage.removeItem(
             "videoCallUserId"
@@ -1513,7 +1853,12 @@ async function start() {
     }
 }
 
+
+/* =====================================================
+   START
+===================================================== */
+
 document.addEventListener(
     "DOMContentLoaded",
-    start
+    startApp
 );
