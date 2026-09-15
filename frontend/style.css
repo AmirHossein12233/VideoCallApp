@@ -2,57 +2,35 @@
     box-sizing: border-box;
 }
 
-:root {
-    --bg: #07111f;
-    --bg-secondary: #0b1728;
-    --card: #101d30;
-    --card-light: #14243a;
-    --border: rgba(255, 255, 255, 0.08);
-
-    --text: #f8fafc;
-    --muted: #94a3b8;
-
-    --primary: #3b82f6;
-    --primary-dark: #2563eb;
-
-    --success: #22c55e;
-    --danger: #ef4444;
-    --warning: #f59e0b;
-
-    --shadow:
-        0 20px 50px rgba(0, 0, 0, 0.28);
-
-    --radius: 20px;
-}
-
-html {
+html,
+body {
+    margin: 0;
+    padding: 0;
     min-height: 100%;
 }
 
 body {
-    margin: 0;
-    min-height: 100vh;
-
     font-family:
         Tahoma,
         Arial,
         sans-serif;
 
     background:
-        radial-gradient(
-            circle at top right,
-            rgba(59, 130, 246, 0.12),
-            transparent 35%
-        ),
-        radial-gradient(
-            circle at bottom left,
-            rgba(124, 58, 237, 0.10),
-            transparent 35%
-        ),
-        var(--bg);
+        linear-gradient(
+            135deg,
+            #17112d 0%,
+            #28164d 45%,
+            #5b21b6 100%
+        );
 
-    color: var(--text);
+    color: #ffffff;
+    direction: rtl;
+    min-height: 100vh;
 }
+
+/* =========================================
+   General
+========================================= */
 
 button,
 input {
@@ -68,12 +46,18 @@ button {
 }
 
 
-/* =========================
+/* =========================================
    AUTH
-========================= */
+========================================= */
+
+#authContainer {
+    min-height: 100vh;
+    width: 100%;
+}
 
 .auth-container {
     min-height: 100vh;
+    width: 100%;
 
     display: flex;
     align-items: center;
@@ -84,534 +68,400 @@ button {
 
 .auth-card {
     width: 100%;
-    max-width: 450px;
+    max-width: 430px;
+
+    padding: 34px 28px;
 
     background:
-        linear-gradient(
-            145deg,
-            rgba(20, 36, 58, 0.96),
-            rgba(10, 24, 40, 0.96)
-        );
+        rgba(255, 255, 255, 0.10);
 
     border:
-        1px solid var(--border);
+        1px solid
+        rgba(255, 255, 255, 0.18);
 
-    border-radius:
-        28px;
-
-    padding:
-        32px;
+    border-radius: 28px;
 
     box-shadow:
-        0 30px 80px
-        rgba(0, 0, 0, 0.42);
+        0 25px 70px
+        rgba(0, 0, 0, 0.35);
 
-    backdrop-filter:
-        blur(18px);
+    backdrop-filter: blur(18px);
+    -webkit-backdrop-filter: blur(18px);
+
+    text-align: center;
 }
 
-.brand {
-    display: flex;
-    align-items: center;
-    gap: 16px;
+.logo {
+    width: 86px;
+    height: 86px;
 
-    margin-bottom: 32px;
-}
-
-.brand-icon {
-    width: 60px;
-    height: 60px;
+    margin: 0 auto 16px;
 
     display: flex;
     align-items: center;
     justify-content: center;
 
-    border-radius: 18px;
+    border-radius: 24px;
 
     background:
         linear-gradient(
             135deg,
-            #3b82f6,
-            #6366f1
+            #8b5cf6,
+            #6d28d9
         );
 
-    font-size: 28px;
+    font-size: 42px;
 
     box-shadow:
-        0 12px 30px
-        rgba(59, 130, 246, 0.28);
+        0 15px 35px
+        rgba(0, 0, 0, 0.30);
 }
 
-.brand h1 {
-    margin: 0 0 6px;
+.auth-card h1 {
+    margin: 0 0 8px;
 
-    font-size: 24px;
+    font-size: 30px;
+    font-weight: 800;
 }
 
-.brand p {
-    margin: 0;
+.auth-card p {
+    margin: 0 0 25px;
 
-    color: var(--muted);
+    color:
+        rgba(255, 255, 255, 0.72);
 
-    font-size: 13px;
+    font-size: 14px;
 }
 
-.auth-panel h2 {
+.auth-card h2 {
     margin:
-        0 0 8px;
+        10px
+        0
+        18px;
 
     font-size: 22px;
 }
 
-.auth-description {
-    margin:
-        0 0 24px;
-
-    color: var(--muted);
-
-    font-size: 14px;
-}
-
-.input-group {
-    margin-bottom: 18px;
-}
-
-.input-group label {
+.auth-card input {
     display: block;
 
-    margin-bottom: 8px;
-
-    color: #cbd5e1;
-
-    font-size: 14px;
-}
-
-.input-group input {
     width: 100%;
 
+    margin:
+        10px
+        0;
+
     padding:
-        14px 16px;
+        15px
+        16px;
 
     border:
-        1px solid var(--border);
+        1px solid
+        rgba(255, 255, 255, 0.15);
 
-    border-radius:
-        13px;
+    border-radius: 14px;
 
     outline: none;
 
     background:
-        rgba(255, 255, 255, 0.045);
+        rgba(255, 255, 255, 0.10);
 
-    color: var(--text);
+    color: #ffffff;
 
     font-size: 15px;
 
     transition:
-        0.2s;
+        border-color 0.2s,
+        background 0.2s,
+        box-shadow 0.2s;
 }
 
-.input-group input::placeholder {
-    color: #64748b;
+.auth-card input::placeholder {
+    color:
+        rgba(255, 255, 255, 0.50);
 }
 
-.input-group input:focus {
+.auth-card input:focus {
     border-color:
-        rgba(59, 130, 246, 0.8);
+        #a78bfa;
 
     background:
-        rgba(255, 255, 255, 0.07);
+        rgba(255, 255, 255, 0.14);
 
     box-shadow:
-        0 0 0 4px
-        rgba(59, 130, 246, 0.10);
+        0 0 0 3px
+        rgba(167, 139, 250, 0.16);
 }
 
-.form-error {
-    min-height: 20px;
+.auth-card button {
+    display: block;
 
-    margin-bottom: 8px;
+    width: 100%;
 
-    color:
-        #fca5a5;
-
-    font-size: 13px;
-
-    line-height: 1.7;
-}
-
-.primary-button {
-    border: none;
+    margin:
+        10px
+        0;
 
     padding:
-        13px 20px;
+        14px
+        16px;
 
-    border-radius:
-        13px;
+    border: 0;
+
+    border-radius: 14px;
 
     background:
         linear-gradient(
             135deg,
-            var(--primary),
-            #6366f1
+            #8b5cf6,
+            #6d28d9
         );
 
-    color: white;
+    color: #ffffff;
 
-    font-size: 14px;
-    font-weight: bold;
+    font-size: 15px;
+    font-weight: 700;
 
     transition:
-        transform 0.2s,
-        box-shadow 0.2s,
-        opacity 0.2s;
+        transform 0.15s,
+        opacity 0.15s,
+        box-shadow 0.15s;
 }
 
-.primary-button:hover {
-    transform:
-        translateY(-1px);
+.auth-card button:hover {
+    opacity: 0.94;
 
     box-shadow:
         0 10px 25px
-        rgba(59, 130, 246, 0.22);
+        rgba(0, 0, 0, 0.25);
 }
 
-.primary-button:active {
-    transform:
-        translateY(0);
+.auth-card button:active {
+    transform: scale(0.98);
 }
 
-.full-button {
-    width: 100%;
-}
-
-.link-button {
-    display: block;
-
-    width: 100%;
-
-    margin-top: 14px;
-
-    border: none;
-
-    background: transparent;
-
-    color:
-        #93c5fd;
-
-    font-size: 13px;
-}
-
-.link-button:hover {
-    color: white;
-}
-
-
-/* =========================
-   MAIN
-========================= */
-
-.main-app {
-    min-height: 100vh;
-}
-
-.topbar {
-    position: sticky;
-    top: 0;
-    z-index: 20;
-
-    min-height: 76px;
-
-    display: flex;
-    align-items: center;
-
-    gap: 20px;
-
-    padding:
-        12px 24px;
-
-    border-bottom:
-        1px solid var(--border);
-
+.auth-card #showRegisterButton,
+.auth-card #showLoginButton {
     background:
-        rgba(7, 17, 31, 0.88);
-
-    backdrop-filter:
-        blur(20px);
-}
-
-.topbar-brand {
-    display: flex;
-    align-items: center;
-
-    gap: 10px;
-
-    margin-left: auto;
-}
-
-.small-brand-icon {
-    width: 42px;
-    height: 42px;
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    border-radius: 13px;
-
-    background:
-        linear-gradient(
-            135deg,
-            #3b82f6,
-            #6366f1
-        );
-
-    font-size: 20px;
-}
-
-.topbar-brand strong {
-    display: block;
-
-    font-size: 15px;
-}
-
-.topbar-brand span {
-    display: block;
-
-    margin-top: 3px;
-
-    color: var(--muted);
-
-    font-size: 11px;
-}
-
-.topbar-user {
-    display: flex;
-    align-items: center;
-
-    gap: 10px;
-
-    min-width: 0;
-}
-
-.mini-avatar {
-    width: 42px;
-    height: 42px;
-
-    flex-shrink: 0;
-
-    overflow: hidden;
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    border-radius: 50%;
-
-    background:
-        linear-gradient(
-            135deg,
-            #1e3a8a,
-            #312e81
-        );
+        rgba(255, 255, 255, 0.10);
 
     border:
         1px solid
-        rgba(255, 255, 255, 0.08);
+        rgba(255, 255, 255, 0.16);
+
+    color:
+        rgba(255, 255, 255, 0.90);
 }
 
-.mini-avatar img {
-    width: 100%;
-    height: 100%;
+.error {
+    min-height: 24px;
 
-    object-fit: cover;
-}
+    margin:
+        5px
+        0;
 
-.topbar-user-info {
-    min-width: 0;
-}
-
-.topbar-user-info strong {
-    display: block;
-
-    max-width: 140px;
-
-    overflow: hidden;
-
-    text-overflow: ellipsis;
-
-    white-space: nowrap;
+    color: #ffb4b4;
 
     font-size: 13px;
 }
 
-.topbar-user-info span {
-    display: block;
 
-    color: var(--muted);
+/* =========================================
+   MAIN APP
+========================================= */
 
-    font-size: 10px;
-}
-
-.topbar-user-info .online-label {
-    color:
-        #4ade80;
-
-    margin-top: 2px;
-}
-
-.topbar-actions {
-    display: flex;
-    align-items: center;
-
-    gap: 7px;
-}
-
-.icon-button {
-    min-width: 40px;
-    height: 40px;
-
-    padding:
-        0 10px;
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    border:
-        1px solid var(--border);
-
-    border-radius: 11px;
-
-    background:
-        rgba(255, 255, 255, 0.045);
-
-    color: white;
-
-    transition:
-        0.2s;
-}
-
-.icon-button:hover {
-    background:
-        rgba(255, 255, 255, 0.09);
-
-    border-color:
-        rgba(255, 255, 255, 0.14);
-}
-
-.danger-button {
-    color:
-        #fca5a5;
-
-    font-size: 12px;
-}
-
-.content-wrapper {
+#appContainer {
+    min-height: 100vh;
     width: 100%;
-    max-width: 1100px;
+}
 
-    margin:
-        0 auto;
+
+/* =========================================
+   TOP BAR
+========================================= */
+
+.topbar {
+    width: 100%;
 
     padding:
-        28px 20px 60px;
-}
+        14px
+        18px;
 
-.card {
-    margin-bottom: 20px;
-
-    padding: 22px;
-
-    border:
-        1px solid var(--border);
-
-    border-radius:
-        var(--radius);
-
-    background:
-        linear-gradient(
-            145deg,
-            rgba(16, 29, 48, 0.96),
-            rgba(11, 23, 40, 0.96)
-        );
-
-    box-shadow:
-        var(--shadow);
-}
-
-.section-heading {
     display: flex;
     align-items: center;
     justify-content: space-between;
 
-    gap: 20px;
+    gap: 18px;
 
-    margin-bottom: 20px;
+    background:
+        rgba(15, 10, 35, 0.72);
+
+    border-bottom:
+        1px solid
+        rgba(255, 255, 255, 0.10);
+
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+
+    position: sticky;
+    top: 0;
+
+    z-index: 50;
 }
 
-.section-heading h2 {
-    margin: 0 0 6px;
+.profile-mini {
+    display: flex;
+    align-items: center;
 
-    font-size: 18px;
+    gap: 12px;
+
+    min-width: 0;
 }
 
-.section-heading p {
-    margin: 0;
+.profile-mini img {
+    width: 48px;
+    height: 48px;
 
-    color: var(--muted);
+    border-radius: 50%;
+
+    object-fit: cover;
+
+    background:
+        rgba(255, 255, 255, 0.10);
+
+    border:
+        2px solid
+        rgba(255, 255, 255, 0.18);
+}
+
+#myDisplayName {
+    font-weight: 700;
+
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+#myUserId {
+    margin-top: 3px;
+
+    font-size: 12px;
+
+    color:
+        rgba(255, 255, 255, 0.55);
+}
+
+#onlineStatus {
+    margin-top: 3px;
+
+    color: #86efac;
 
     font-size: 12px;
 }
 
-.section-icon {
-    width: 44px;
-    height: 44px;
-
+.top-actions {
     display: flex;
     align-items: center;
-    justify-content: center;
 
-    border-radius: 13px;
+    gap: 8px;
 
-    background:
-        rgba(59, 130, 246, 0.10);
-
-    font-size: 20px;
+    flex-wrap: wrap;
 }
 
-.refresh-button {
-    width: 42px;
-    height: 42px;
-
+.top-actions button {
     border:
-        1px solid var(--border);
+        1px solid
+        rgba(255, 255, 255, 0.12);
 
     border-radius: 12px;
 
+    padding:
+        10px
+        12px;
+
     background:
-        rgba(255, 255, 255, 0.04);
+        rgba(255, 255, 255, 0.08);
 
-    color: white;
+    color: #ffffff;
 
-    font-size: 22px;
+    font-size: 13px;
 
     transition:
-        0.2s;
+        background 0.2s,
+        transform 0.15s;
 }
 
-.refresh-button:hover {
-    transform:
-        rotate(90deg);
+.top-actions button:hover {
+    background:
+        rgba(255, 255, 255, 0.15);
+}
+
+.top-actions button:active {
+    transform: scale(0.97);
+}
+
+#logoutButton {
+    background:
+        rgba(239, 68, 68, 0.16);
+
+    border-color:
+        rgba(239, 68, 68, 0.28);
+}
+
+
+/* =========================================
+   MAIN CONTAINER
+========================================= */
+
+.main-container {
+    width: 100%;
+    max-width: 1200px;
+
+    margin: 0 auto;
+
+    padding:
+        24px
+        18px
+        50px;
+}
+
+
+/* =========================================
+   SEARCH
+========================================= */
+
+.search-section,
+.users-section,
+.call-area {
+    width: 100%;
+
+    margin-bottom: 22px;
+
+    padding: 22px;
 
     background:
-        rgba(255, 255, 255, 0.09);
+        rgba(255, 255, 255, 0.07);
+
+    border:
+        1px solid
+        rgba(255, 255, 255, 0.10);
+
+    border-radius: 22px;
+
+    box-shadow:
+        0 15px 45px
+        rgba(0, 0, 0, 0.16);
 }
 
+.search-section h2,
+.users-section h2 {
+    margin:
+        0
+        0
+        16px;
 
-/* =========================
-   SEARCH
-========================= */
+    font-size: 20px;
+}
 
 .search-box {
     display: flex;
@@ -625,239 +475,238 @@ button {
     min-width: 0;
 
     padding:
-        13px 15px;
+        14px
+        15px;
 
     border:
-        1px solid var(--border);
+        1px solid
+        rgba(255, 255, 255, 0.12);
 
-    border-radius:
-        13px;
+    border-radius: 14px;
 
     outline: none;
 
     background:
-        rgba(255, 255, 255, 0.045);
+        rgba(255, 255, 255, 0.09);
 
-    color: white;
-
-    font-size: 14px;
-}
-
-.search-box input::placeholder {
-    color: #64748b;
-}
-
-.search-box input:focus {
-    border-color:
-        rgba(59, 130, 246, 0.75);
-
-    box-shadow:
-        0 0 0 4px
-        rgba(59, 130, 246, 0.08);
-}
-
-.search-result {
-    margin-top: 16px;
-
-    padding: 16px;
-
-    border:
-        1px solid
-        rgba(59, 130, 246, 0.15);
-
-    border-radius: 16px;
-
-    background:
-        rgba(59, 130, 246, 0.045);
-}
-
-.search-result-user {
-    display: flex;
-    align-items: center;
-
-    gap: 14px;
-}
-
-.large-avatar {
-    width: 56px;
-    height: 56px;
-
-    flex-shrink: 0;
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    overflow: hidden;
-
-    border-radius: 50%;
-
-    background:
-        linear-gradient(
-            135deg,
-            #1e40af,
-            #4338ca
-        );
-
-    font-size: 24px;
-}
-
-.large-avatar img {
-    width: 100%;
-    height: 100%;
-
-    object-fit: cover;
-}
-
-.search-user-info h3 {
-    margin:
-        0 0 5px;
+    color: #ffffff;
 
     font-size: 15px;
 }
 
-.muted-text {
-    margin-top: 3px;
-
-    color: var(--muted);
-
-    font-size: 11px;
-}
-
-.search-actions {
-    display: flex;
-
-    gap: 10px;
-
-    margin-top: 15px;
-}
-
-.call-button {
-    flex: 1;
-
-    padding:
-        11px 14px;
-
-    border:
-        1px solid var(--border);
-
-    border-radius: 12px;
-
-    color: white;
-
-    font-size: 13px;
-
-    transition:
-        0.2s;
-}
-
-.call-button.audio {
-    background:
-        rgba(34, 197, 94, 0.12);
-
-    border-color:
-        rgba(34, 197, 94, 0.2);
-}
-
-.call-button.video {
-    background:
-        rgba(59, 130, 246, 0.12);
-
-    border-color:
-        rgba(59, 130, 246, 0.2);
-}
-
-.call-button:hover {
-    transform:
-        translateY(-1px);
-
-    filter:
-        brightness(1.15);
-}
-
-.search-error {
+.search-box input::placeholder {
     color:
-        #fca5a5;
-
-    font-size: 13px;
+        rgba(255, 255, 255, 0.48);
 }
 
-
-/* =========================
-   USERS
-========================= */
-
-.users-list {
-    display: grid;
-
-    grid-template-columns:
-        repeat(2, minmax(0, 1fr));
-
-    gap: 12px;
-}
-
-.user-item {
-    display: flex;
-    align-items: center;
-
-    gap: 12px;
-
-    min-width: 0;
-
-    padding: 13px;
-
-    border:
-        1px solid var(--border);
-
-    border-radius: 15px;
-
-    background:
-        rgba(255, 255, 255, 0.025);
-
-    transition:
-        0.2s;
-}
-
-.user-item:hover {
-    background:
-        rgba(255, 255, 255, 0.055);
-
+.search-box input:focus {
     border-color:
-        rgba(255, 255, 255, 0.12);
+        #a78bfa;
 
-    transform:
-        translateY(-1px);
+    box-shadow:
+        0 0 0 3px
+        rgba(167, 139, 250, 0.13);
 }
 
-.user-avatar {
-    width: 48px;
-    height: 48px;
+.search-box button {
+    padding:
+        0
+        22px;
 
-    flex-shrink: 0;
+    border: 0;
 
-    overflow: hidden;
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    border-radius: 50%;
+    border-radius: 14px;
 
     background:
         linear-gradient(
             135deg,
-            #1e3a8a,
-            #312e81
+            #8b5cf6,
+            #6d28d9
         );
 
-    font-size: 20px;
+    color: #ffffff;
+
+    font-weight: 700;
 }
 
-.user-avatar img {
-    width: 100%;
-    height: 100%;
+
+/* =========================================
+   SEARCH RESULT
+========================================= */
+
+.search-result {
+    margin-top: 18px;
+
+    padding: 16px;
+
+    display: flex;
+    align-items: center;
+
+    gap: 14px;
+
+    background:
+        rgba(255, 255, 255, 0.08);
+
+    border:
+        1px solid
+        rgba(255, 255, 255, 0.10);
+
+    border-radius: 18px;
+}
+
+.search-result > img {
+    width: 58px;
+    height: 58px;
+
+    flex-shrink: 0;
+
+    border-radius: 50%;
 
     object-fit: cover;
+
+    background:
+        rgba(255, 255, 255, 0.10);
+}
+
+.search-result h3 {
+    margin: 0 0 5px;
+
+    font-size: 16px;
+}
+
+#searchUserIdentifier,
+#searchUserPhone {
+    color:
+        rgba(255, 255, 255, 0.55);
+
+    font-size: 12px;
+
+    margin-top: 3px;
+}
+
+.call-buttons {
+    margin-right: auto;
+
+    display: flex;
+
+    gap: 8px;
+}
+
+.call-buttons button {
+    padding:
+        10px
+        12px;
+
+    border: 0;
+
+    border-radius: 11px;
+
+    background:
+        rgba(139, 92, 246, 0.25);
+
+    color: #ffffff;
+
+    font-size: 12px;
+}
+
+
+/* =========================================
+   SECTION HEADER
+========================================= */
+
+.section-header {
+    display: flex;
+
+    align-items: center;
+    justify-content: space-between;
+
+    gap: 12px;
+
+    margin-bottom: 16px;
+}
+
+.section-header h2 {
+    margin: 0;
+}
+
+#refreshUsersButton {
+    padding:
+        9px
+        13px;
+
+    border:
+        1px solid
+        rgba(255, 255, 255, 0.12);
+
+    border-radius: 11px;
+
+    background:
+        rgba(255, 255, 255, 0.08);
+
+    color: #ffffff;
+}
+
+
+/* =========================================
+   USERS
+========================================= */
+
+#usersList {
+    display: grid;
+
+    grid-template-columns:
+        repeat(
+            auto-fill,
+            minmax(280px, 1fr)
+        );
+
+    gap: 12px;
+}
+
+.user-card {
+    min-width: 0;
+
+    padding: 14px;
+
+    display: flex;
+    align-items: center;
+
+    gap: 12px;
+
+    background:
+        rgba(255, 255, 255, 0.07);
+
+    border:
+        1px solid
+        rgba(255, 255, 255, 0.09);
+
+    border-radius: 18px;
+
+    transition:
+        transform 0.18s,
+        background 0.18s;
+}
+
+.user-card:hover {
+    transform:
+        translateY(-2px);
+
+    background:
+        rgba(255, 255, 255, 0.11);
+}
+
+.user-avatar {
+    width: 52px;
+    height: 52px;
+
+    flex-shrink: 0;
+
+    border-radius: 50%;
+
+    object-fit: cover;
+
+    background:
+        rgba(255, 255, 255, 0.10);
 }
 
 .user-info {
@@ -867,45 +716,39 @@ button {
 }
 
 .user-name {
-    overflow: hidden;
+    font-size: 15px;
 
-    text-overflow: ellipsis;
+    font-weight: 700;
 
     white-space: nowrap;
 
-    font-size: 14px;
+    overflow: hidden;
 
-    font-weight: bold;
+    text-overflow: ellipsis;
 }
 
 .user-id {
     margin-top: 4px;
 
-    overflow: hidden;
+    color:
+        rgba(255, 255, 255, 0.50);
 
-    text-overflow: ellipsis;
-
-    white-space: nowrap;
-
-    color: var(--muted);
-
-    font-size: 10px;
+    font-size: 12px;
 }
 
 .user-status {
     margin-top: 4px;
 
-    font-size: 10px;
+    font-size: 11px;
 }
 
 .user-status.online {
-    color:
-        #4ade80;
+    color: #86efac;
 }
 
 .user-status.offline {
     color:
-        #64748b;
+        rgba(255, 255, 255, 0.40);
 }
 
 .user-actions {
@@ -915,110 +758,57 @@ button {
 }
 
 .user-actions button {
-    width: 36px;
-    height: 36px;
+    width: 40px;
+    height: 40px;
 
-    display: flex;
-    align-items: center;
-    justify-content: center;
+    padding: 0;
 
-    border:
-        1px solid var(--border);
+    border: 0;
 
-    border-radius: 10px;
+    border-radius: 12px;
 
     background:
-        rgba(255, 255, 255, 0.04);
+        rgba(139, 92, 246, 0.22);
 
-    color: white;
+    color: #ffffff;
 
-    transition:
-        0.2s;
+    font-size: 17px;
 }
 
 .user-actions button:hover {
     background:
-        rgba(59, 130, 246, 0.15);
-
-    border-color:
-        rgba(59, 130, 246, 0.3);
+        rgba(139, 92, 246, 0.38);
 }
 
 .empty-state {
-    padding:
-        30px 15px;
+    padding: 35px 15px;
 
     text-align: center;
 
-    color: var(--muted);
-
-    font-size: 13px;
-
-    grid-column:
-        1 / -1;
+    color:
+        rgba(255, 255, 255, 0.50);
 }
 
 
-/* =========================
+/* =========================================
    CALL AREA
-========================= */
+========================================= */
 
 .call-area {
+    position: relative;
+
     overflow: hidden;
-
-    border:
-        1px solid
-        rgba(59, 130, 246, 0.18);
-
-    border-radius:
-        var(--radius);
-
-    background:
-        #020817;
-
-    box-shadow:
-        0 30px 70px
-        rgba(0, 0, 0, 0.4);
 }
 
-.call-header {
-    height: 54px;
+#connectionStatus {
+    margin-bottom: 14px;
 
-    display: flex;
-    align-items: center;
-
-    padding:
-        0 18px;
-
-    border-bottom:
-        1px solid
-        rgba(255, 255, 255, 0.06);
-
-    background:
-        rgba(15, 23, 42, 0.95);
-
-    font-size: 12px;
+    text-align: center;
 
     color:
-        #cbd5e1;
-}
+        rgba(255, 255, 255, 0.80);
 
-.call-live-dot {
-    display: inline-block;
-
-    width: 8px;
-    height: 8px;
-
-    margin-left: 7px;
-
-    border-radius: 50%;
-
-    background:
-        #22c55e;
-
-    box-shadow:
-        0 0 12px
-        rgba(34, 197, 94, 0.8);
+    font-size: 14px;
 }
 
 .video-stage {
@@ -1026,205 +816,131 @@ button {
 
     width: 100%;
 
-    min-height: 520px;
-
-    background:
-        #020617;
+    min-height: 420px;
 
     overflow: hidden;
+
+    border-radius: 20px;
+
+    background:
+        #090612;
+
+    border:
+        1px solid
+        rgba(255, 255, 255, 0.08);
 }
 
-.remote-video {
+#remotePlaceholder {
     position: absolute;
 
     inset: 0;
-
-    width: 100%;
-    height: 100%;
-
-    object-fit: cover;
-
-    background:
-        #020617;
-}
-
-.remote-placeholder {
-    position: absolute;
-
-    inset: 0;
-
-    z-index: 1;
-
-    display: flex;
-    flex-direction: column;
-
-    align-items: center;
-    justify-content: center;
-
-    gap: 8px;
-
-    background:
-        radial-gradient(
-            circle,
-            #12243b 0%,
-            #020617 65%
-        );
-
-    color: #cbd5e1;
-}
-
-.placeholder-icon {
-    width: 76px;
-    height: 76px;
 
     display: flex;
     align-items: center;
     justify-content: center;
 
-    margin-bottom: 5px;
+    color:
+        rgba(255, 255, 255, 0.45);
 
-    border-radius: 50%;
-
-    background:
-        rgba(59, 130, 246, 0.10);
-
-    font-size: 32px;
-}
-
-.remote-placeholder strong {
     font-size: 15px;
 }
 
-.remote-placeholder span {
-    color: var(--muted);
+#remoteVideo {
+    width: 100%;
+    height: 100%;
 
-    font-size: 11px;
-}
+    min-height: 420px;
 
-.local-video {
-    position: absolute;
-
-    z-index: 3;
-
-    left: 18px;
-    top: 18px;
-
-    width: 190px;
-    height: 130px;
+    display: block;
 
     object-fit: cover;
 
+    background: #090612;
+}
+
+#localVideo {
+    position: absolute;
+
+    width: 180px;
+    height: 120px;
+
+    left: 16px;
+    bottom: 16px;
+
+    object-fit: cover;
+
+    border-radius: 15px;
+
     border:
         2px solid
-        rgba(255, 255, 255, 0.7);
+        rgba(255, 255, 255, 0.75);
+
+    background: #111;
+
+    box-shadow:
+        0 10px 30px
+        rgba(0, 0, 0, 0.40);
+}
+
+.call-controls {
+    display: flex;
+
+    justify-content: center;
+    align-items: center;
+
+    gap: 10px;
+
+    padding-top: 16px;
+}
+
+.call-controls button {
+    min-width: 52px;
+    min-height: 46px;
+
+    padding:
+        10px
+        16px;
+
+    border: 0;
 
     border-radius: 14px;
 
     background:
-        #0f172a;
-
-    box-shadow:
-        0 15px 30px
-        rgba(0, 0, 0, 0.45);
-}
-
-.call-controls {
-    position: absolute;
-
-    z-index: 5;
-
-    bottom: 24px;
-    left: 50%;
-
-    transform:
-        translateX(-50%);
-
-    display: flex;
-
-    align-items: center;
-
-    gap: 12px;
-
-    padding:
-        10px 13px;
-
-    border:
-        1px solid
         rgba(255, 255, 255, 0.10);
 
-    border-radius: 22px;
+    color: #ffffff;
 
-    background:
-        rgba(2, 8, 23, 0.78);
-
-    backdrop-filter:
-        blur(18px);
+    font-size: 16px;
 }
 
-.control-button {
-    width: 48px;
-    height: 48px;
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    border:
-        1px solid
-        rgba(255, 255, 255, 0.12);
-
-    border-radius: 50%;
-
+.call-controls button:hover {
     background:
-        rgba(255, 255, 255, 0.08);
-
-    color: white;
-
-    font-size: 19px;
-
-    transition:
-        0.2s;
+        rgba(255, 255, 255, 0.17);
 }
 
-.control-button:hover {
-    transform:
-        translateY(-2px);
-
-    background:
-        rgba(255, 255, 255, 0.14);
-}
-
-.control-button.hangup {
+#hangupButton {
     background:
         #dc2626;
 
-    border-color:
-        #ef4444;
-
-    transform:
-        rotate(135deg);
+    min-width: 130px;
 }
 
-.control-button.hangup:hover {
+#hangupButton:hover {
     background:
         #ef4444;
-
-    transform:
-        rotate(135deg)
-        translateY(-2px);
 }
 
 
-/* =========================
-   INCOMING CALL
-========================= */
+/* =========================================
+   INCOMING CALL MODAL
+========================================= */
 
-.modal-overlay {
+.modal {
     position: fixed;
 
-    z-index: 100;
-
     inset: 0;
+
+    z-index: 1000;
 
     display: flex;
     align-items: center;
@@ -1233,327 +949,176 @@ button {
     padding: 20px;
 
     background:
-        rgba(0, 0, 0, 0.72);
+        rgba(0, 0, 0, 0.62);
 
-    backdrop-filter:
-        blur(10px);
+    backdrop-filter: blur(7px);
+    -webkit-backdrop-filter: blur(7px);
 }
 
-.incoming-call-card {
+.modal-card {
     width: 100%;
-    max-width: 390px;
+    max-width: 360px;
 
-    padding:
-        32px 24px 25px;
+    padding: 30px;
 
     text-align: center;
 
-    border:
-        1px solid
-        rgba(255, 255, 255, 0.10);
-
-    border-radius:
-        28px;
+    border-radius: 24px;
 
     background:
         linear-gradient(
             145deg,
-            #14243a,
-            #0b1728
+            #241440,
+            #4c1d95
         );
-
-    box-shadow:
-        0 30px 90px
-        rgba(0, 0, 0, 0.55);
-
-    animation:
-        incomingCard 0.3s ease;
-}
-
-@keyframes incomingCard {
-    from {
-        opacity: 0;
-
-        transform:
-            scale(0.92)
-            translateY(15px);
-    }
-
-    to {
-        opacity: 1;
-
-        transform:
-            scale(1)
-            translateY(0);
-    }
-}
-
-.incoming-animation {
-    height: 50px;
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    margin-bottom: 6px;
-}
-
-.incoming-ring {
-    width: 48px;
-    height: 48px;
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    border-radius: 50%;
-
-    background:
-        rgba(34, 197, 94, 0.12);
-
-    color:
-        #4ade80;
-
-    font-size: 23px;
-
-    animation:
-        ringPulse 1.2s infinite;
-}
-
-@keyframes ringPulse {
-    0% {
-        box-shadow:
-            0 0 0 0
-            rgba(34, 197, 94, 0.45);
-    }
-
-    70% {
-        box-shadow:
-            0 0 0 18px
-            rgba(34, 197, 94, 0);
-    }
-
-    100% {
-        box-shadow:
-            0 0 0 0
-            rgba(34, 197, 94, 0);
-    }
-}
-
-.incoming-label {
-    display: inline-block;
-
-    margin-bottom: 18px;
-
-    color:
-        #4ade80;
-
-    font-size: 12px;
-}
-
-.incoming-avatar {
-    width: 88px;
-    height: 88px;
-
-    margin:
-        0 auto 15px;
-
-    overflow: hidden;
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    border-radius: 50%;
-
-    background:
-        linear-gradient(
-            135deg,
-            #1d4ed8,
-            #4338ca
-        );
-
-    border:
-        3px solid
-        rgba(255, 255, 255, 0.08);
-
-    font-size: 30px;
-}
-
-.incoming-avatar img {
-    width: 100%;
-    height: 100%;
-
-    object-fit: cover;
-}
-
-.incoming-call-card h2 {
-    margin:
-        0 0 7px;
-
-    font-size: 20px;
-}
-
-.incoming-call-card p {
-    margin:
-        0 0 25px;
-
-    color: var(--muted);
-
-    font-size: 12px;
-}
-
-.incoming-actions {
-    display: flex;
-
-    gap: 12px;
-}
-
-.accept-button,
-.reject-button {
-    flex: 1;
-
-    height: 52px;
-
-    display: flex;
-    align-items: center;
-    justify-content: center;
-
-    gap: 8px;
-
-    border: none;
-
-    border-radius: 14px;
-
-    color: white;
-
-    font-size: 14px;
-    font-weight: bold;
-
-    transition:
-        0.2s;
-}
-
-.accept-button {
-    background:
-        #16a34a;
-
-    box-shadow:
-        0 10px 25px
-        rgba(22, 163, 74, 0.18);
-}
-
-.reject-button {
-    background:
-        #dc2626;
-
-    box-shadow:
-        0 10px 25px
-        rgba(220, 38, 38, 0.18);
-}
-
-.accept-button:hover,
-.reject-button:hover {
-    transform:
-        translateY(-2px);
-
-    filter:
-        brightness(1.1);
-}
-
-
-/* =========================
-   TOAST
-========================= */
-
-.toast {
-    position: fixed;
-
-    z-index: 200;
-
-    left: 50%;
-    bottom: 25px;
-
-    transform:
-        translateX(-50%);
-
-    min-width: 240px;
-    max-width: calc(100vw - 30px);
-
-    padding:
-        13px 18px;
-
-    text-align: center;
 
     border:
         1px solid
-        rgba(255, 255, 255, 0.10);
-
-    border-radius:
-        13px;
-
-    background:
-        rgba(15, 23, 42, 0.95);
-
-    color: white;
+        rgba(255, 255, 255, 0.14);
 
     box-shadow:
-        0 15px 35px
-        rgba(0, 0, 0, 0.35);
+        0 25px 70px
+        rgba(0, 0, 0, 0.45);
+}
+
+.modal-card img {
+    width: 82px;
+    height: 82px;
+
+    border-radius: 50%;
+
+    object-fit: cover;
+
+    border:
+        3px solid
+        rgba(255, 255, 255, 0.25);
+
+    margin-bottom: 15px;
+}
+
+.modal-card h2 {
+    margin:
+        0
+        0
+        8px;
+}
+
+#incomingCaller {
+    color:
+        rgba(255, 255, 255, 0.72);
+
+    margin-bottom: 22px;
+}
+
+.incoming-buttons {
+    display: flex;
+
+    gap: 10px;
+}
+
+.incoming-buttons button {
+    flex: 1;
+
+    padding: 13px;
+
+    border: 0;
+
+    border-radius: 13px;
+
+    color: #ffffff;
+
+    font-weight: 700;
+}
+
+#acceptCallButton {
+    background:
+        #16a34a;
+}
+
+#rejectCallButton {
+    background:
+        #dc2626;
+}
+
+
+/* =========================================
+   TOAST
+========================================= */
+
+#toast {
+    position: fixed;
+
+    left: 50%;
+
+    bottom: 24px;
+
+    z-index: 2000;
+
+    transform:
+        translate(-50%, 20px);
+
+    min-width: 220px;
+    max-width: calc(100vw - 40px);
+
+    padding:
+        13px
+        18px;
+
+    border-radius: 14px;
+
+    background:
+        rgba(20, 12, 40, 0.94);
+
+    border:
+        1px solid
+        rgba(255, 255, 255, 0.12);
+
+    color: #ffffff;
+
+    text-align: center;
 
     font-size: 13px;
 
-    backdrop-filter:
-        blur(12px);
+    opacity: 0;
 
-    animation:
-        toastIn 0.25s ease;
+    pointer-events: none;
+
+    transition:
+        opacity 0.25s,
+        transform 0.25s;
+
+    box-shadow:
+        0 12px 35px
+        rgba(0, 0, 0, 0.35);
 }
 
-.toast.success {
-    border-color:
-        rgba(34, 197, 94, 0.3);
-}
+#toast.show {
+    opacity: 1;
 
-.toast.error {
-    border-color:
-        rgba(239, 68, 68, 0.3);
-}
-
-@keyframes toastIn {
-    from {
-        opacity: 0;
-
-        transform:
-            translateX(-50%)
-            translateY(10px);
-    }
-
-    to {
-        opacity: 1;
-
-        transform:
-            translateX(-50%)
-            translateY(0);
-    }
+    transform:
+        translate(-50%, 0);
 }
 
 
-/* =========================
+/* =========================================
    NOTIFICATIONS
-========================= */
+========================================= */
 
 #notificationContainer {
     position: fixed;
 
-    z-index: 500;
+    top: 18px;
+    left: 18px;
 
-    top: 85px;
-    right: 20px;
+    z-index: 3000;
 
-    width: 340px;
+    width: min(
+        360px,
+        calc(100vw - 36px)
+    );
 
     display: flex;
+
     flex-direction: column;
 
     gap: 10px;
@@ -1563,48 +1128,42 @@ button {
 
 .app-notification {
     display: flex;
-    align-items: flex-start;
+    align-items: center;
 
     gap: 11px;
 
-    padding:
-        13px 12px;
+    padding: 13px;
+
+    border-radius: 16px;
+
+    background:
+        rgba(25, 15, 45, 0.96);
 
     border:
         1px solid
-        rgba(255, 255, 255, 0.10);
-
-    border-radius:
-        16px;
-
-    background:
-        rgba(15, 23, 42, 0.96);
+        rgba(255, 255, 255, 0.12);
 
     box-shadow:
-        0 20px 45px
-        rgba(0, 0, 0, 0.38);
-
-    backdrop-filter:
-        blur(18px);
-
-    pointer-events:
-        auto;
+        0 15px 40px
+        rgba(0, 0, 0, 0.35);
 
     opacity: 0;
 
     transform:
-        translateX(25px);
+        translateY(-12px);
 
     transition:
-        opacity 0.25s ease,
-        transform 0.25s ease;
+        opacity 0.25s,
+        transform 0.25s;
+
+    pointer-events: auto;
 }
 
 .app-notification.show {
     opacity: 1;
 
     transform:
-        translateX(0);
+        translateY(0);
 }
 
 .notification-icon {
@@ -1620,126 +1179,132 @@ button {
     border-radius: 12px;
 
     background:
-        rgba(59, 130, 246, 0.12);
+        rgba(139, 92, 246, 0.20);
 
     font-size: 19px;
 }
 
 .notification-content {
-    flex: 1;
-
     min-width: 0;
+
+    flex: 1;
 }
 
 .notification-title {
-    margin-bottom: 4px;
-
-    color: white;
+    font-weight: 700;
 
     font-size: 13px;
-    font-weight: bold;
 }
 
 .notification-body {
+    margin-top: 4px;
+
     color:
-        #94a3b8;
+        rgba(255, 255, 255, 0.60);
 
-    font-size: 11px;
+    font-size: 12px;
 
-    line-height: 1.7;
+    line-height: 1.5;
 }
 
 .notification-close {
-    width: 25px;
-    height: 25px;
+    width: 30px;
+    height: 30px;
 
     flex-shrink: 0;
 
-    border: none;
+    border: 0;
 
-    border-radius: 7px;
-
-    background:
-        rgba(255, 255, 255, 0.05);
-
-    color:
-        #94a3b8;
-
-    font-size: 17px;
-
-    line-height: 1;
-}
-
-.notification-close:hover {
-    color: white;
+    border-radius: 9px;
 
     background:
-        rgba(255, 255, 255, 0.10);
+        rgba(255, 255, 255, 0.08);
+
+    color: #ffffff;
+
+    font-size: 18px;
 }
 
 
-/* =========================
+/* =========================================
    MOBILE
-========================= */
+========================================= */
 
 @media (max-width: 800px) {
 
     .topbar {
-        flex-wrap: wrap;
+        align-items: flex-start;
 
-        padding:
-            10px 14px;
-
-        gap: 10px;
+        flex-direction: column;
     }
 
-    .topbar-brand {
-        order: 1;
-
-        margin-left: 0;
-    }
-
-    .topbar-user {
-        order: 2;
-
-        margin-right: auto;
-    }
-
-    .topbar-actions {
-        order: 3;
-
+    .top-actions {
         width: 100%;
-
-        justify-content: center;
-
-        padding-top: 2px;
     }
 
-    .content-wrapper {
+    .top-actions button {
+        flex: 1;
+    }
+
+    .main-container {
         padding:
-            18px 12px 40px;
+            16px
+            12px
+            35px;
     }
 
-    .users-list {
+    .search-section,
+    .users-section,
+    .call-area {
+        padding: 16px;
+
+        border-radius: 18px;
+    }
+
+    #usersList {
         grid-template-columns:
             1fr;
     }
 
-    .video-stage {
-        min-height: 420px;
+    .search-result {
+        align-items: flex-start;
+
+        flex-wrap: wrap;
     }
 
-    .local-video {
-        width: 130px;
-        height: 95px;
+    .call-buttons {
+        width: 100%;
+
+        margin-right: 0;
+    }
+
+    .call-buttons button {
+        flex: 1;
+    }
+
+    .video-stage {
+        min-height: 300px;
+    }
+
+    #remoteVideo {
+        min-height: 300px;
+    }
+
+    #localVideo {
+        width: 125px;
+        height: 90px;
 
         left: 10px;
-        top: 10px;
+        bottom: 10px;
     }
 }
 
 
-@media (max-width: 600px) {
+/* =========================================
+   SMALL MOBILE
+========================================= */
+
+@media (max-width: 500px) {
 
     .auth-container {
         padding: 14px;
@@ -1747,153 +1312,63 @@ button {
 
     .auth-card {
         padding:
-            24px 18px;
+            25px
+            18px;
 
-        border-radius:
-            22px;
+        border-radius: 22px;
     }
 
-    .brand {
-        margin-bottom: 25px;
+    .logo {
+        width: 72px;
+        height: 72px;
+
+        font-size: 34px;
     }
 
-    .brand-icon {
-        width: 52px;
-        height: 52px;
-
-        border-radius: 15px;
-    }
-
-    .brand h1 {
-        font-size: 21px;
-    }
-
-    .topbar-brand {
-        width: 100%;
-    }
-
-    .topbar-user {
-        width: 100%;
-
-        margin-right: 0;
-    }
-
-    .topbar-actions {
-        overflow-x: auto;
-
-        justify-content:
-            flex-start;
-
-        padding-bottom: 3px;
-    }
-
-    .topbar-actions .icon-button {
-        flex: 0 0 auto;
-    }
-
-    .card {
-        padding: 16px;
-
-        border-radius:
-            17px;
+    .auth-card h1 {
+        font-size: 25px;
     }
 
     .search-box {
         flex-direction: column;
     }
 
-    .search-box .primary-button {
+    .search-box button {
+        width: 100%;
+
+        padding: 13px;
+    }
+
+    .top-actions {
+        display: grid;
+
+        grid-template-columns:
+            repeat(2, 1fr);
+    }
+
+    .top-actions button {
         width: 100%;
     }
 
-    .search-actions {
-        flex-direction: column;
-    }
-
-    .video-stage {
-        min-height: 390px;
-    }
-
-    .call-controls {
-        bottom: 15px;
-
-        gap: 8px;
-
-        padding:
-            8px 10px;
-    }
-
-    .control-button {
+    .profile-mini img {
         width: 44px;
         height: 44px;
     }
 
-    .local-video {
-        width: 110px;
-        height: 80px;
-    }
-
-    .incoming-call-card {
-        padding:
-            27px 18px 22px;
-    }
-
-    #notificationContainer {
-        top: 15px;
-        right: 12px;
-        left: 12px;
-
-        width: auto;
-    }
-
-    .app-notification {
-        transform:
-            translateY(-10px);
-    }
-
-    .app-notification.show {
-        transform:
-            translateY(0);
-    }
-}
-
-
-@media (max-width: 380px) {
-
-    .brand {
-        gap: 10px;
-    }
-
-    .brand-icon {
-        width: 46px;
-        height: 46px;
-
-        font-size: 22px;
-    }
-
-    .brand h1 {
-        font-size: 18px;
-    }
-
-    .section-heading h2 {
-        font-size: 16px;
-    }
-
-    .user-item {
-        padding: 10px;
+    .user-card {
+        padding: 12px;
     }
 
     .user-avatar {
-        width: 43px;
-        height: 43px;
+        width: 46px;
+        height: 46px;
     }
 
-    .user-actions button {
-        width: 33px;
-        height: 33px;
+    .call-controls {
+        flex-wrap: wrap;
     }
 
-    .video-stage {
-        min-height: 350px;
+    #hangupButton {
+        width: 100%;
     }
 }

@@ -2,307 +2,228 @@
 <html lang="fa" dir="rtl">
 <head>
     <meta charset="UTF-8">
-
     <meta
         name="viewport"
         content="width=device-width, initial-scale=1.0"
     >
 
-    <meta
-        name="theme-color"
-        content="#0f172a"
-    >
-
     <title>VideoCallApp</title>
 
-    <link
-        rel="stylesheet"
-        href="style.css"
-    >
+    <link rel="stylesheet" href="style.css">
+
+    <style>
+        .hidden {
+            display: none !important;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+        }
+
+        #authContainer,
+        #appContainer {
+            min-height: 100vh;
+        }
+
+        .startup {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-family: Tahoma, Arial, sans-serif;
+            color: white;
+            text-align: center;
+        }
+    </style>
 </head>
 
 <body>
 
-<div class="app-shell">
-
     <!-- =========================
-         AUTH
+         Auth
     ========================== -->
 
-    <section
-        id="authContainer"
-        class="auth-container"
-    >
+    <div id="authContainer">
 
-        <div class="auth-card">
+        <div class="auth-container">
 
-            <div class="brand">
-                <div class="brand-icon">
+            <div class="auth-card">
+
+                <div class="logo">
                     📹
                 </div>
 
-                <div>
-                    <h1>
-                        VideoCallApp
-                    </h1>
+                <h1>
+                    VideoCallApp
+                </h1>
 
-                    <p>
-                        تماس صوتی و تصویری آنلاین
-                    </p>
-                </div>
-            </div>
-
-
-            <!-- LOGIN -->
-
-            <div
-                id="loginPanel"
-                class="auth-panel"
-            >
-
-                <h2>
-                    ورود
-                </h2>
-
-                <p class="auth-description">
-                    با شناسه یا شماره موبایل وارد شوید.
+                <p>
+                    تماس تصویری و صوتی آنلاین
                 </p>
 
-                <div class="input-group">
 
-                    <label for="loginIdentifier">
-                        شناسه یا شماره موبایل
-                    </label>
+                <!-- Login -->
+
+                <div id="loginPanel">
+
+                    <h2>
+                        ورود
+                    </h2>
 
                     <input
                         id="loginIdentifier"
                         type="text"
-                        placeholder="مثلاً amir123"
-                        autocomplete="username"
+                        placeholder="شناسه یا شماره موبایل"
+                        autocomplete="off"
                     >
+
+                    <button
+                        id="loginButton"
+                        type="button"
+                    >
+                        ورود
+                    </button>
+
+                    <div
+                        id="loginError"
+                        class="error"
+                    ></div>
+
+                    <button
+                        id="showRegisterButton"
+                        type="button"
+                    >
+                        ثبت‌نام
+                    </button>
 
                 </div>
 
+
+                <!-- Register -->
+
                 <div
-                    id="loginError"
-                    class="form-error"
-                ></div>
-
-                <button
-                    id="loginButton"
-                    class="primary-button full-button"
-                    type="button"
+                    id="registerPanel"
+                    class="hidden"
                 >
-                    ورود
-                </button>
 
-                <button
-                    id="showRegisterButton"
-                    class="link-button"
-                    type="button"
-                >
-                    حساب ندارید؟ ثبت‌نام کنید
-                </button>
-
-            </div>
-
-
-            <!-- REGISTER -->
-
-            <div
-                id="registerPanel"
-                class="auth-panel hidden"
-            >
-
-                <h2>
-                    ساخت حساب
-                </h2>
-
-                <p class="auth-description">
-                    اطلاعات خود را وارد کنید.
-                </p>
-
-
-                <div class="input-group">
-
-                    <label for="registerUserId">
-                        شناسه
-                    </label>
+                    <h2>
+                        ثبت‌نام
+                    </h2>
 
                     <input
                         id="registerUserId"
                         type="text"
-                        placeholder="شناسه دلخواه شما"
-                        autocomplete="username"
+                        placeholder="شناسه"
+                        autocomplete="off"
                     >
-
-                </div>
-
-
-                <div class="input-group">
-
-                    <label for="registerPhone">
-                        شماره موبایل
-                    </label>
 
                     <input
                         id="registerPhone"
                         type="tel"
-                        placeholder="09123456789"
-                        autocomplete="tel"
+                        placeholder="شماره موبایل"
+                        autocomplete="off"
                     >
-
-                </div>
-
-
-                <div class="input-group">
-
-                    <label for="registerName">
-                        نام نمایشی
-                    </label>
 
                     <input
                         id="registerName"
                         type="text"
-                        placeholder="نام شما"
-                        autocomplete="name"
+                        placeholder="نام نمایشی"
+                        autocomplete="off"
                     >
 
+                    <button
+                        id="registerButton"
+                        type="button"
+                    >
+                        ثبت‌نام
+                    </button>
+
+                    <div
+                        id="registerError"
+                        class="error"
+                    ></div>
+
+                    <button
+                        id="showLoginButton"
+                        type="button"
+                    >
+                        بازگشت به ورود
+                    </button>
+
                 </div>
-
-
-                <div
-                    id="registerError"
-                    class="form-error"
-                ></div>
-
-
-                <button
-                    id="registerButton"
-                    class="primary-button full-button"
-                    type="button"
-                >
-                    ساخت حساب
-                </button>
-
-
-                <button
-                    id="showLoginButton"
-                    class="link-button"
-                    type="button"
-                >
-                    قبلاً حساب ساخته‌اید؟ ورود
-                </button>
 
             </div>
 
         </div>
 
-    </section>
+    </div>
 
 
     <!-- =========================
-         MAIN APP
+         Main App
     ========================== -->
 
-    <main
-        id="mainApp"
-        class="main-app hidden"
+    <div
+        id="appContainer"
+        class="hidden"
     >
-
-        <!-- TOPBAR -->
 
         <header class="topbar">
 
-            <div class="topbar-brand">
+            <div class="profile-mini">
 
-                <div class="small-brand-icon">
-                    📹
-                </div>
+                <img
+                    id="myAvatar"
+                    src="icon.svg"
+                    alt=""
+                >
 
                 <div>
-                    <strong>
-                        VideoCallApp
-                    </strong>
 
-                    <span>
-                        تماس آنلاین
-                    </span>
-                </div>
-
-            </div>
-
-
-            <div class="topbar-user">
-
-                <div class="mini-avatar">
-
-                    <img
-                        id="myAvatar"
-                        alt="پروفایل"
-                    >
-
-                </div>
-
-                <div class="topbar-user-info">
-
-                    <strong
-                        id="myDisplayName"
-                    >
+                    <div id="myDisplayName">
                         کاربر
-                    </strong>
+                    </div>
 
-                    <span
-                        id="myUserId"
-                    >
-                    </span>
+                    <div id="myUserId">
+                        -
+                    </div>
 
-                    <span
-                        id="onlineStatus"
-                        class="online-label"
-                    >
+                    <div id="onlineStatus">
                         آنلاین
-                    </span>
+                    </div>
 
                 </div>
 
             </div>
 
 
-            <div class="topbar-actions">
+            <div class="top-actions">
 
                 <button
                     id="contactsButton"
-                    class="icon-button"
                     type="button"
-                    title="مخاطبین"
                 >
-                    👥
+                    👥 مخاطبین
                 </button>
 
                 <button
                     id="profileButton"
-                    class="icon-button"
                     type="button"
-                    title="پروفایل"
                 >
-                    👤
+                    👤 پروفایل
                 </button>
 
                 <button
                     id="settingsButton"
-                    class="icon-button"
                     type="button"
-                    title="تنظیمات"
                 >
-                    ⚙️
+                    ⚙️ تنظیمات
                 </button>
 
                 <button
                     id="logoutButton"
-                    class="icon-button danger-button"
                     type="button"
-                    title="خروج"
                 >
                     خروج
                 </button>
@@ -312,35 +233,13 @@
         </header>
 
 
-        <!-- CONTENT -->
+        <main class="main-container">
 
-        <div class="content-wrapper">
+            <section class="search-section">
 
-
-            <!-- SEARCH CARD -->
-
-            <section class="card search-card">
-
-                <div class="section-heading">
-
-                    <div>
-
-                        <h2>
-                            پیدا کردن کاربر
-                        </h2>
-
-                        <p>
-                            با شناسه یا شماره موبایل جستجو کنید.
-                        </p>
-
-                    </div>
-
-                    <div class="section-icon">
-                        🔎
-                    </div>
-
-                </div>
-
+                <h2>
+                    پیدا کردن کاربر
+                </h2>
 
                 <div class="search-box">
 
@@ -352,7 +251,6 @@
 
                     <button
                         id="searchUserButton"
-                        class="primary-button"
                         type="button"
                     >
                         جستجو
@@ -361,55 +259,38 @@
                 </div>
 
 
-                <!-- SEARCH RESULT -->
-
                 <div
                     id="searchResult"
                     class="search-result hidden"
                 >
 
-                    <div class="search-result-user">
+                    <img
+                        id="searchUserAvatar"
+                        src="icon.svg"
+                        alt=""
+                    >
 
-                        <div class="large-avatar">
+                    <div>
 
-                            <img
-                                id="searchUserAvatar"
-                                alt="کاربر"
-                            >
+                        <h3 id="searchUserName">
+                            کاربر
+                        </h3>
 
-                        </div>
+                        <div
+                            id="searchUserIdentifier"
+                        ></div>
 
-
-                        <div class="search-user-info">
-
-                            <h3
-                                id="searchUserName"
-                            >
-                                کاربر
-                            </h3>
-
-                            <div
-                                id="searchUserIdentifier"
-                                class="muted-text"
-                            >
-                            </div>
-
-                            <div
-                                id="searchUserPhone"
-                                class="muted-text"
-                            >
-                            </div>
-
-                        </div>
+                        <div
+                            id="searchUserPhone"
+                        ></div>
 
                     </div>
 
 
-                    <div class="search-actions">
+                    <div class="call-buttons">
 
                         <button
                             id="searchAudioCallButton"
-                            class="call-button audio"
                             type="button"
                         >
                             📞 تماس صوتی
@@ -417,10 +298,9 @@
 
                         <button
                             id="searchVideoCallButton"
-                            class="call-button video"
                             type="button"
                         >
-                            📹 تماس تصویری
+                            🎥 تماس تصویری
                         </button>
 
                     </div>
@@ -430,72 +310,40 @@
             </section>
 
 
-            <!-- USERS -->
+            <section class="users-section">
 
-            <section class="card users-card">
+                <div class="section-header">
 
-                <div class="section-heading">
-
-                    <div>
-
-                        <h2>
-                            کاربران
-                        </h2>
-
-                        <p>
-                            کاربران موجود در برنامه
-                        </p>
-
-                    </div>
+                    <h2>
+                        کاربران
+                    </h2>
 
                     <button
                         id="refreshUsersButton"
-                        class="refresh-button"
                         type="button"
-                        title="به‌روزرسانی"
                     >
-                        ↻
+                        🔄 بروزرسانی
                     </button>
 
                 </div>
 
-
-                <div
-                    id="usersList"
-                    class="users-list"
-                >
-
-                    <div class="empty-state">
-                        در حال دریافت کاربران...
-                    </div>
-
+                <div id="usersList">
                 </div>
 
             </section>
 
 
-            <!-- CALL AREA -->
+            <!-- Call -->
 
             <section
                 id="callArea"
                 class="call-area hidden"
             >
 
-                <div class="call-header">
-
-                    <div>
-
-                        <span class="call-live-dot">
-                        </span>
-
-                        <span
-                            id="connectionStatus"
-                        >
-                            آماده تماس
-                        </span>
-
-                    </div>
-
+                <div
+                    id="connectionStatus"
+                >
+                    آماده تماس
                 </div>
 
 
@@ -503,150 +351,97 @@
 
                     <div
                         id="remotePlaceholder"
-                        class="remote-placeholder"
                     >
-
-                        <div class="placeholder-icon">
-                            📹
-                        </div>
-
-                        <strong>
-                            تصویر طرف مقابل
-                        </strong>
-
-                        <span>
-                            در انتظار اتصال...
-                        </span>
-
+                        در انتظار تصویر...
                     </div>
-
 
                     <video
                         id="remoteVideo"
-                        class="remote-video"
                         autoplay
                         playsinline
                     ></video>
 
-
                     <video
                         id="localVideo"
-                        class="local-video hidden"
                         autoplay
                         muted
                         playsinline
                     ></video>
 
+                </div>
 
-                    <div class="call-controls">
 
-                        <button
-                            id="muteButton"
-                            class="control-button"
-                            type="button"
-                            title="میکروفون"
-                        >
-                            🎙️
-                        </button>
+                <div class="call-controls">
 
-                        <button
-                            id="cameraButton"
-                            class="control-button"
-                            type="button"
-                            title="دوربین"
-                        >
-                            📹
-                        </button>
+                    <button
+                        id="muteButton"
+                        type="button"
+                    >
+                        🎤
+                    </button>
 
-                        <button
-                            id="hangupButton"
-                            class="control-button hangup"
-                            type="button"
-                            title="پایان تماس"
-                        >
-                            📞
-                        </button>
+                    <button
+                        id="cameraButton"
+                        type="button"
+                    >
+                        📹
+                    </button>
 
-                    </div>
+                    <button
+                        id="hangupButton"
+                        type="button"
+                    >
+                        ☎️ پایان تماس
+                    </button>
 
                 </div>
 
             </section>
 
-        </div>
+        </main>
 
-    </main>
+    </div>
 
 
     <!-- =========================
-         INCOMING CALL MODAL
+         Incoming Call
     ========================== -->
 
     <div
         id="incomingCallModal"
-        class="modal-overlay hidden"
+        class="modal hidden"
     >
 
-        <div class="incoming-call-card">
+        <div class="modal-card">
 
-            <div class="incoming-animation">
-
-                <div class="incoming-ring">
-                    📞
-                </div>
-
-            </div>
-
-
-            <span class="incoming-label">
-                تماس ورودی
-            </span>
-
-
-            <div class="incoming-avatar">
-
-                <img
-                    id="incomingCallerAvatar"
-                    alt="تماس‌گیرنده"
-                >
-
-            </div>
-
-
-            <h2
-                id="incomingCaller"
+            <img
+                id="incomingCallerAvatar"
+                src="icon.svg"
+                alt=""
             >
-                کاربر
+
+            <h2>
+                تماس ورودی
             </h2>
 
+            <div id="incomingCaller">
+                کاربر
+            </div>
 
-            <p>
-                در حال تماس با شماست
-            </p>
-
-
-            <div class="incoming-actions">
+            <div class="incoming-buttons">
 
                 <button
                     id="acceptCallButton"
-                    class="accept-button"
                     type="button"
                 >
-                    ✓
-                    <span>
-                        قبول
-                    </span>
+                    پاسخ
                 </button>
 
                 <button
                     id="rejectCallButton"
-                    class="reject-button"
                     type="button"
                 >
-                    ✕
-                    <span>
-                        رد
-                    </span>
+                    رد تماس
                 </button>
 
             </div>
@@ -657,23 +452,16 @@
 
 
     <!-- =========================
-         TOAST
+         Toast
     ========================== -->
 
-    <div
-        id="toast"
-        class="toast hidden"
-    ></div>
+    <div id="toast"></div>
 
 
-    <!-- =========================
-         SCRIPTS
-    ========================== -->
+    <!-- Scripts -->
 
     <script src="notifications.js"></script>
     <script src="app.js"></script>
-
-</div>
 
 </body>
 </html>
